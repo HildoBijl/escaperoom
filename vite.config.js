@@ -7,13 +7,14 @@ export default defineConfig({
   resolve: {
     alias: {
       src: "/src",
-      util: "/src/util",
-      fb: "/src/firebase", // Do not use firebase to not get confused with the firebase package.
       assets: "/src/assets",
-      styling: "/src/styling",
       components: "/src/components",
+      fb: "/src/firebase", // Do not use firebase to not get confused with the firebase package.
+      game: "/src/game",
       pages: "/src/pages",
-      simulations: "/src/simulations",
+      routing: "/src/routing",
+      styling: "/src/styling",
+      util: "/src/util",
     },
   },
 })

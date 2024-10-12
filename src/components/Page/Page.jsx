@@ -1,9 +1,10 @@
-import { Header } from '../Header'
-import { Container } from '../Container'
+import { Outlet } from 'react-router-dom'
 
-export function Page({ children }) {
+import { Header } from '../Header'
+
+export function Page() {
 	return <>
 		<Header />
-		<Container>{children}</Container>
+		<Outlet />
 	</>
 }

@@ -1,7 +1,7 @@
-import { Page } from 'components'
+import { Subpage } from 'components'
 
 export function Game() {
-	return <Page>
+	return <Subpage>
 		<p>This is the game page.</p>
-	</Page>
+	</Subpage>
 }

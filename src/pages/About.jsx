@@ -1,7 +1,7 @@
-import { Page } from 'components'
+import { Subpage } from 'components'
 
 export function About() {
-	return <Page>
+	return <Subpage>
 		<p>This is the about page.</p>
-	</Page>
+	</Subpage>
 }

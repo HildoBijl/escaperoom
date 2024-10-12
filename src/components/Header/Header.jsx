@@ -8,6 +8,8 @@ import { tabs, useCurrentRoute, useTabIndex } from 'routing'
 
 import { Container } from '../Container'
 
+const tabStyle = { outline: 'none !important' }
+
 export function Header() {
 	// Determine the route and the corresponding tab index.
 	const route = useCurrentRoute()
@@ -15,7 +17,7 @@ export function Header() {
 
 	// Set up a change handler: when the tab changes, update the URL.
 	const navigate = useNavigate()
-	const handleChange = (event, tabIndex) => navigate(tabs[tabIndex])
+	const handleChange = (event, tabIndex) => navigate(tabs[tabIndex].path)
 
 	// If the route indicated no header should be present, don't render a header.
 	if (route.header === false)
@@ -32,9 +34,7 @@ export function Header() {
 					textColor="inherit"
 					variant="fullWidth"
 				>
-					<Tab label="Home" />
-					<Tab label="Escape Room" />
-					<Tab label="Info" />
+					{tabs.map(tab => <Tab sx={tabStyle} key={tab.path} label={tab.text} />)}
 				</Tabs>
 			</Container>
 		</AppBar>

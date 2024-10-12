@@ -27,7 +27,7 @@ export function useCurrentRoute() {
 
 export function useTabIndex() {
 	const routes = useCurrentRoutes()
-	const getTabIndex = route => tabs.indexOf(route.path)
+	const getTabIndex = route => tabs.findIndex(tab => tab.path === route.path)
 	const route = [...routes].reverse().find(route => getTabIndex(route) !== -1)
 	return route ? getTabIndex(route) : 0
 }

@@ -1,5 +1,5 @@
 export const tabs = [
-	'/',
-	'/spel',
-	'/info',
+	{ path: '/', text: 'Home' },
+	{ path: '/spel', text: 'Escape Room' },
+	{ path: '/info', text: 'Info' },
 ]

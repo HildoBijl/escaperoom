@@ -13,7 +13,7 @@ export const createCustomTheme = ({ mode }) => createTheme({
       main: '#242424',
     },
     secondary: {
-      main: '#888888',
+      main: '#36c',
     },
     mode,
   },

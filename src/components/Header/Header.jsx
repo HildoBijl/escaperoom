@@ -8,7 +8,7 @@ import { tabs, useCurrentRoute, useTabIndex } from 'routing'
 
 import { Container } from '../Container'
 
-const tabStyle = { outline: 'none !important' }
+const tabStyle = { outline: 'none !important', minHeight: '56px' }
 
 export function Header() {
 	// Determine the route and the corresponding tab index.
@@ -34,7 +34,7 @@ export function Header() {
 					textColor="inherit"
 					variant="fullWidth"
 				>
-					{tabs.map(tab => <Tab sx={tabStyle} key={tab.path} label={tab.text} />)}
+					{tabs.map(tab => <Tab sx={tabStyle} key={tab.path} icon={tab.icon ? <tab.icon /> : null} label={tab.text} iconPosition="start" />)}
 				</Tabs>
 			</Container>
 		</AppBar>

@@ -2,6 +2,6 @@ import { Subpage } from 'components'
 
 export function Game() {
 	return <Subpage>
-		<p>This is the game page.</p>
+		<p>ToDo: Zet de game engine op en voeg raadsels toe.</p>
 	</Subpage>
 }

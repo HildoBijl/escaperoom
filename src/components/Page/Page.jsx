@@ -1,9 +1,9 @@
-import { Top } from '../Top'
+import { Header } from '../Header'
 import { Container } from '../Container'
 
 export function Page({ children }) {
 	return <>
-		<Top />
+		<Header />
 		<Container>{children}</Container>
 	</>
 }

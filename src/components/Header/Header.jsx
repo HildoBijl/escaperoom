@@ -8,7 +8,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 
 import { Container } from '../Container'
 
-export function Top() {
+export function Header() {
 	return <Box>
 		<AppBar position="static">
 			<Container>

@@ -25,7 +25,7 @@ export function Header() {
 
 	// Render the Header.
 	return <Box>
-		<AppBar position="static">
+		<AppBar position="static" enableColorOnDark>
 			<Container>
 				<Tabs
 					value={tabIndex}

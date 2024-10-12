@@ -10,10 +10,10 @@ import './main.css'
 export const createCustomTheme = ({ mode }) => createTheme({
   palette: {
     primary: {
-      main: '#e2001a',
+      main: '#242424',
     },
     secondary: {
-      main: '#213547',
+      main: '#888888',
     },
     mode,
   },

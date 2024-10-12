@@ -21,7 +21,12 @@ export const routes = [
 				path: '/info',
 				element: <About />,
 				tabIndex: 2,
-			}
+			},
+			{
+				path: '*',
+				element: <Home />,
+				tabIndex: 0,
+			},
 		],
 	},
 ]

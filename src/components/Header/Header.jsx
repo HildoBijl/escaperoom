@@ -1,32 +1,31 @@
+import { useState } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import MenuIcon from '@mui/icons-material/Menu'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
 
 import { Container } from '../Container'
 
 export function Header() {
+	const [value, setValue] = useState(0)
+	const handleChange = (event, newValue) => {
+		setValue(newValue)
+	}
+
 	return <Box>
 		<AppBar position="static">
 			<Container>
-				<Toolbar>
-					<IconButton
-						size="large"
-						edge="start"
-						color="inherit"
-						aria-label="menu"
-						sx={{ mr: 2 }}
-					>
-						<MenuIcon />
-					</IconButton>
-					<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-						News
-					</Typography>
-					<Button color="inherit">Login</Button>
-				</Toolbar>
+				<Tabs
+					value={value}
+					onChange={handleChange}
+					indicatorColor="secondary"
+					textColor="inherit"
+					variant="fullWidth"
+				>
+					<Tab label="Home" />
+					<Tab label="Escape Room" />
+					<Tab label="Info" />
+				</Tabs>
 			</Container>
 		</AppBar>
 	</Box>

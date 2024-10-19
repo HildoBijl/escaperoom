@@ -21,7 +21,8 @@ export function Location({ numVisits, clearHistory }) {
 	</>
 }
 
-export function Action({ action, numActionVisits, isCurrentAction }) {
+export function Action(props) {
+	const { action, numActionVisits, isCurrentAction } = props
 	switch (action.type) {
 		case 'search':
 			return <>
@@ -41,16 +42,21 @@ export function Action({ action, numActionVisits, isCurrentAction }) {
 				<Line text="Je bekijkt het scherm in het kastje naast de deur" />
 				{numActionVisits === 0 ? <>
 					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>
-					{isCurrentAction ? <p>ToDo: zet interface op om raadseloplossing in te geven.</p> : null}
+					{isCurrentAction ? <Interface {...props} /> : null}
 				</> : <>
 					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>
-					{isCurrentAction ? <p>ToDo: zet interface op om raadseloplossing in te geven.</p> : null}
+					{isCurrentAction ? <Interface {...props} /> : null}
 				</>}
 			</>
 		case 'return':
 			return <>
 				<Line text="Je gaat terug naar het kantoor" />
 				<p>Je laat het kastje voorlopig met rust, doet een stap terug, en kijkt weer rond in het kantoor.</p>
+			</>
+		case 'unlockDoor':
+			return <>
+				<Line text="Je lost het magische raam op en de deur klikt open" />
+				<p>Eindelijk! Je dacht even dat je tot de volgende dag vast zou zitten in het kantoor. De deur laat zich nu normaal openen, en je stapt terug het wiskundelokaal in.</p>
 			</>
 		default:
 			throw new Error(`Invalid action type: cannot determine what to do with an action of type "${action.type}" at the current location.`)
@@ -69,8 +75,13 @@ function getOptions({ state, lastAction, history, locationIndex, actionIndex }) 
 	const neverCheckedDoor = !getNumActionVisits(history, 'Office', 'checkDoor', locationIndex, actionIndex)
 	return [
 		{ text: 'Doorzoek het kantoor', action: 'search' },
-		 neverCheckedDoor ?
+		neverCheckedDoor ?
 			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
 			{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' },
 	]
+}
+
+function Interface(props) {
+	const { submitAction } = props
+	return <p>ToDo: zet interface op om raadseloplossing in te geven. Tot de interface klaar is kun je <span onClick={() => submitAction('unlockDoor')} style={{ fontWeight: 'bold', cursor: 'pointer' }}>hier</span> klikken om direct het raadsel op te lossen en de deur te openen.</p>
 }

@@ -15,12 +15,15 @@ export function updateState(location, state, action) {
 		return { state, location: action.to }
 
 	// For each location, check each possible action.
-	// switch (location) {
-	// 	case 'Office':
-	// 		switch (action.type) {
-
-	// 		}
-	// }
+	switch (location) {
+		case 'Office':
+			switch (action.type) {
+				case 'unlockDoor':
+					state.officeDoorUnlocked = true
+					location = 'Maths'
+					break
+			}
+	}
 
 	// Return the updated data.
 	return {

@@ -1,1 +1,7 @@
-export * from './Office'
+export * as Office from './Office'
+export * as Maths from './Maths'
+export * as RoomA from './RoomA'
+export * as RoomB from './RoomB'
+export * as RoomC from './RoomC'
+export * as RoomD from './RoomD'
+export * as FinalRoom from './FinalRoom'

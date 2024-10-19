@@ -1,9 +1,9 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
-export function Office({ numVisits, direction, action }) {
+export function Location({ numVisits }) {
 	// On the first visit, show the game intro.
-	if (numVisits === 1) {
+	if (numVisits === 0) {
 		return <>
 			{/* Add a margin for the reset button. */}
 			<p style={{ marginRight: '50px' }}>Tijdens een lange wiskundeles vertel je aan je wiskundedocent dat je wel eens wat andere wiskunde wilt dan de standaard wiskunde van de middelbare school. Je docent krijgt een klein fonkelen in de ogen en neemt je mee naar zijn kantoor achterin het klaslokaal. Uit een grote boekenkast trekt hij een boek over fractals.</p>
@@ -15,8 +15,17 @@ export function Office({ numVisits, direction, action }) {
 		</>
 	}
 
+	// On future visits, show a shorter message.
 	return <>
-		<p>Je bent in het kantoor. {numVisits}:{direction}:{action}</p>
-		{action ? <p>{action}</p> : <p>Wat ga je doen?</p>}
+		<p>Je bent terug in het kantoor, voor de {numVisits}e keer.</p>
 	</>
+}
+
+export function Action({ action }) {
+	return <p>Je hebt het volgende gedaan: {JSON.stringify(action)}</p>
+}
+
+export function Choice({ state }) {
+	console.log(state)
+	return <p>Wat ga je doen?</p>
 }

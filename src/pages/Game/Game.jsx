@@ -1,53 +1,32 @@
-import ReplayIcon from '@mui/icons-material/Replay'
-import Fab from '@mui/material/Fab'
-import Tooltip from '@mui/material/Tooltip'
-
 import { useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
+import { ResetButton } from './components'
 import * as locations from './locations'
+import { initialHistory, localStorageKey, getState, getNumVisits } from './engine'
 
 export function Game() {
-	const [history, setHistory, clearHistory] = useLocalStorageState([{ state: { location: 'Office' } }])
-	console.log(setHistory, clearHistory)
+	const [history, setHistory, clearHistory] = useLocalStorageState(initialHistory, localStorageKey)
 
+	// ToDo: run a check to see if the history is still valid. If not, clear it.
+
+	// Render the Game.
 	return <Subpage>
 		<ResetButton {...{ clearHistory }} />
 		{history.map((item, index) => {
 			// Gather data about the location that we're in.
-			const { state, action } = item
-			const previousState = history[index - 1]?.state
-			const numVisits = history.reduce((counter, runItem, runIndex) => counter + (runIndex <= index && runItem?.state?.location === item?.state?.location ? 1 : 0), 0)
-
-			// Render the location.
-			const Location = locations[state.location]
-			const locationRender = <Location key={index} {...{ state, previousState, numVisits, action }} />
-
-			// Depending on the story, add other components like a line or a question.
-			if (index === history.length - 1)
-				return locationRender
-			return <>
-				{locationRender}
-				<hr />
-			</>
+			const { location, actions } = item
+			const state = getState(history, index)
+			return <Location key={index} {...{ location, actions, state, index, history, setHistory }} />
 		})}
 	</Subpage>
 }
 
-function ResetButton({ clearHistory }) {
-	// Define a handler to reset the game history.
-	const confirmReset = () => {
-		if (window.confirm('Weet je zeker dat je het spel wilt resetten? Je begint dan weer vanaf het begin.'))
-			clearHistory()
-	}
+function Location({ location, actions, state, index, history }) {
+	const locationComponents = locations[location]
 
-	// Render the reset button.
-	return <div style={{ position: 'absolute', top: '0px', right: '12px' }}>
-		<Tooltip title="Spel opnieuw beginnen" arrow>
-			<Fab color="primary" size="medium" onClick={confirmReset} sx={{ outline: 'none' }}>
-				<ReplayIcon />
-			</Fab>
-		</Tooltip>
-	</div>
-
+	// Render the intro to the location.
+	const numVisits = getNumVisits(history, location, index)
+	const Location = locationComponents.Location
+	return <Location {...{ numVisits, state }} />
 }

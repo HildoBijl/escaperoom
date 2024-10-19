@@ -20,7 +20,7 @@ export function updateHistory(history, action) {
 
 	// Add the action and the state into the history of the current location.
 	const lastHistoryElement = lastOf(history)
-	const lastLocationActions = lastHistoryElement.actions || []
+	const lastLocationActions = lastHistoryElement.actions
 	history = [
 		...history.slice(0, -1),
 		{
@@ -37,7 +37,7 @@ export function updateHistory(history, action) {
 
 	// If we moved to a new location, add this to the history.
 	if (newLocation !== location)
-		history = [...history, { location: newLocation }]
+		history = [...history, { location: newLocation, actions: [] }]
 
 	// All updated. Return the history.
 	return history

@@ -8,7 +8,19 @@
  * This functionality basically describes the entire game.
  */
 export function updateState(location, state, action) {
-	console.log('Taking an action!', location, state, action)
+	state = { ...state }
+
+	// For each location, check each possible action.
+	switch (location) {
+		case 'Office':
+			switch (action.type) {
+				case 'checkDoor':
+					state.checkedOfficeDoor = true
+					break
+			}
+	}
+
+	// Return the updated data.
 	return {
 		state,
 		location

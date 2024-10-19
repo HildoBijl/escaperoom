@@ -1,48 +1,52 @@
 import { useTheme, darken } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 
-import { updateHistory } from '../engine'
-
 // ChoiceButtons renders the buttons which the user can choose from, given a list of options.
-export function ChoiceButtons({ options, setHistory }) {
-	const theme = useTheme()
+export function ChoiceButtons({ options, submitAction }) {
+	// Process the options array.
+	if (!Array.isArray(options))
+		options = [options]
+	options = options.filter(option => !!option)
+
+	// Render the buttons.
 	return <Box style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'space-between', alignItems: 'stretch', gap: '0.6rem' }}>
-		{options.map((option, optionIndex) => {
-			const { text, action } = option
-			const processChoice = () => setHistory(history => updateHistory(history, action))
-			return <Box
-				key={optionIndex}
-				sx={{
-					// Coloring.
-					background: theme.palette.primary.main,
-					borderStyle: 'solid',
-					borderWidth: '0.25rem',
-					borderColor: darken(theme.palette.primary.main, 0.2),
-					color: theme.palette.primary.contrastText,
+		{options.map(({ text, action }, optionIndex) => <ChoiceButton key={optionIndex} text={text} onClick={() => submitAction(action)} />)}
+	</Box>
+}
 
-					'&:hover': {
-						background: darken(theme.palette.primary.main, 0.2),
-						borderColor: darken(theme.palette.primary.main, 0.4),
-					},
+// ChoiceButton is a single button that can be chosen.
+function ChoiceButton({ text, onClick }) {
+	const theme = useTheme()
+	return <Box
+		onClick={onClick}
+		sx={{
+			// Coloring.
+			background: theme.palette.primary.main,
+			borderStyle: 'solid',
+			borderWidth: '0.25rem',
+			borderColor: darken(theme.palette.primary.main, 0.2),
+			color: theme.palette.primary.contrastText,
 
-					// Sizing.
-					borderRadius: '1rem',
-					flexGrow: 1,
-					fontWeight: 500,
-					height: '3.5rem',
-					minWidth: '12rem',
+			'&:hover': {
+				background: darken(theme.palette.primary.main, 0.2),
+				borderColor: darken(theme.palette.primary.main, 0.4),
+			},
 
-					// Contents.
-					display: 'flex',
-					flexFlow: 'row nowrap',
-					justifyContent: 'center',
-					alignItems: 'center',
-					textAlign: 'center',
-					cursor: 'pointer',
-				}}
-				onClick={processChoice}>
-				{text}
-			</Box>
-		})}
+			// Sizing.
+			borderRadius: '1rem',
+			flexGrow: 1,
+			fontWeight: 500,
+			height: '3.5rem',
+			minWidth: '12rem',
+
+			// Contents.
+			display: 'flex',
+			flexFlow: 'row nowrap',
+			justifyContent: 'center',
+			alignItems: 'center',
+			textAlign: 'center',
+			cursor: 'pointer',
+		}}>
+		{text}
 	</Box>
 }

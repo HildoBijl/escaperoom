@@ -1,11 +1,16 @@
+import { useCallback } from 'react'
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
 import * as locations from './locations'
-import { initialHistory, localStorageKey, getState, getNumVisits } from './engine'
+import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits } from './engine'
 
 export function Game() {
 	const [history, setHistory, clearHistory] = useLocalStorageState(initialHistory, localStorageKey)
+	const submitAction = useCallback((action) => setHistory(history => updateHistory(history, action)), [setHistory])
+
+	// Gather all data and functions in one place.
+	const data = { history, setHistory, clearHistory, submitAction }
 
 	// ToDo: run a check to see if the history is still valid. If not, clear it.
 
@@ -14,9 +19,9 @@ export function Game() {
 		{history.map((item, locationIndex) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item
-			const state = getState(history, locationIndex)
 			const isCurrentLocation = locationIndex === history.length - 1
-			return <Location key={locationIndex} {...{ location, isCurrentLocation, actions, state, locationIndex, history, setHistory, clearHistory }} />
+			const state = getState(history, locationIndex)
+			return <Location key={locationIndex} {...{ ...data, location, locationIndex, isCurrentLocation, actions, state }} />
 		})}
 	</Subpage>
 }
@@ -25,16 +30,36 @@ function Location(props) {
 	const { history, location, actions, locationIndex, isCurrentLocation } = props
 	const locationComponents = locations[location]
 
-	// Render the intro to the location.
+	// Calculate relevant parameters.
 	const numVisits = getNumVisits(history, location, locationIndex)
-	const { Location, Action, Choice } = locationComponents
-
+	
+	// Render the location.
+	const { Location, Action } = locationComponents
 	return <>
 		<Location {...{ ...props, numVisits }} />
-		{(actions || []).map((actionData, actionIndex) => {
+		{actions.map((actionData, actionIndex) => {
 			const isCurrentAction = isCurrentLocation && actionIndex === actions.length - 1
-			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction }} />
+			const numActionVisits = getNumActionVisits(history, location, actionData.action.type, locationIndex, actionIndex)
+			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits }} />
 		})}
-		<Choice {...{ ...props, lastAction: lastOf(actions || []) }} />
+		<ChoiceSelection {...props} />
 	</>
+}
+
+function ChoiceSelection(props) {
+	const { isCurrentLocation, location, state: locationState, actions } = props
+	const locationComponents = locations[location]
+
+	// Only show the choice selection in the current location.
+	if (!isCurrentLocation)
+		return null
+
+	// Determine the last action taken at this location.
+	const lastActionData = lastOf(actions)
+	const lastAction = lastActionData?.action
+	const state = lastActionData?.state || locationState
+
+	// Render the Choice component of the location.
+	const { Choice } = locationComponents
+	return <Choice {...{ ...props, lastAction, state }} />
 }

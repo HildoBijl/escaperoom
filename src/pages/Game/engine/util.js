@@ -14,7 +14,7 @@ export function getState(history, index = history.length) {
 		return initialState
 
 	// Get the actions of the previous location and find the last state there.
-	const actions = history[index - 1]?.actions || []
+	const actions = history[index - 1].actions
 	if (actions.length > 0)
 		return lastOf(actions).state
 
@@ -23,6 +23,13 @@ export function getState(history, index = history.length) {
 }
 
 // getNumVisits calculates how many times the user has visited a given location. Optionally, a "beforeIndex" can be given to count the number of visits before a certain history index.
-export function getNumVisits(history, location, beforeIndex = history.length) {
+export function getNumVisits(history, location, beforeIndex = Infinity) {
 	return history.reduce((counter, item, index) => counter + (index < beforeIndex && item.location === location ? 1 : 0), 0)
+}
+
+// getNumActionVisits calculates how many times the user has taken a given action in a given location.
+export function getNumActionVisits(history, location, actionType, locationIndex = Infinity, actionIndex = Infinity) {
+	return history.reduce((counter, item, currLocationIndex) => counter + (currLocationIndex <= locationIndex && item.location === location ? (
+		item.actions.reduce((counter, actionData, currActionIndex) => counter + ((currLocationIndex < locationIndex || currActionIndex < actionIndex) && actionData.action.type === actionType ? 1 : 0), 0)
+	) : 0), 0)
 }

@@ -16,5 +16,6 @@ export function About() {
 			<li>Raadsels: Rianne Florijn en Daniël Kuckartz</li>
 			<li>Programmering: Hildo Bijl</li>
 		</ul>
+		<p>Afbeeldingen zijn gegenereerd via DeepAI.</p>
 	</Subpage>
 }

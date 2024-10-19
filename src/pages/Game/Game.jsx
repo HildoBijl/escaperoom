@@ -31,9 +31,9 @@ function Location(props) {
 
 	return <>
 		<Location {...{ ...props, numVisits }} />
-		{(actions || []).map((action, actionIndex) => {
+		{(actions || []).map((actionData, actionIndex) => {
 			const isCurrentAction = isCurrentLocation && actionIndex === actions.length - 1
-			return <Action key={actionIndex} {...{ ...props, action, actionIndex, isCurrentAction }} />
+			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction }} />
 		})}
 		<Choice {...{ ...props, lastAction: lastOf(actions || []) }} />
 	</>

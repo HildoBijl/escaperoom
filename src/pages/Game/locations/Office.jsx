@@ -24,12 +24,25 @@ export function Location({ numVisits, clearHistory }) {
 }
 
 export function Action({ action }) {
-	return <p>Je hebt het volgende gedaan: {JSON.stringify(action)}</p>
+	console.log(action)
+	switch (action.type) {
+		case 'search':
+			return <>
+				<p>Er zit een scherm op.</p>
+				<p>ToDo: input system.</p>
+			</>
+		case 'checkDoor':
+			return <>
+				<p>Je vindt wat notities.</p>
+			</>
+		default:
+			throw new Error(`Invalid action type: cannot determine what to do with an action of type "${action.type}" at the current location.`)
+	}
 }
 
 export function Choice({ setHistory }) {
-	return <ChoiceButtons options={[
+	return <ChoiceButtons setHistory={setHistory} options={[
 		{ text: 'Bekijk het kastje naast de deur', action: 'checkDoor' },
 		{ text: 'Doorzoek de kamer', action: 'search' },
-	]} setHistory={setHistory} />
+	]} />
 }

@@ -10,15 +10,17 @@
 export function updateState(location, state, action) {
 	state = { ...state }
 
+	// On a move action, apply it directly.
+	if (action.type === 'move')
+		return { state, location: action.to }
+
 	// For each location, check each possible action.
-	switch (location) {
-		case 'Office':
-			switch (action.type) {
-				case 'checkDoor':
-					state.checkedOfficeDoor = true
-					break
-			}
-	}
+	// switch (location) {
+	// 	case 'Office':
+	// 		switch (action.type) {
+
+	// 		}
+	// }
 
 	// Return the updated data.
 	return {

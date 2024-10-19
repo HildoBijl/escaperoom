@@ -1,6 +1,7 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
+import { getNumActionVisits } from '../engine'
 import { ResetButton, ChoiceButtons, Line } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
@@ -11,13 +12,12 @@ export function Location({ numVisits, clearHistory }) {
 			<p>Tijdens een lange wiskundeles vertel je aan je wiskundedocent dat je wel eens wat andere wiskunde wilt dan de standaard wiskunde van de middelbare school. Je docent krijgt een klein fonkelen in de ogen en neemt je mee naar zijn kantoor achterin het klaslokaal. Uit een grote boekenkast trekt hij een boek over fractals.</p>
 			<Image src={OfficeImage} />
 			<p>Terwijl de docent terug gaat naar het klaslokaal, ga je zitten in de stoel achter zijn bureau en duik je in de ingewikkelde figuren. Gefascineerd in de patronen vergeet je totaal de tijd. Als je uiteindelijk uit het boek ontwaakt merk je dat het rumoer van het klaslokaal opgehouden is. Een kille stilte lijkt door het gebouw getrokken te zijn. Hoe lang was je wel niet aan het lezen?</p>
-
 		</>
 	}
 
 	// On future visits, show a shorter message.
 	return <>
-		<p>Je bent terug in het kantoor, voor de {numVisits}e keer.</p>
+		<p>Je bent weer terug in het kantoor. Er is niets veranderd sinds de laatste keer dat je er was.</p>
 	</>
 }
 
@@ -38,7 +38,7 @@ export function Action({ action, numActionVisits, isCurrentAction }) {
 			</>
 		case 'checkBox':
 			return <>
-				<Line text="Je bekijkt het kastje naast de deur" />
+				<Line text="Je bekijkt het scherm in het kastje naast de deur" />
 				{numActionVisits === 0 ? <>
 					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>
 					{isCurrentAction ? <p>ToDo: zet interface op om raadseloplossing in te geven.</p> : null}
@@ -58,16 +58,19 @@ export function Action({ action, numActionVisits, isCurrentAction }) {
 }
 
 export function Choice(props) {
-	const { state, lastAction } = props
-	return <ChoiceButtons {...props} options={
-		lastAction?.type === 'checkBox' ?
-			[{ text: 'Ga terug naar het kantoor', action: 'return' }] :
-			[
-				{ text: 'Doorzoek het kantoor', action: 'search' },
-				!state.checkedOfficeDoor ?
-					{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
-					{ text: 'Bekijk het kastje naast de deur', action: 'checkBox' },
+	return <ChoiceButtons {...props} options={getOptions(props)} />
+}
 
-			]
-	} />
+function getOptions({ state, lastAction, history, locationIndex, actionIndex }) {
+	if (lastAction?.type === 'checkBox')
+		return [{ text: 'Ga terug naar het kantoor', action: 'return' }]
+	if (state.officeDoorOpened)
+		return [{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } }]
+	const neverCheckedDoor = !getNumActionVisits(history, 'Office', 'checkDoor', locationIndex, actionIndex)
+	return [
+		{ text: 'Doorzoek het kantoor', action: 'search' },
+		 neverCheckedDoor ?
+			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
+			{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' },
+	]
 }

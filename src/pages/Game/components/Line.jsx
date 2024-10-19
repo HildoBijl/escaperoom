@@ -4,7 +4,7 @@ import Box from '@mui/material/Box'
 export function Line({ text }) {
 	// Load in styling data.
 	const theme = useTheme()
-	const color = theme.mode === 'light' ? theme.palette.primary.main : theme.palette.secondary.main
+	const color = theme.palette.mode === 'light' ? theme.palette.primary.main : theme.palette.secondary.main
 	const lineStyle = { flexGrow: 1, background: color, height: '1px', transform: 'translateY(2px)' }
 
 	// Render the line.

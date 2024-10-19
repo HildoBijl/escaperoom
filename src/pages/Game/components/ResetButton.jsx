@@ -10,7 +10,7 @@ export function ResetButton({ clearHistory }) {
 	}
 
 	// Render the reset button.
-	return <div style={{ position: 'absolute', top: '0px', right: '12px' }}>
+	return <div style={{ float: 'right', margin: '8px 2px 4px 16px' }}>
 		<Tooltip title="Spel opnieuw beginnen" arrow>
 			<Fab color="primary" size="medium" onClick={confirmReset} sx={{ outline: 'none' }}>
 				<ReplayIcon />

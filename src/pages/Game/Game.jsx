@@ -12,21 +12,21 @@ export function Game() {
 
 	// Render the Game.
 	return <Subpage>
-		<ResetButton {...{ clearHistory }} />
 		{history.map((item, index) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item
 			const state = getState(history, index)
-			return <Location key={index} {...{ location, actions, state, index, history, setHistory }} />
+			return <Location key={index} {...{ location, actions, state, index, history, setHistory, clearHistory }} />
 		})}
 	</Subpage>
 }
 
-function Location({ location, actions, state, index, history }) {
+function Location(props) {
+	const { history, location, index } = props
 	const locationComponents = locations[location]
 
 	// Render the intro to the location.
 	const numVisits = getNumVisits(history, location, index)
 	const Location = locationComponents.Location
-	return <Location {...{ numVisits, state }} />
+	return <Location {...{ ...props, numVisits }} />
 }

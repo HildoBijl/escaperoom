@@ -1,7 +1,7 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
-import { ResetButton } from '../components'
+import { ResetButton, ChoiceButtons } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
 	// On the first visit, show the game intro.
@@ -27,6 +27,9 @@ export function Action({ action }) {
 	return <p>Je hebt het volgende gedaan: {JSON.stringify(action)}</p>
 }
 
-export function Choice() {
-	return <p>Wat ga je doen?</p>
+export function Choice({ setHistory }) {
+	return <ChoiceButtons options={[
+		{ text: 'Bekijk het kastje naast de deur', action: 'checkDoor' },
+		{ text: 'Doorzoek de kamer', action: 'search' },
+	]} setHistory={setHistory} />
 }

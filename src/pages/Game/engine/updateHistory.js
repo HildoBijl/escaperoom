@@ -8,6 +8,11 @@ import { updateState } from './updateState'
  * The function below receives a current history and a new action and updates the history, preserving its format.
  */
 export function updateHistory(history, action) {
+	console.log('Updating history!', action, history)
+	// The action should be an object. If it's a string, turn it into an object.
+	if (typeof action === 'string')
+		action = { type: action }
+
 	// Determine the new location and state.
 	const location = getLocation(history)
 	const state = getState(history)

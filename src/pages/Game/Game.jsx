@@ -1,7 +1,10 @@
 import { Subpage } from 'components'
 
+import { Intro, Progress } from './parts'
+
 export function Game() {
 	return <Subpage>
-		<p>ToDo: Zet de game engine op en voeg raadsels toe.</p>
+		<Intro />
+		<Progress />
 	</Subpage>
 }

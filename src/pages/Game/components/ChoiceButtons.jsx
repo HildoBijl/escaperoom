@@ -10,7 +10,7 @@ export function ChoiceButtons({ options, submitAction }) {
 
 	// Render the buttons.
 	return <Box style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'space-between', alignItems: 'stretch', gap: '0.6rem' }}>
-		{options.map(({ text, action }, optionIndex) => <ChoiceButton key={optionIndex} text={text} onClick={() => submitAction(action)} />)}
+		{options.map(({ text, action }) => <ChoiceButton key={text} text={text} onClick={() => submitAction(action)} />)}
 	</Box>
 }
 

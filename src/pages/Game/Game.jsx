@@ -1,7 +1,6 @@
-import { useLocalStorageState } from 'util'
+import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
-import { ResetButton } from './components'
 import * as locations from './locations'
 import { initialHistory, localStorageKey, getState, getNumVisits } from './engine'
 
@@ -12,21 +11,30 @@ export function Game() {
 
 	// Render the Game.
 	return <Subpage>
-		{history.map((item, index) => {
+		{history.map((item, locationIndex) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item
-			const state = getState(history, index)
-			return <Location key={index} {...{ location, actions, state, index, history, setHistory, clearHistory }} />
+			const state = getState(history, locationIndex)
+			const isCurrentLocation = locationIndex === history.length - 1
+			return <Location key={locationIndex} {...{ location, isCurrentLocation, actions, state, locationIndex, history, setHistory, clearHistory }} />
 		})}
 	</Subpage>
 }
 
 function Location(props) {
-	const { history, location, index } = props
+	const { history, location, actions, locationIndex, isCurrentLocation } = props
 	const locationComponents = locations[location]
 
 	// Render the intro to the location.
-	const numVisits = getNumVisits(history, location, index)
-	const Location = locationComponents.Location
-	return <Location {...{ ...props, numVisits }} />
+	const numVisits = getNumVisits(history, location, locationIndex)
+	const { Location, Action, Choice } = locationComponents
+
+	return <>
+		<Location {...{ ...props, numVisits }} />
+		{(actions || []).map((action, actionIndex) => {
+			const isCurrentAction = isCurrentLocation && actionIndex === actions.length - 1
+			return <Action key={actionIndex} {...{ ...props, action, actionIndex, isCurrentAction }} />
+		})}
+		<Choice {...{ ...props, lastAction: lastOf(actions || []) }} />
+	</>
 }

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
@@ -30,9 +30,10 @@ function Location(props) {
 	const { history, location, actions, locationIndex, isCurrentLocation } = props
 	const locationComponents = locations[location]
 
+
 	// Calculate relevant parameters.
 	const numVisits = getNumVisits(history, location, locationIndex)
-	
+
 	// Render the location.
 	const { Location, Action } = locationComponents
 	return <>
@@ -42,22 +43,23 @@ function Location(props) {
 			const numActionVisits = getNumActionVisits(history, location, actionData.action.type, locationIndex, actionIndex)
 			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits }} />
 		})}
-		<ChoiceSelection {...props} />
+		{isCurrentLocation ? <ChoiceSelection {...props} /> : null}
 	</>
 }
 
 function ChoiceSelection(props) {
-	const { isCurrentLocation, location, state: locationState, actions } = props
+	const { location, state: locationState, actions } = props
 	const locationComponents = locations[location]
-
-	// Only show the choice selection in the current location.
-	if (!isCurrentLocation)
-		return null
 
 	// Determine the last action taken at this location.
 	const lastActionData = lastOf(actions)
 	const lastAction = lastActionData?.action
 	const state = lastActionData?.state || locationState
+
+	// On a change in action, scroll to the bottom of the page.
+	useEffect(() => {
+		document.documentElement.scrollTop = document.documentElement.scrollHeight
+	}, [lastAction])
 
 	// Render the Choice component of the location.
 	const { Choice } = locationComponents

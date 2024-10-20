@@ -5,7 +5,7 @@ export function Line({ text }) {
 	// Load in styling data.
 	const theme = useTheme()
 	const color = theme.palette.mode === 'light' ? theme.palette.primary.main : theme.palette.secondary.main
-	const lineStyle = { flexGrow: 1, background: color, height: '1px', transform: 'translateY(2px)' }
+	const lineStyle = { flexGrow: 1, background: color, height: '1px', transform: 'translateY(1px)' }
 
 	// Render the line.
 	return <Box sx={{ display: 'flex', flexFlow: 'row nowrap', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -81,7 +81,7 @@ function getOptions({ state, lastAction }) {
 	return [
 		{ text: 'Doorzoek het kantoor', action: 'search' },
 		!state.officeDoor?.checked ?
-			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
+			{ text: 'Ga terug naar het klaslokaal', action: 'checkDoor' } :
 			!state.officeDoor?.unlocked ?
 				{ text: 'Bekijk het scherm naast de deur', action: 'checkBox' } :
 				{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } },
@@ -118,17 +118,22 @@ function Interface({ state, submitAction, isCurrentAction }) {
 	const seed = state.officeDoor.seed
 	const [numbers, setNumbers] = useRiddleStorage('officeDoor', initialNumbers)
 
+	// Track the mouse position.
+	const [mousePositionClient, setMousePositionClient] = useState()
+	const updatePositionFromEvent = event => setMousePositionClient(getEventPosition(event))
+
 	// Set up handlers for hovering/dragging.
 	const [hovering, setHovering] = useState()
 	const [dragging, setDragging] = useState()
-	const mousePosition = transformClientToSvg(useMousePosition(!!dragging), svgRef.current)
+	const mousePosition = transformClientToSvg(mousePositionClient, svgRef.current)
 	const startDragging = (pos, event) => {
-		console.log('Start dragging...', event)
 		if (active) {
 			const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
 			const blockCoords = posToCoords(pos)
 			const delta = subtract(dragLocation, blockCoords)
 			setDragging({ pos, delta })
+			updatePositionFromEvent(event)
+			event.preventDefault()
 		}
 	}
 	const endDragging = (event) => {
@@ -147,8 +152,10 @@ function Interface({ state, submitAction, isCurrentAction }) {
 		setDragging()
 	}
 	useEventListener(['mouseup', 'touchend'], endDragging, window) // Listen to mouse-up on entire window.
+	useEventListener(['mousemove', 'touchmove'], (event) => {
+		updatePositionFromEvent(event)
+	}, window, { passive: false }) // Disable scrolling on touches while dragging.
 	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
-	console.log(dragging, mousePosition)
 
 	// Check the value of the input.
 	const correct = [
@@ -178,7 +185,7 @@ function Interface({ state, submitAction, isCurrentAction }) {
 
 	// Render the interface.
 	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0.3) : darken(theme.palette.error.main, 0.3)
-	return <Svg ref={svgRef} size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem', touchAction: 'none' }}>
+	return <Svg ref={svgRef} size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem', overflow: 'visible' }}>
 
 		{/* Feedback rectangles. */}
 		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={getContainerColor(correct[3])} />
@@ -193,8 +200,8 @@ function Interface({ state, submitAction, isCurrentAction }) {
 		{dragging ? <Block pos={dragging.pos} shade={true} /> : null}
 
 		{/* Number blocks. Render the dragged one last to put it on top. */}
-		{numbers.map((_, pos) => dragging?.pos === pos ? null : renderBlock(pos))}
-		{dragging ? renderBlock(dragging.pos) : null}
+		{[...numbers.map((_, pos) => dragging?.pos === pos ? null : renderBlock(pos)),
+		dragging ? renderBlock(dragging.pos) : null]}
 
 	</Svg>
 }

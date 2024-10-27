@@ -106,7 +106,11 @@ export function useMousePosition() {
 	const [position, setPosition] = useState()
 
 	// Track the position of the mouse.
-	const storeData = (event) => setPosition(getEventPosition(event))
+	const storeData = (event) => {
+		// console.log('Updating position...')
+		setPosition(getEventPosition(event))
+		// event.preventDefault()
+	}
 	useEventListener(['mousemove', 'touchstart', 'touchmove'], storeData)
 	return position
 }

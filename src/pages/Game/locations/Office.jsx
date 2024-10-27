@@ -1,24 +1,21 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
-import { getNumActionVisits } from '../engine'
+import { cases } from '../util'
 import { ResetButton, ChoiceButtons, Line } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
-	// On the first visit, show the game intro.
-	if (numVisits === 0) {
-		return <>
+	// On the first visit, show the game intro. On later visits, show a shorter message.
+	return cases(numVisits, [0, 3, Infinity], [
+		<>
 			<ResetButton {...{ clearHistory }} />
 			<p>Tijdens een lange wiskundeles vertel je aan je wiskundedocent dat je wel eens wat andere wiskunde wilt dan de standaard wiskunde van de middelbare school. Je docent krijgt een klein fonkelen in de ogen en neemt je mee naar het kantoor achterin het klaslokaal. Uit een grote boekenkast wordt een boek over fractals tevoorschijn gehaald.</p>
 			<Image src={OfficeImage} />
 			<p>Terwijl de docent terug gaat naar het klaslokaal, ga je zitten in de stoel achter het grote bureau en duik je in de ingewikkelde figuren. Gefascineerd in de patronen vergeet je totaal de tijd. Als je uiteindelijk uit het boek ontwaakt merk je dat het rumoer van het klaslokaal opgehouden is. Een kille stilte lijkt door het gebouw getrokken te zijn. Hoe lang was je wel niet aan het lezen?</p>
-		</>
-	}
-
-	// On future visits, show a shorter message.
-	return <>
-		<p>Je bent weer terug in het kantoor. Er is niets veranderd sinds de laatste keer dat je er was.</p>
-	</>
+		</>,
+		<p>Je bent weer terug in het kantoor. Er is niets veranderd sinds de laatste keer dat je er was.</p>,
+		<p>Je keert alweer terug naar het kantoor. Er is hier werkelijk niets te vinden, maar om onbekende reden vind je het gewoon prettig om te doen alsof jij nu zelf de wiskundedocent bent, en dus blijf je hier terugkeren.</p>,
+	])
 }
 
 export function Action(props) {
@@ -27,8 +24,11 @@ export function Action(props) {
 		case 'search':
 			return <>
 				<Line text="Je doorzoekt het kantoor" />
-				{numActionVisits === 0 ? <p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van het bureau vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon. (ToDo: voeg afbeelding toe van voorbeeld magisch raam.)</p> :
-					numActionVisits < 4 ? <p>Je gaat nogmaals het kantoor door, maar vindt niets wat je nog niet eerder gezien hebt.</p> : <p>Je doorzoekt nogmaals hopeloos voor de zoveelste keer het kantoor, maar er is werkelijk niets nieuws te vinden.</p>}
+				{cases(numActionVisits, [0, 2, Infinity], [
+					<p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van het bureau vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon. (ToDo: voeg afbeelding toe van voorbeeld magisch raam.)</p>,
+					<p>Je gaat nogmaals het kantoor door, maar vindt niets wat je nog niet eerder gezien hebt.</p>,
+					<p>Je doorzoekt nogmaals hopeloos voor de zoveelste keer het kantoor, maar er is werkelijk niets nieuws te vinden.</p>,
+				])}
 			</>
 		case 'checkDoor':
 			return <>
@@ -40,13 +40,12 @@ export function Action(props) {
 		case 'checkBox':
 			return <>
 				<Line text="Je bekijkt het scherm in het kastje naast de deur" />
-				{numActionVisits === 0 ? <>
-					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>
-					{isCurrentAction ? <Interface {...props} /> : null}
-				</> : <>
-					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>
-					{isCurrentAction ? <Interface {...props} /> : null}
-				</>}
+				{cases(numActionVisits, [0, 2, Infinity], [
+					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>,
+					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>,
+					<p>De getallen zijn er nog steeds. Ze lijken je voor de gek te houden. Zul je ooit hun betekenis snappen?</p>,
+				])}
+				{isCurrentAction ? <Interface {...props} /> : null}
 			</>
 		case 'return':
 			return <>
@@ -67,15 +66,14 @@ export function Choice(props) {
 	return <ChoiceButtons {...props} options={getOptions(props)} />
 }
 
-function getOptions({ state, lastAction, history, locationIndex, actionIndex }) {
+function getOptions({ state, lastAction }) {
 	if (lastAction?.type === 'checkBox')
 		return [{ text: 'Ga terug naar het kantoor', action: 'return' }]
 	if (state.officeDoorOpened)
 		return [{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } }]
-	const neverCheckedDoor = !getNumActionVisits(history, 'Office', 'checkDoor', locationIndex, actionIndex)
 	return [
 		{ text: 'Doorzoek het kantoor', action: 'search' },
-		neverCheckedDoor ?
+		!state.officeDoorChecked ?
 			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
 			{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' },
 	]

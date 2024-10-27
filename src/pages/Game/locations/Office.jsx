@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
 import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
@@ -23,7 +23,7 @@ export function Location({ numVisits, clearHistory }) {
 }
 
 export function Action(props) {
-	const { action, numActionVisits, isCurrentAction } = props
+	const { action, numActionVisits, isCurrentAction, nextAction } = props
 	switch (action.type) {
 		case 'search':
 			return <>
@@ -49,7 +49,7 @@ export function Action(props) {
 					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>,
 					<p>De getallen zijn er nog steeds. Ze lijken je voor de gek te houden. Zul je ooit hun betekenis snappen?</p>,
 				])}
-				{isCurrentAction ? <Interface {...props} /> : null}
+				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 			</>
 		case 'return':
 			return <>
@@ -108,7 +108,10 @@ const marginShort = 10
 const containerParameters = { rx: radius, ry: radius, strokeWidth: 6, style: { opacity: 1, fill: 'none' } }
 
 // Render the interface.
-function Interface({ state }) {
+function Interface({ state, submitAction, finalState, isCurrentAction }) {
+	console.log('Rendering', finalState.officeDoor.unlocked, isCurrentAction)
+	const solved = finalState.officeDoor?.unlocked
+	console.log(solved, state)
 	const theme = useTheme()
 	const svgRef = useRef()
 	const mousePosition = transformClientToSvg(useMousePosition(), svgRef.current)
@@ -121,6 +124,8 @@ function Interface({ state }) {
 	// Set up handlers for dragging.
 	const [dragging, setDragging] = useState()
 	const startDragging = (pos, event) => {
+		if (solved)
+			return
 		const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
 		const blockCoords = posToCoords(pos)
 		const delta = subtract(dragLocation, blockCoords)
@@ -140,6 +145,19 @@ function Interface({ state }) {
 		setDragging()
 	}
 
+	// Check the value of the four blocks.
+	const correct = [
+		numbers[0] + numbers[1] + numbers[2] + numbers[3] === seed,
+		numbers[3] + numbers[4] + numbers[5] + numbers[6] === seed,
+		numbers[6] + numbers[7] + numbers[8] + numbers[9] === seed,
+		numbers[9] + numbers[10] + numbers[11] + numbers[0] === seed,
+	]
+	const allCorrect = correct.every(value => value)
+	useEffect(() => {
+		if (allCorrect && isCurrentAction)
+			submitAction('unlockDoor')
+	}, [allCorrect, isCurrentAction, submitAction])
+
 	// Let the entire window listen to mouse-ups.
 	useEventListener('mouseup', endDragging, window)
 
@@ -154,19 +172,19 @@ function Interface({ state }) {
 		const delta = dragging?.delta
 		const closest = !drag && closestPosition === pos
 		const onDown = (event) => startDragging(pos, event)
-		const onHoverStart = () => setHovering(pos)
+		const onHoverStart = () => setHovering(!solved && pos)
 		const onHoverEnd = () => setHovering()
-		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd }} />
+		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd, solved }} />
 	}
 
-	window.svgRef = svgRef
 	// Render the interface.
+	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0.3) : darken(theme.palette.error.main, 0.3)
 	return <Svg ref={svgRef} size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem' }}>
 		{/* Feedback rectangles. */}
-		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
-		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
-		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
-		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
+		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={getContainerColor(correct[3])} />
+		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={getContainerColor(correct[1])} />
+		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} stroke={getContainerColor(correct[0])} />
+		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} stroke={getContainerColor(correct[2])} />
 
 		{/* Central seed number. */}
 		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
@@ -185,7 +203,7 @@ function findClosestPosition(coords) {
 	return findOptimumIndex(squaredDistances, (a, b) => a < b)
 }
 
-function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd }) {
+function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd, solved }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -195,13 +213,14 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 		mousedown: onDown,
 	})
 
+	// Determine the coordinates where the number should be positioned.
 	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)
 
 	// Render the block.
 	const fill = theme.palette.primary.main
 	if (!coords)
 		return null
-	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: 'grab' }}>
+	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: solved ? 'default' : 'grab' }}>
 		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : (closest ? lighten(fill, 0.3) : fill))} />
 		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num}</text>}
 	</g>

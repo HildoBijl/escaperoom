@@ -22,6 +22,27 @@ export function getState(history, index = history.length) {
 	return getState(history, index - 1)
 }
 
+// getPreviousAction finds the action taken previous to the current action.
+export function getPreviousAction(history, locationIndex, actionIndex) {
+	if (actionIndex === 0) {
+		if (locationIndex === 0)
+			return undefined
+		return lastOf(history[locationIndex - 1].actions).action
+	}
+	return history[locationIndex].actions[actionIndex - 1].action
+}
+
+// getNextAction finds the action taken after the current action.
+export function getNextAction(history, locationIndex, actionIndex) {
+	console.log(history, locationIndex, actionIndex)
+	if (actionIndex === history[locationIndex].actions.length - 1) {
+		if (locationIndex === history.length - 1)
+			return undefined
+		return history[locationIndex + 1].actions[0]?.action
+	}
+	return history[locationIndex].actions[actionIndex + 1].action
+}
+
 // getNumVisits calculates how many times the user has visited a given location. Optionally, a "beforeIndex" can be given to count the number of visits before a certain history index.
 export function getNumVisits(history, location, beforeIndex = Infinity) {
 	return history.reduce((counter, item, index) => counter + (index < beforeIndex && item.location === location ? 1 : 0), 0)

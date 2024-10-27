@@ -21,7 +21,7 @@ export function updateState(location, state, action) {
 				case 'checkDoor':
 					state.officeDoor = {
 						checked: true,
-						seed: 23,
+						seed: 22,
 					}
 					break
 				case 'unlockDoor':

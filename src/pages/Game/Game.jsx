@@ -5,20 +5,22 @@ import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
 import * as locations from './locations'
-import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits } from './engine'
+import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits, getPreviousAction, getNextAction } from './engine'
 
 export function Game() {
 	const [history, setHistory, clearHistory] = useLocalStorageState(localStorageKey, initialHistory)
 	const submitAction = useCallback((action) => setHistory(history => updateHistory(history, action)), [setHistory])
 
 	// Gather all data and functions in one place.
-	const data = { history, setHistory, clearHistory, submitAction }
+	console.log(history)
+	const finalState = getState(history)
+	const data = { history, setHistory, clearHistory, submitAction, finalState }
 
 	// ToDo: run a check to see if the history is still valid. If not, clear it.
 
 	// Render the Game.
 	return <Subpage>
-		<Alert severity="info" sx={{my: 2}}>De Escape Room is nog in ontwikkeling. Op het moment staat alleen de eerste kamer online als teaser. De volledige Escape Room is beschikbaar vanaf <strong>6 januari 2025</strong>.</Alert>
+		<Alert severity="info" sx={{ my: 2 }}>De Escape Room is nog in ontwikkeling. Op het moment staat alleen de eerste kamer online als teaser. De volledige Escape Room is beschikbaar vanaf <strong>6 januari 2025</strong>.</Alert>
 		{history.map((item, locationIndex) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item
@@ -43,7 +45,9 @@ function Location(props) {
 		{actions.map((actionData, actionIndex) => {
 			const isCurrentAction = isCurrentLocation && actionIndex === actions.length - 1
 			const numActionVisits = getNumActionVisits(history, location, actionData.action.type, locationIndex, actionIndex)
-			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits }} />
+			const previousAction = getPreviousAction(history, locationIndex, actionIndex)
+			const nextAction = getNextAction(history, locationIndex, actionIndex)
+			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits, previousAction, nextAction }} />
 		})}
 		{isCurrentLocation ? <ChoiceSelection {...props} /> : null}
 	</>

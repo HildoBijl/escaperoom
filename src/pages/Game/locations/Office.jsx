@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
+import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue } from 'util'
 import { Image } from 'components'
 import { OfficeOverview, OfficeDoor, OfficeHint } from 'assets'
 
@@ -191,8 +191,8 @@ function Interface({ state, submitAction, isCurrentAction }) {
 		{/* Central seed number. */}
 		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
 
-		{/* Dragging shade. */}
-		{dragging ? <Block pos={dragging.pos} shade={true} /> : null}
+		{/* Block shades for when they are dragged away. */}
+		{[...numbers.map((_, pos) => <Block pos={pos} shade={true} />)]}
 
 		{/* Number blocks. Render the dragged one last to put it on top. */}
 		{[...numbers.map((_, pos) => dragging?.pos === pos ? null : renderBlock(pos)),
@@ -208,6 +208,7 @@ function findClosestPosition(coords) {
 
 function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd, active }) {
 	const theme = useTheme()
+	console.log(theme)
 
 	// Set up listeners for various events.
 	const ref = useRefWithEventListeners({
@@ -219,12 +220,16 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 
 	// Determine the coordinates where the number should be positioned.
 	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)
+	const easedCoords = {
+		x: useTransitionedValue(coords?.x, theme.transitions.duration.standard),
+		y: useTransitionedValue(coords?.y, theme.transitions.duration.standard),
+	}
 
 	// Render the block.
 	const fill = theme.palette.primary.main
-	if (!coords)
+	if (!easedCoords)
 		return null
-	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: active ? 'grab' : 'default' }}>
+	return <g ref={ref} transform={`translate(${easedCoords.x}, ${easedCoords.y})`} style={{ cursor: active ? 'grab' : 'default' }}>
 		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover || drag ? darken(fill, 0.4) : (closest ? lighten(fill, 0.3) : fill))} />
 		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num}</text>}
 	</g>

@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
+import { easeShiftSlow } from './numbers'
 import { ensureConsistency } from './objects'
 
 // getEventPosition takes an event and gives the coordinates (client) at which it happens. It does this by return a vector to said point. On a touch event, it extracts the first touch.
@@ -131,4 +132,72 @@ export function transformSvgToClient(pos, svg) {
 		x: pos.x * matrix.a + matrix.e,
 		y: pos.y * matrix.d + matrix.f,
 	}
+}
+
+// useAnimation takes an animation function and calls it several times per second with both (1) the time since mounting, and (2) the time difference dt since the last call. On the first call dt is undefined.
+export function useAnimation(animationFunc) {
+	const startTimeRef = useRef()
+	const previousTimeRef = useRef()
+	const requestRef = useRef()
+	const animationFuncRef = useLatest(animationFunc)
+
+	// Set up an animate function that keeps calling itself.
+	const animate = useCallback(pageTime => {
+		// Calculate all relevant times.
+		let dt, time
+		if (startTimeRef.current === undefined) {
+			startTimeRef.current = pageTime // Remember the starting time.
+			time = 0
+		} else {
+			time = pageTime - startTimeRef.current
+			dt = pageTime - previousTimeRef.current
+		}
+		previousTimeRef.current = pageTime
+
+		// Call the given animation function, and then call itself a tiny bit later.
+		animationFuncRef.current(time, dt)
+		requestRef.current = requestAnimationFrame(animate)
+	}, [startTimeRef, previousTimeRef, animationFuncRef])
+
+	// Start the animation cycle upon mounting.
+	useEffect(() => {
+		requestRef.current = requestAnimationFrame(animate)
+		return () => cancelAnimationFrame(requestRef.current)
+	}, [requestRef, animate])
+}
+
+// useTransitionedValue will apply slow transitioning of a given value, adjusting it over time.
+export function useTransitionedValue(targetValue, transitionTime = 1000, easing = easeShiftSlow) {
+	const previousTargetValue = usePrevious(targetValue)
+	const [update, setUpdate] = useState()
+	const [value, setValue] = useState(targetValue)
+
+	// When the target value changes, note that there is an update.
+	useEffect(() => {
+		if (previousTargetValue !== undefined && previousTargetValue !== targetValue) {
+			setUpdate({ oldValue: previousTargetValue, newValue: targetValue, changedOn: new Date() })
+		}
+	}, [previousTargetValue, targetValue, setUpdate])
+
+	// Regularly adjust the current value based on the update.
+	useAnimation(() => {
+		if (!update)
+			return
+
+		// Check if the transition already finished.
+		const timePassed = new Date() - update.changedOn
+		if (timePassed >= transitionTime) {
+			setValue(update.newValue)
+			setUpdate()
+			return
+		}
+
+		// Calculate the current state of the transition.
+		const partPassed = timePassed / transitionTime
+		const easedPartPassed = easing(partPassed)
+		setValue(update.oldValue + easedPartPassed * (update.newValue - update.oldValue))
+	})
+
+	// Return the value that we want to display.
+	return value
 }

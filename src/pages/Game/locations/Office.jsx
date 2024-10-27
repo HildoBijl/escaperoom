@@ -57,8 +57,10 @@ export function Action(props) {
 				<Line text="Je lost het magische raam op en de deur klikt open" />
 				<p>Eindelijk! Je dacht even dat je tot de volgende dag vast zou zitten in het kantoor. De deur laat zich nu normaal openen, en je stapt terug het wiskundelokaal in.</p>
 			</>
+		case 'move':
+			return <Line text="Je gaat naar het wiskundelokaal" />
 		default:
-			throw new Error(`Invalid action type: cannot determine what to do with an action of type "${action.type}" at the current location.`)
+			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location.`)
 	}
 }
 
@@ -69,13 +71,13 @@ export function Choice(props) {
 function getOptions({ state, lastAction }) {
 	if (lastAction?.type === 'checkBox')
 		return [{ text: 'Ga terug naar het kantoor', action: 'return' }]
-	if (state.officeDoorOpened)
-		return [{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } }]
 	return [
 		{ text: 'Doorzoek het kantoor', action: 'search' },
 		!state.officeDoorChecked ?
 			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
-			{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' },
+			!state.officeDoorUnlocked ?
+				{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' } :
+				{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } },
 	]
 }
 

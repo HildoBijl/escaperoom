@@ -5,3 +5,8 @@ export function cases(num, thresholds, outputs) {
 		return null
 	return outputs[index]
 }
+
+// isAdmin checks if admin mode has been turned on.
+export function isAdmin() {
+	return localStorage.getItem('adminmode') === "on"
+}

@@ -1,6 +1,14 @@
-import { useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 import { ensureConsistency } from './objects'
+
+// getEventPosition takes an event and gives the coordinates (client) at which it happens. It does this by return a vector to said point. On a touch event, it extracts the first touch.
+export function getEventPosition(event) {
+	const obj = (event.touches && event.touches[0]) || (event.changedTouches && event.changedTouches[0]) || event
+	if (obj.clientX === undefined || obj.clientY === undefined)
+		return null
+	return { x: obj.clientX, y: obj.clientY }
+}
 
 // usePrevious gives the value that the given parameter had on the previous render.
 function usePrevious(value) {
@@ -91,4 +99,37 @@ export function useRefWithEventListeners(handlers, options) {
 	const ref = useRef()
 	useEventListeners(handlers, ref, options)
 	return ref
+}
+
+// useMousePosition returns the position of the mouse in client coordinates.
+export function useMousePosition() {
+	const [position, setPosition] = useState()
+
+	// Track the position of the mouse.
+	const storeData = (event) => setPosition(getEventPosition(event))
+	useEventListener(['mousemove', 'touchstart', 'touchmove'], storeData)
+
+	return position
+}
+
+// transformClientToSvg turns a client position to an SVG position. Both points are given in {x, y} form.
+export function transformClientToSvg(pos, svg) {
+	if (!pos || !svg)
+		return undefined
+	const matrix = svg.getScreenCTM()
+	return {
+		x: (pos.x - matrix.e) / matrix.a,
+		y: (pos.y - matrix.f) / matrix.d,
+	}
+}
+
+// transformSvgToClient turns an SVG position to a client position. Both points are given in {x, y} form.
+export function transformSvgToClient(pos, svg) {
+	if (!pos || !svg)
+		return undefined
+	const matrix = svg.getScreenCTM()
+	return {
+		x: pos.x * matrix.a + matrix.e,
+		y: pos.y * matrix.d + matrix.f,
+	}
 }

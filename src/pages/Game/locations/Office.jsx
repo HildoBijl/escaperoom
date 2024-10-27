@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { useEventListener, useRefWithEventListeners } from 'util'
+import { useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
@@ -103,8 +103,10 @@ const containerParameters = { rx: radius, ry: radius, strokeWidth: 6, style: { o
 // Render the interface.
 function Interface({ state }) {
 	const theme = useTheme()
+	const svgRef = useRef()
+	const mousePosition = transformClientToSvg(useMousePosition(), svgRef.current)
 	const seed = state.officeDoor.seed
-	const [numbers, setNumbers, clearNumbers] = useRiddleStorage('officeDoor', initialPositions)
+	const [positions, setPositions, clearPositions] = useRiddleStorage('officeDoor', initialPositions)
 
 	// Set up handlers for hovering.
 	const [hovering, setHovering] = useState()
@@ -112,8 +114,13 @@ function Interface({ state }) {
 	// Set up handlers for dragging.
 	const [dragging, setDragging] = useState()
 	const startDragging = (num, event) => {
-		console.log('Starting drag', num, event)
-		setDragging(num)
+		const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+		const pos = positions[num]
+		const delta = {
+			x: dragLocation.x - posToX(pos),
+			y: dragLocation.y - posToY(pos),
+		}
+		setDragging({ num, delta })
 	}
 	const endDragging = (event) => {
 		console.log('Ending drag', event)
@@ -123,30 +130,63 @@ function Interface({ state }) {
 	// Let the entire window listen to mouse-ups.
 	useEventListener('mouseup', endDragging, window)
 
+	// Set up a handler to render a block.
+	const renderBlock = (num) => {
+		const pos = positions[num]
+		const hover = hovering === num
+		const drag = dragging?.num === num
+		const delta = dragging?.delta
+		const onDown = (event) => startDragging(num, event)
+		const onHoverStart = () => setHovering(num)
+		const onHoverEnd = () => setHovering()
+		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, onDown, onHoverStart, onHoverEnd }} />
+	}
+
+	window.svgRef = svgRef
 	// Render the interface.
-	return <Svg size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem' }}>
+	return <Svg ref={svgRef} size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem' }}>
 		{/* Feedback rectangles. */}
 		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
 		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
 		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
 		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
 
-		{/* Number blocks. */}
-		{numbers.map((pos, num) => <Block key={num} {...{ num, pos }} hover={hovering === num} onDown={(event) => startDragging(num, event)} onHoverStart={() => setHovering(num)} onHoverEnd={() => setHovering()} />)}
-
 		{/* Central seed number. */}
 		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
+
+		{/* Dragging shade. */}
+		{dragging ? <Block num={dragging.num} pos={positions[dragging.num]} shade={true} /> : null}
+
+		{/* Number blocks. Render the dragged one last to put it on top. */}
+		{positions.map((pos, num) => dragging?.num === num ? null : renderBlock(num))}
+		{dragging ? renderBlock(dragging.num) : null}
 	</Svg>
 }
 
-function Block({ num, pos, hover, onDown, onHoverStart, onHoverEnd }) {
+function Block({ num, pos, hover, drag, delta, shade, mousePosition, onDown, onHoverStart, onHoverEnd }) {
 	const theme = useTheme()
+
+	// Set up listeners for various events.
 	const ref = useRefWithEventListeners({
 		mouseenter: onHoverStart,
 		mouseleave: onHoverEnd,
+		mousedown: onDown,
 	})
-	return <g ref={ref} transform={`translate(${posToX(pos)}, ${posToY(pos)})`} style={{ cursor: 'grab' }} onMouseDown={onDown}>
-		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={hover ? darken(theme.palette.primary.main, 0.2) : theme.palette.primary.main} />
-		<text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num + 1}</text>
+
+	const coords = drag ? {
+		x: mousePosition.x - delta.x,
+		y: mousePosition.y - delta.y,
+	} : {
+		x: posToX(pos),
+		y: posToY(pos),
+	}
+
+	// Render the block.
+	const fill = theme.palette.primary.main
+	if (!coords)
+		return null
+	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: 'grab' }}>
+		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : fill)} />
+		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num + 1}</text>}
 	</g>
 }

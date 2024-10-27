@@ -1,96 +1,94 @@
-import { useState, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 
-// getLocalStorageValue reads an item from localStorage and attempts to parse it. A back-up value can be given to be used upon no entry.
-export function getLocalStorageValue(key, backup) {
-	const value = localStorage.getItem(key)
-	if (value === undefined || value === null)
-		return backup !== undefined ? backup : undefined
-	return JSON.parse(value)
+import { ensureConsistency } from './objects'
+
+// usePrevious gives the value that the given parameter had on the previous render.
+function usePrevious(value) {
+	const ref = useRef()
+	useEffect(() => {
+		ref.current = value
+	})
+	return ref.current
 }
 
-// setLocalStorageValue saves an item to localStorage as JSON.
-export function setLocalStorageValue(key, value) {
-	if (value === undefined || value === null)
-		return clearLocalStorageValue(key)
-	return localStorage.setItem(key, JSON.stringify(value))
+// useLatest is used to directly store a value in a ref. This is useful when you have use-only functions in a useEffect function: plug them in a ref, apply the ref in the useEffect function and the function isn't triggered so much. (Note: this is different from the @react-hook/latest, which uses an event and is hence too slow.)
+export function useLatest(value, initialValue = value) {
+	const ref = useRef(initialValue)
+	ref.current = value
+	return ref
 }
 
-// clearLocalStorageValue removes a value from localStorage.
-export function clearLocalStorageValue(key) {
-	return localStorage.removeItem(key)
+// useCurrentOrPrevious will check if the current object still exists. If not, the previous one is used. This is useful for keeping the layout intact while an object slides into hiding.
+export function useCurrentOrPrevious(value) {
+	const previousValue = usePrevious(value)
+	return value || previousValue
 }
 
-// getLocalStorageSubValue reads a parameter of a JSON object stored in localStorage.
-export function getLocalStorageSubValue(key, param, backup) {
-	const obj = getLocalStorageValue(key, {})
-	const value = obj[param]
-	return value === undefined ? backup : value
+// useConsistentValue will check if the given value is the same as previously. If the reference changes, but a deepEquals check still results in the same object, the same reference will be maintained.
+export function useConsistentValue(value) {
+	const ref = useRef()
+	ref.current = ensureConsistency(value, ref.current)
+	return ref.current
 }
 
-// clearLocalStorageSubValue takes an object in localStorage and removes one parameter.
-export function clearLocalStorageSubValue(key, param) {
-	const oldValue = getLocalStorageValue(key)
-	const newValue = { ...oldValue }
-	delete newValue[param]
-	if (Object.keys(newValue).length === 0)
-		return localStorage.removeItem(key)
-	setLocalStorageValue(key, newValue)
-}
+// useEventListener sets up event listeners for the given elements, executing the given handler. It ensures to efficiently deal with registering and unregistering listeners. The element parameter can be a DOM object or an array of DOM objects. It is allowed to insert ref objects whose "current" parameter is a DOM object. In addition, the eventName attribute may be an array. The handler may be a single function (in which case it's used for all eventNames) or an array with equal length as the eventName array.
+export function useEventListener(eventName, handler, elements = window, options = {}) {
+	// If the handler changes, remember it within the ref. This allows us to change the handler without having to reregister listeners.
+	eventName = useConsistentValue(eventName)
+	const handlerRef = useLatest(handler)
+	elements = useConsistentValue(elements)
+	options = useConsistentValue(options)
 
-// useLocalStorageState is like useState, but it then tracks the property in localStorage too. Upon saving, it stores to localStorage. Upon initializing, it tries to get the value back from localStorage.
-export function useLocalStorageState(key, initialValue) {
-	// Set up a state that tracks the local storage.
-	const storedState = getLocalStorageValue(key, initialValue)
-	const [state, setState] = useState(storedState)
+	// Ensure that the elements parameter is an array of existing objects.
+	elements = (Array.isArray(elements) ? elements : [elements])
+	elements = elements.map(element => {
+		if (!element)
+			return false // No element. Throw it out.
+		if (element.addEventListener)
+			return element // The element can listen. Keep it.
+		if (element.current && element.current.addEventListener)
+			return element.current // There is a "current" property that can listen. The object is most likely a ref.
+		return false // No idea. Throw it out.
+	})
+	elements = elements.filter(element => element) // Throw out non-existing elements or elements without an event listener.
+	elements = useConsistentValue(elements)
 
-	// Expand the setState to also store state updates.
-	const expandedSetState = useCallback((newState) => {
-		setState(() => {
-			const oldState = getLocalStorageValue(key, initialValue) // Always get the last entry from localStorage.
-			if (typeof newState === 'function')
-				newState = newState(oldState)
-			setLocalStorageValue(key, newState)
-			return newState
+	// Set up the listeners using another effect.
+	useEffect(() => {
+		// Set up redirecting handlers (one for each event name) which calls the latest functions in the handlerRef. 
+		const eventNames = Array.isArray(eventName) ? eventName : [eventName]
+		const redirectingHandlers = eventNames.map((_, index) => {
+			return (event) => {
+				const handler = handlerRef.current
+				const currHandler = Array.isArray(handler) ? handler[index] : handler
+				currHandler(event)
+			}
 		})
-	}, [key, initialValue, setState])
 
-	// Add a clear function to get rid of the local storage and go back to the initial value.
-	const clearState = useCallback(() => {
-		clearLocalStorageValue(key)
-		setState(initialValue)
-	}, [key, initialValue])
+		// Add event listeners for each of the handlers, to each of the elements.
+		eventNames.forEach((eventName, index) => {
+			const redirectingHandler = redirectingHandlers[index]
+			elements.forEach(element => element.addEventListener(eventName, redirectingHandler, options))
+		})
 
-	// Return the tuple.
-	return [state, expandedSetState, clearState]
+		// Make sure to remove all handlers upon a change in settings or upon a dismount.
+		return () => {
+			eventNames.forEach((eventName, index) => {
+				const redirectingHandler = redirectingHandlers[index]
+				elements.forEach(element => element.removeEventListener(eventName, redirectingHandler))
+			})
+		}
+	}, [eventName, handlerRef, elements, options]) // Reregister only when the event type or the listening objects change.
 }
 
-// useLocalStorageSubState is like useLocalStorageState. Key difference is that this subState function uses one LocalStorage parameter (indicated by the key) with multiple state parameters (indicated by the param).
-export function useLocalStorageSubState(key, param, initialValue) {
-	// Set up a state that tracks the local storage.
-	const storedValue = getLocalStorageSubValue(key, param)
-	const [subState, setSubState] = useState(storedValue === undefined ? initialValue : storedValue)
+// useEventListeners takes an object like { mouseenter: (evt) => {...}, mouseleave: (evt) => {...} } and applies event listeners to it.
+export function useEventListeners(handlers, elements, options) {
+	useEventListener(Object.keys(handlers), Object.values(handlers), elements, options)
+}
 
-	// Expand the setSubState to also store state updates.
-	const expandedSetSubState = useCallback((newSubState) => {
-		setSubState(() => {
-			const oldState = getLocalStorageValue(key, {})
-			let oldSubState = oldState[param]
-			if (oldSubState === undefined)
-				oldSubState = initialValue
-			if (typeof newSubState === 'function')
-				newSubState = newSubState(oldSubState)
-			const newState = { ...oldState, [param]: newSubState }
-			setLocalStorageValue(key, newState)
-			return newSubState
-		})
-	}, [key, param, initialValue, setSubState])
-
-	// Add a clear function to get rid of the local storage substate and go back to the initial value.
-	const clearState = useCallback(() => {
-		clearLocalStorageSubValue(key, param)
-		setSubState(initialValue)
-	}, [key, param, initialValue])
-
-	// Return the tuple.
-	return [subState, expandedSetSubState, clearState]
+// useRefWithEventListeners takes an object like { mouseenter: (evt) => {...}, mouseleave: (evt) => {...} } and returns a ref. If the ref is coupled to a DOM object, this DOM object listens to the relevant events.
+export function useRefWithEventListeners(handlers, options) {
+	const ref = useRef()
+	useEventListeners(handlers, ref, options)
+	return ref
 }

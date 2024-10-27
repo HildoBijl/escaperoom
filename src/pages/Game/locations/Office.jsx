@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { useTheme, darken, lighten } from '@mui/material/styles'
+
+import { useEventListener, useRefWithEventListeners } from 'util'
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
@@ -82,32 +86,67 @@ function getOptions({ state, lastAction }) {
 }
 
 // Set up settings for the Interface.
-const initialNumbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
+const initialPositions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
 const size = 72
 const margin = 36
 const gap = 24
 const radius = 10
-const numToX = num => margin + size / 2 + numToCol(num) * (size + gap)
-const numToY = num => margin + size / 2 + numToRow(num) * (size + gap)
-const numToRow = num => [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2, 1][num]
-const numToCol = num => [0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0][num]
+const posToRow = num => [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2, 1][num]
+const posToCol = num => [0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0][num]
+const posToX = num => margin + size / 2 + posToCol(num) * (size + gap)
+const posToY = num => margin + size / 2 + posToRow(num) * (size + gap)
 
 const marginLong = 24
 const marginShort = 10
-const containerParameters = { rx: radius, ry: radius, stroke: '#800', strokeWidth: 6, style: { opacity: 1, fill: 'none' } }
+const containerParameters = { rx: radius, ry: radius, strokeWidth: 6, style: { opacity: 1, fill: 'none' } }
 
 // Render the interface.
 function Interface({ state }) {
+	const theme = useTheme()
 	const seed = state.officeDoor.seed
-	const [numbers, setNumbers, clearNumbers] = useRiddleStorage('officeDoor', initialNumbers)
+	const [numbers, setNumbers, clearNumbers] = useRiddleStorage('officeDoor', initialPositions)
+
+	// Set up handlers for hovering.
+	const [hovering, setHovering] = useState()
+
+	// Set up handlers for dragging.
+	const [dragging, setDragging] = useState()
+	const startDragging = (num, event) => {
+		console.log('Starting drag', num, event)
+		setDragging(num)
+	}
+	const endDragging = (event) => {
+		console.log('Ending drag', event)
+		setDragging()
+	}
+
+	// Let the entire window listen to mouse-ups.
+	useEventListener('mouseup', endDragging, window)
+
+	// Render the interface.
 	return <Svg size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem' }}>
-		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} />
-		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} />
-		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} />
-		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} />
+		{/* Feedback rectangles. */}
+		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
+		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
+		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
+		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} stroke={darken(theme.palette.error.main, 0.3)} />
 
-		{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((num, index) => <rect key={index} x={numToX(num) - size / 2} y={numToY(num) - size / 2} width={size} height={size} rx={radius} ry={radius} fill="blue" />)}
+		{/* Number blocks. */}
+		{numbers.map((pos, num) => <Block key={num} {...{ num, pos }} hover={hovering === num} onDown={(event) => startDragging(num, event)} onHoverStart={() => setHovering(num)} onHoverEnd={() => setHovering()} />)}
 
-		<text x={(4 * size + 3 * gap + 2 * margin)/2} y={(4 * size + 3 * gap + 2 * margin)/2} fill="#eee" style={{ fontSize: '100px', textAnchor: 'middle', dominantBaseline: 'middle' }}>{seed}</text>
+		{/* Central seed number. */}
+		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
 	</Svg>
+}
+
+function Block({ num, pos, hover, onDown, onHoverStart, onHoverEnd }) {
+	const theme = useTheme()
+	const ref = useRefWithEventListeners({
+		mouseenter: onHoverStart,
+		mouseleave: onHoverEnd,
+	})
+	return <g ref={ref} transform={`translate(${posToX(pos)}, ${posToY(pos)})`} style={{ cursor: 'grab' }} onMouseDown={onDown}>
+		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={hover ? darken(theme.palette.primary.main, 0.2) : theme.palette.primary.main} />
+		<text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num + 1}</text>
+	</g>
 }

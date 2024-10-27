@@ -2,7 +2,7 @@ import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
 import { cases, isAdmin, useRiddleStorage } from '../util'
-import { ResetButton, ChoiceButtons, Line } from '../components'
+import { ResetButton, ChoiceButtons, Line, Svg } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
 	// On the first visit, show the game intro. On later visits, show a shorter message.
@@ -81,9 +81,33 @@ function getOptions({ state, lastAction }) {
 	]
 }
 
+// Set up settings for the Interface.
 const initialNumbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
+const size = 72
+const margin = 36
+const gap = 24
+const radius = 10
+const numToX = num => margin + size / 2 + numToCol(num) * (size + gap)
+const numToY = num => margin + size / 2 + numToRow(num) * (size + gap)
+const numToRow = num => [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2, 1][num]
+const numToCol = num => [0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0][num]
+
+const marginLong = 24
+const marginShort = 10
+const containerParameters = { rx: radius, ry: radius, stroke: '#800', strokeWidth: 6, style: { opacity: 1, fill: 'none' } }
+
+// Render the interface.
 function Interface({ state }) {
 	const seed = state.officeDoor.seed
 	const [numbers, setNumbers, clearNumbers] = useRiddleStorage('officeDoor', initialNumbers)
-	return <p onClick={() => setNumbers(numbers => [...numbers, numbers.length])}>ToDo: zet interface op om raadseloplossing in te geven. Gebruik seed {seed}. Waarde {JSON.stringify(numbers)}.</p>
+	return <Svg size={4 * size + 3 * gap + 2 * margin} style={{ borderRadius: '1rem' }}>
+		<rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} />
+		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} />
+		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} />
+		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} />
+
+		{[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((num, index) => <rect key={index} x={numToX(num) - size / 2} y={numToY(num) - size / 2} width={size} height={size} rx={radius} ry={radius} fill="blue" />)}
+
+		<text x={(4 * size + 3 * gap + 2 * margin)/2} y={(4 * size + 3 * gap + 2 * margin)/2} fill="#eee" style={{ fontSize: '100px', textAnchor: 'middle', dominantBaseline: 'middle' }}>{seed}</text>
+	</Svg>
 }

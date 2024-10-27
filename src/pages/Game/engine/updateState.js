@@ -1,3 +1,5 @@
+import { getRandomInteger } from 'util'
+
 /* The updateState function is the game engine. It works as a reducer. It takes three parameters:
  * - location (string): where the user is. For instance "Office".
  * - state (object): the current state of the game. It has all data about the progress, like which doors have been unlocked.
@@ -21,7 +23,7 @@ export function updateState(location, state, action) {
 				case 'checkDoor':
 					state.officeDoor = {
 						checked: true,
-						seed: 22,
+						seed: getRandomInteger(22, 30, [26]),
 					}
 					break
 				case 'unlockDoor':

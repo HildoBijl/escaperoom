@@ -192,7 +192,7 @@ function Interface({ state, submitAction, isCurrentAction }) {
 		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
 
 		{/* Block shades for when they are dragged away. */}
-		{[...numbers.map((_, pos) => <Block pos={pos} shade={true} />)]}
+		{[...numbers.map((_, pos) => <Block key={pos} pos={pos} shade={true} />)]}
 
 		{/* Number blocks. Render the dragged one last to put it on top. */}
 		{[...numbers.map((_, pos) => dragging?.pos === pos ? null : renderBlock(pos)),
@@ -208,7 +208,6 @@ function findClosestPosition(coords) {
 
 function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd, active }) {
 	const theme = useTheme()
-	console.log(theme)
 
 	// Set up listeners for various events.
 	const ref = useRefWithEventListeners({

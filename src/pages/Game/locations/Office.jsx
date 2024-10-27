@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
+import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
@@ -86,15 +86,22 @@ function getOptions({ state, lastAction }) {
 }
 
 // Set up settings for the Interface.
-const initialPositions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
+const initialNumbers = [11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 const size = 72
 const margin = 36
 const gap = 24
 const radius = 10
-const posToRow = num => [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2, 1][num]
-const posToCol = num => [0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0][num]
-const posToX = num => margin + size / 2 + posToCol(num) * (size + gap)
-const posToY = num => margin + size / 2 + posToRow(num) * (size + gap)
+
+const posToRowCol = pos => ({
+	x: [0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0, 0][pos],
+	y: [0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2, 1][pos],
+})
+const posToCoords = pos => ({
+	x: margin + size / 2 + posToRowCol(pos).x * (size + gap),
+	y: margin + size / 2 + posToRowCol(pos).y * (size + gap),
+})
+const subtract = (a, b) => ({ x: a.x - b.x, y: a.y - b.y })
+const squaredDistance = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2
 
 const marginLong = 24
 const marginShort = 10
@@ -106,40 +113,50 @@ function Interface({ state }) {
 	const svgRef = useRef()
 	const mousePosition = transformClientToSvg(useMousePosition(), svgRef.current)
 	const seed = state.officeDoor.seed
-	const [positions, setPositions, clearPositions] = useRiddleStorage('officeDoor', initialPositions)
+	const [numbers, setNumbers] = useRiddleStorage('officeDoor', initialNumbers)
 
 	// Set up handlers for hovering.
 	const [hovering, setHovering] = useState()
 
 	// Set up handlers for dragging.
 	const [dragging, setDragging] = useState()
-	const startDragging = (num, event) => {
+	const startDragging = (pos, event) => {
 		const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
-		const pos = positions[num]
-		const delta = {
-			x: dragLocation.x - posToX(pos),
-			y: dragLocation.y - posToY(pos),
-		}
-		setDragging({ num, delta })
+		const blockCoords = posToCoords(pos)
+		const delta = subtract(dragLocation, blockCoords)
+		setDragging({ pos, delta })
 	}
 	const endDragging = (event) => {
-		console.log('Ending drag', event)
+		const endDragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+		const closestPosition = findClosestPosition(subtract(endDragLocation, dragging.delta))
+		if (closestPosition !== dragging.pos) {
+			setNumbers(numbers => {
+				const newNumbers = [...numbers]
+				newNumbers[dragging.pos] = numbers[closestPosition]
+				newNumbers[closestPosition] = numbers[dragging.pos]
+				return newNumbers
+			})
+		}
 		setDragging()
 	}
 
 	// Let the entire window listen to mouse-ups.
 	useEventListener('mouseup', endDragging, window)
 
+	// On dragging, find the closest block.
+	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
+
 	// Set up a handler to render a block.
-	const renderBlock = (num) => {
-		const pos = positions[num]
-		const hover = hovering === num
-		const drag = dragging?.num === num
+	const renderBlock = (pos) => {
+		const num = numbers[pos]
+		const hover = hovering === pos
+		const drag = dragging?.pos === pos
 		const delta = dragging?.delta
-		const onDown = (event) => startDragging(num, event)
-		const onHoverStart = () => setHovering(num)
+		const closest = !drag && closestPosition === pos
+		const onDown = (event) => startDragging(pos, event)
+		const onHoverStart = () => setHovering(pos)
 		const onHoverEnd = () => setHovering()
-		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, onDown, onHoverStart, onHoverEnd }} />
+		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd }} />
 	}
 
 	window.svgRef = svgRef
@@ -155,15 +172,20 @@ function Interface({ state }) {
 		<text x={(4 * size + 3 * gap + 2 * margin) / 2} y={(4 * size + 3 * gap + 2 * margin) / 2} style={{ fontSize: '100px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 10)">{seed}</text>
 
 		{/* Dragging shade. */}
-		{dragging ? <Block num={dragging.num} pos={positions[dragging.num]} shade={true} /> : null}
+		{dragging ? <Block pos={dragging.pos} shade={true} /> : null}
 
 		{/* Number blocks. Render the dragged one last to put it on top. */}
-		{positions.map((pos, num) => dragging?.num === num ? null : renderBlock(num))}
-		{dragging ? renderBlock(dragging.num) : null}
+		{numbers.map((_, pos) => dragging?.pos === pos ? null : renderBlock(pos))}
+		{dragging ? renderBlock(dragging.pos) : null}
 	</Svg>
 }
 
-function Block({ num, pos, hover, drag, delta, shade, mousePosition, onDown, onHoverStart, onHoverEnd }) {
+function findClosestPosition(coords) {
+	const squaredDistances = initialNumbers.map((_, index) => squaredDistance(coords, posToCoords(index)))
+	return findOptimumIndex(squaredDistances, (a, b) => a < b)
+}
+
+function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -173,20 +195,14 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, onDown, onH
 		mousedown: onDown,
 	})
 
-	const coords = drag ? {
-		x: mousePosition.x - delta.x,
-		y: mousePosition.y - delta.y,
-	} : {
-		x: posToX(pos),
-		y: posToY(pos),
-	}
+	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)
 
 	// Render the block.
 	const fill = theme.palette.primary.main
 	if (!coords)
 		return null
 	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: 'grab' }}>
-		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : fill)} />
-		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num + 1}</text>}
+		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : (closest ? lighten(fill, 0.3) : fill))} />
+		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num}</text>}
 	</g>
 }

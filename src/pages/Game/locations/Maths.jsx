@@ -8,8 +8,8 @@ export function Location({ numVisits }) {
 	if (!isAdmin()) {
 		return <>
 			<Alert severity="info" sx={{ my: 2 }}>
-				<p style={{ marginTop: 0 }}>Gefeliciteerd! Je bent ontsnapt uit het kantoor! Maar dit was slechts de teaser...</p>
-				<p style={{ marginBottom: 0 }}>De volledige Escape Room is nog in ontwikkeling en komt op <strong>6 januari 2025</strong> online. Vanaf dan kun je ook proberen om uit &quot;De Verlaten School&quot; te ontsnappen. Kom vooral terug!</p>
+				Gefeliciteerd! Je bent ontsnapt uit het kantoor! Maar dit was slechts de teaser...<br />
+				De volledige Escape Room is nog in ontwikkeling en komt op <strong>6 januari 2025</strong> online. Vanaf dan kun je ook proberen om uit &quot;De Verlaten School&quot; te ontsnappen. Kom vooral terug!
 			</Alert>
 		</>
 	}

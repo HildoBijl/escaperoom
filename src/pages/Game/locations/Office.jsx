@@ -61,8 +61,8 @@ export function Action(props) {
 			</>
 		case 'unlockDoor':
 			return <>
-				<Line text="Je lost het magische raam op en de deur klikt open" />
-				<p>Eindelijk! Je dacht even dat je tot de volgende dag vast zou zitten in het kantoor. De deur laat zich nu normaal openen, en je stapt terug het wiskundelokaal in.</p>
+				<Line text="Je lost het magische raam op" />
+				<p>Als de oplossing ingevoerd is hoor je een klik, en de deur zwaait automatisch open. Eindelijk! Je dacht even dat je tot de volgende dag vast zou zitten in het kantoor. De deur laat zich nu normaal openen, en je stapt terug het wiskundelokaal in.</p>
 			</>
 		case 'move':
 			return <Line text="Je gaat naar het wiskundelokaal" />
@@ -225,7 +225,7 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 	if (!coords)
 		return null
 	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: active ? 'grab' : 'default' }}>
-		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : (closest ? lighten(fill, 0.3) : fill))} />
+		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover || drag ? darken(fill, 0.4) : (closest ? lighten(fill, 0.3) : fill))} />
 		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num}</text>}
 	</g>
 }

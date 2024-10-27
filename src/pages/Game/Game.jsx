@@ -1,4 +1,6 @@
 import { useCallback, useEffect } from 'react'
+import Alert from '@mui/material/Alert'
+
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
@@ -16,6 +18,7 @@ export function Game() {
 
 	// Render the Game.
 	return <Subpage>
+		<Alert severity="info" sx={{my: 2}}>De Escape Room is nog in ontwikkeling. Op het moment staat alleen de eerste kamer online als teaser. De volledige Escape Room is beschikbaar vanaf <strong>6 januari 2025</strong>.</Alert>
 		{history.map((item, locationIndex) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item

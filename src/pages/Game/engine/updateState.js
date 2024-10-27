@@ -19,10 +19,13 @@ export function updateState(location, state, action) {
 		case 'Office':
 			switch (action.type) {
 				case 'checkDoor':
-					state.officeDoorChecked = true
+					state.officeDoor = {
+						checked: true,
+						seed: 23,
+					}
 					break
 				case 'unlockDoor':
-					state.officeDoorUnlocked = true
+					state.officeDoor = { ...state.officeDoor, unlocked: true }
 					location = 'Maths'
 					break
 			}

@@ -1,7 +1,7 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
-import { cases } from '../util'
+import { cases, isAdmin } from '../util'
 import { ResetButton, ChoiceButtons, Line } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
@@ -70,18 +70,18 @@ export function Choice(props) {
 
 function getOptions({ state, lastAction }) {
 	if (lastAction?.type === 'checkBox')
-		return [{ text: 'Ga terug naar het kantoor', action: 'return' }]
+		return [{ text: 'Ga terug naar het kantoor', action: 'return' }, isAdmin() ? { text: 'Admin mode: los raadsel op', action: 'unlockDoor' } : undefined]
 	return [
 		{ text: 'Doorzoek het kantoor', action: 'search' },
-		!state.officeDoorChecked ?
+		!state.officeDoor?.checked ?
 			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
-			!state.officeDoorUnlocked ?
+			!state.officeDoor?.unlocked ?
 				{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' } :
 				{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } },
 	]
 }
 
 function Interface(props) {
-	const { submitAction } = props
-	return <p>ToDo: zet interface op om raadseloplossing in te geven. Tot de interface klaar is kun je <span onClick={() => submitAction('unlockDoor')} style={{ fontWeight: 'bold', cursor: 'pointer' }}>hier</span> klikken om direct het raadsel op te lossen en de deur te openen.</p>
+	const { state } = props
+	return <p>ToDo: zet interface op om raadseloplossing in te geven. Gebruik seed {state.officeDoor.seed}.</p>
 }

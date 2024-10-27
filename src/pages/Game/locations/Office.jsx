@@ -46,7 +46,7 @@ export function Action(props) {
 			</>
 		case 'checkBox':
 			return <>
-				<Line text="Je bekijkt het scherm in het kastje naast de deur" />
+				<Line text="Je bekijkt het scherm naast de deur" />
 				{cases(numActionVisits, [0, 2, Infinity], [
 					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>,
 					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>,
@@ -83,7 +83,7 @@ function getOptions({ state, lastAction }) {
 		!state.officeDoor?.checked ?
 			{ text: 'Open de deur terug naar het klaslokaal', action: 'checkDoor' } :
 			!state.officeDoor?.unlocked ?
-				{ text: 'Bekijk het scherm in het kastje naast de deur', action: 'checkBox' } :
+				{ text: 'Bekijk het scherm naast de deur', action: 'checkBox' } :
 				{ text: 'Ga naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } },
 	]
 }
@@ -123,6 +123,7 @@ function Interface({ state, submitAction, isCurrentAction }) {
 	const [dragging, setDragging] = useState()
 	const mousePosition = transformClientToSvg(useMousePosition(!!dragging), svgRef.current)
 	const startDragging = (pos, event) => {
+		console.log('Start dragging...', event)
 		if (active) {
 			const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
 			const blockCoords = posToCoords(pos)
@@ -147,6 +148,7 @@ function Interface({ state, submitAction, isCurrentAction }) {
 	}
 	useEventListener(['mouseup', 'touchend'], endDragging, window) // Listen to mouse-up on entire window.
 	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
+	console.log(dragging, mousePosition)
 
 	// Check the value of the input.
 	const correct = [

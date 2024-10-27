@@ -70,7 +70,8 @@ export function useEventListener(eventName, handler, elements = window, options 
 			return (event) => {
 				const handler = handlerRef.current
 				const currHandler = Array.isArray(handler) ? handler[index] : handler
-				currHandler(event)
+				if (typeof currHandler === 'function')
+					currHandler(event)
 			}
 		})
 

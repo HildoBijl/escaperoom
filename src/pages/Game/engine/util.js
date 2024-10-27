@@ -1,6 +1,11 @@
-import { lastOf } from 'util'
+import { lastOf, clearLocalStorageValue } from 'util'
 
-import { initialState } from './settings'
+import { initialState, localStorageKey } from './settings'
+
+// clearHistory clears the entire history from the local storage.
+export function clearHistory() {
+	return clearLocalStorageValue(localStorageKey)
+}
 
 // getLocation gets the location of the user from the game history.
 export function getLocation(history) {

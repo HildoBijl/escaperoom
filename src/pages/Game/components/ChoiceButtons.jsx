@@ -9,7 +9,7 @@ export function ChoiceButtons({ options, submitAction }) {
 	options = options.filter(option => !!option)
 
 	// Render the buttons.
-	return <Box style={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'space-between', alignItems: 'stretch', gap: '0.6rem' }}>
+	return <Box sx={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'space-between', alignItems: 'stretch', gap: '0.6rem', my: 3 }}>
 		{options.map(({ text, action }) => <ChoiceButton key={text} text={text} onClick={() => submitAction(action)} />)}
 	</Box>
 }

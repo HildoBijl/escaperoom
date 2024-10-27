@@ -3,7 +3,7 @@ import { useTheme, darken, lighten } from '@mui/material/styles'
 
 import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg } from 'util'
 import { Image } from 'components'
-import { Office as OfficeImage, OfficeDoor } from 'assets'
+import { OfficeOverview, OfficeDoor, OfficeHint } from 'assets'
 
 import { cases, isAdmin, useRiddleStorage } from '../util'
 import { ResetButton, ChoiceButtons, Line, Svg } from '../components'
@@ -14,7 +14,7 @@ export function Location({ numVisits, clearHistory }) {
 		<>
 			<ResetButton {...{ clearHistory }} />
 			<p>Tijdens een lange wiskundeles vertel je aan je wiskundedocent dat je wel eens wat andere wiskunde wilt dan de standaard wiskunde van de middelbare school. Je docent krijgt een klein fonkelen in de ogen en neemt je mee naar het kantoor achterin het klaslokaal. Uit een grote boekenkast wordt een boek over fractals tevoorschijn gehaald.</p>
-			<Image src={OfficeImage} />
+			<Image src={OfficeOverview} />
 			<p>Terwijl de docent terug gaat naar het klaslokaal, ga je zitten in de stoel achter het grote bureau en duik je in de ingewikkelde figuren. Gefascineerd in de patronen vergeet je totaal de tijd. Als je uiteindelijk uit het boek ontwaakt merk je dat het rumoer van het klaslokaal opgehouden is. Een kille stilte lijkt door het gebouw getrokken te zijn. Hoe lang was je wel niet aan het lezen?</p>
 		</>,
 		<p>Je bent weer terug in het kantoor. Er is niets veranderd sinds de laatste keer dat je er was.</p>,
@@ -29,7 +29,10 @@ export function Action(props) {
 			return <>
 				<Line text="Je doorzoekt het kantoor" />
 				{cases(numActionVisits, [0, 2, Infinity], [
-					<p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van het bureau vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon. (ToDo: voeg afbeelding toe van voorbeeld magisch raam.)</p>,
+					<>
+						<p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van het bureau vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon.</p>
+						<Image src={OfficeHint} />
+					</>,
 					<p>Je gaat nogmaals het kantoor door, maar vindt niets wat je nog niet eerder gezien hebt.</p>,
 					<p>Je doorzoekt nogmaals hopeloos voor de zoveelste keer het kantoor, maar er is werkelijk niets nieuws te vinden.</p>,
 				])}
@@ -108,44 +111,44 @@ const marginShort = 10
 const containerParameters = { rx: radius, ry: radius, strokeWidth: 6, style: { opacity: 1, fill: 'none' } }
 
 // Render the interface.
-function Interface({ state, submitAction, finalState, isCurrentAction }) {
-	console.log('Rendering', finalState.officeDoor.unlocked, isCurrentAction)
-	const solved = finalState.officeDoor?.unlocked
-	console.log(solved, state)
+function Interface({ state, submitAction, isCurrentAction }) {
+	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
 	const mousePosition = transformClientToSvg(useMousePosition(), svgRef.current)
 	const seed = state.officeDoor.seed
 	const [numbers, setNumbers] = useRiddleStorage('officeDoor', initialNumbers)
 
-	// Set up handlers for hovering.
+	// Set up handlers for hovering/dragging.
 	const [hovering, setHovering] = useState()
-
-	// Set up handlers for dragging.
 	const [dragging, setDragging] = useState()
 	const startDragging = (pos, event) => {
-		if (solved)
-			return
-		const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
-		const blockCoords = posToCoords(pos)
-		const delta = subtract(dragLocation, blockCoords)
-		setDragging({ pos, delta })
+		if (active) {
+			const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+			const blockCoords = posToCoords(pos)
+			const delta = subtract(dragLocation, blockCoords)
+			setDragging({ pos, delta })
+		}
 	}
 	const endDragging = (event) => {
-		const endDragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
-		const closestPosition = findClosestPosition(subtract(endDragLocation, dragging.delta))
-		if (closestPosition !== dragging.pos) {
-			setNumbers(numbers => {
-				const newNumbers = [...numbers]
-				newNumbers[dragging.pos] = numbers[closestPosition]
-				newNumbers[closestPosition] = numbers[dragging.pos]
-				return newNumbers
-			})
+		if (dragging) {
+			const endDragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+			const closestPosition = findClosestPosition(subtract(endDragLocation, dragging.delta))
+			if (closestPosition !== dragging.pos) {
+				setNumbers(numbers => {
+					const newNumbers = [...numbers]
+					newNumbers[dragging.pos] = numbers[closestPosition]
+					newNumbers[closestPosition] = numbers[dragging.pos]
+					return newNumbers
+				})
+			}
 		}
 		setDragging()
 	}
+	useEventListener('mouseup', endDragging, window)
+	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
 
-	// Check the value of the four blocks.
+	// Check the value of the input.
 	const correct = [
 		numbers[0] + numbers[1] + numbers[2] + numbers[3] === seed,
 		numbers[3] + numbers[4] + numbers[5] + numbers[6] === seed,
@@ -158,12 +161,6 @@ function Interface({ state, submitAction, finalState, isCurrentAction }) {
 			submitAction('unlockDoor')
 	}, [allCorrect, isCurrentAction, submitAction])
 
-	// Let the entire window listen to mouse-ups.
-	useEventListener('mouseup', endDragging, window)
-
-	// On dragging, find the closest block.
-	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
-
 	// Set up a handler to render a block.
 	const renderBlock = (pos) => {
 		const num = numbers[pos]
@@ -172,9 +169,9 @@ function Interface({ state, submitAction, finalState, isCurrentAction }) {
 		const delta = dragging?.delta
 		const closest = !drag && closestPosition === pos
 		const onDown = (event) => startDragging(pos, event)
-		const onHoverStart = () => setHovering(!solved && pos)
+		const onHoverStart = () => setHovering(active && pos)
 		const onHoverEnd = () => setHovering()
-		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd, solved }} />
+		return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd, active }} />
 	}
 
 	// Render the interface.
@@ -203,7 +200,7 @@ function findClosestPosition(coords) {
 	return findOptimumIndex(squaredDistances, (a, b) => a < b)
 }
 
-function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd, solved }) {
+function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, onDown, onHoverStart, onHoverEnd, active }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -220,7 +217,7 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 	const fill = theme.palette.primary.main
 	if (!coords)
 		return null
-	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: solved ? 'default' : 'grab' }}>
+	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: active ? 'grab' : 'default' }}>
 		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={shade ? darken(fill, 0.7) : (hover ? darken(fill, 0.2) : (closest ? lighten(fill, 0.3) : fill))} />
 		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '36px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{num}</text>}
 	</g>

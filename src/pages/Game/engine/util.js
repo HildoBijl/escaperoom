@@ -34,7 +34,6 @@ export function getPreviousAction(history, locationIndex, actionIndex) {
 
 // getNextAction finds the action taken after the current action.
 export function getNextAction(history, locationIndex, actionIndex) {
-	console.log(history, locationIndex, actionIndex)
 	if (actionIndex === history[locationIndex].actions.length - 1) {
 		if (locationIndex === history.length - 1)
 			return undefined

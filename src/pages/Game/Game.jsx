@@ -12,7 +12,6 @@ export function Game() {
 	const submitAction = useCallback((action) => setHistory(history => updateHistory(history, action)), [setHistory])
 
 	// Gather all data and functions in one place.
-	console.log(history)
 	const finalState = getState(history)
 	const data = { history, setHistory, clearHistory, submitAction, finalState }
 

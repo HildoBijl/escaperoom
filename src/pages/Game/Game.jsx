@@ -30,7 +30,6 @@ function Location(props) {
 	const { history, location, actions, locationIndex, isCurrentLocation } = props
 	const locationComponents = locations[location]
 
-
 	// Calculate relevant parameters.
 	const numVisits = getNumVisits(history, location, locationIndex)
 

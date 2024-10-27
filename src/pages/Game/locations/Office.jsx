@@ -119,8 +119,7 @@ function Interface({ state, submitAction, isCurrentAction }) {
 	const [numbers, setNumbers] = useRiddleStorage('officeDoor', initialNumbers)
 
 	// Track the mouse position.
-	const [mousePositionClient, setMousePositionClient] = useState()
-	const updatePositionFromEvent = event => setMousePositionClient(getEventPosition(event))
+	const mousePositionClient = useMousePosition()
 
 	// Set up handlers for hovering/dragging.
 	const [hovering, setHovering] = useState()
@@ -132,7 +131,6 @@ function Interface({ state, submitAction, isCurrentAction }) {
 			const blockCoords = posToCoords(pos)
 			const delta = subtract(dragLocation, blockCoords)
 			setDragging({ pos, delta })
-			updatePositionFromEvent(event)
 			event.preventDefault()
 		}
 	}
@@ -152,9 +150,6 @@ function Interface({ state, submitAction, isCurrentAction }) {
 		setDragging()
 	}
 	useEventListener(['mouseup', 'touchend'], endDragging, window) // Listen to mouse-up on entire window.
-	useEventListener(['mousemove', 'touchmove'], (event) => {
-		updatePositionFromEvent(event)
-	}, window, { passive: false }) // Disable scrolling on touches while dragging.
 	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
 
 	// Check the value of the input.

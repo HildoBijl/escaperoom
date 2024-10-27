@@ -1,7 +1,7 @@
 import { Image } from 'components'
 import { Office as OfficeImage, OfficeDoor } from 'assets'
 
-import { cases, isAdmin } from '../util'
+import { cases, isAdmin, useRiddleStorage } from '../util'
 import { ResetButton, ChoiceButtons, Line } from '../components'
 
 export function Location({ numVisits, clearHistory }) {
@@ -81,7 +81,9 @@ function getOptions({ state, lastAction }) {
 	]
 }
 
-function Interface(props) {
-	const { state } = props
-	return <p>ToDo: zet interface op om raadseloplossing in te geven. Gebruik seed {state.officeDoor.seed}.</p>
+const initialNumbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
+function Interface({ state }) {
+	const seed = state.officeDoor.seed
+	const [numbers, setNumbers, clearNumbers] = useRiddleStorage('officeDoor', initialNumbers)
+	return <p onClick={() => setNumbers(numbers => [...numbers, numbers.length])}>ToDo: zet interface op om raadseloplossing in te geven. Gebruik seed {seed}. Waarde {JSON.stringify(numbers)}.</p>
 }

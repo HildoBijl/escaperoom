@@ -2,11 +2,15 @@ import ReplayIcon from '@mui/icons-material/Replay'
 import Fab from '@mui/material/Fab'
 import Tooltip from '@mui/material/Tooltip'
 
+import { clearRiddleStorage } from '../util'
+
 export function ResetButton({ clearHistory }) {
 	// Define a handler to reset the game history.
 	const confirmReset = () => {
-		if (window.confirm('Weet je zeker dat je het spel wilt resetten? Je begint dan weer vanaf het begin.'))
+		if (window.confirm('Weet je zeker dat je het spel wilt resetten? Je begint dan weer vanaf het begin.')) {
+			clearRiddleStorage()
 			clearHistory()
+		}
 	}
 
 	// Render the reset button.

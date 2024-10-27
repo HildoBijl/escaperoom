@@ -8,7 +8,7 @@ import * as locations from './locations'
 import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits } from './engine'
 
 export function Game() {
-	const [history, setHistory, clearHistory] = useLocalStorageState(initialHistory, localStorageKey)
+	const [history, setHistory, clearHistory] = useLocalStorageState(localStorageKey, initialHistory)
 	const submitAction = useCallback((action) => setHistory(history => updateHistory(history, action)), [setHistory])
 
 	// Gather all data and functions in one place.

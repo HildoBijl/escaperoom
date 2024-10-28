@@ -176,9 +176,9 @@ export function useTransitionedValue(targetValue, transitionTime = 1000, easing 
 	// When the target value changes, note that there is an update.
 	useEffect(() => {
 		if (previousTargetValue !== undefined && previousTargetValue !== targetValue) {
-			setUpdate({ oldValue: previousTargetValue, newValue: targetValue, changedOn: new Date() })
+			setUpdate({ oldValue: value, newValue: targetValue, changedOn: new Date() })
 		}
-	}, [previousTargetValue, targetValue, setUpdate])
+	}, [previousTargetValue, value, targetValue, setUpdate])
 
 	// Regularly adjust the current value based on the update.
 	useAnimation(() => {

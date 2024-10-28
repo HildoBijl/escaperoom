@@ -220,8 +220,8 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 	// Determine the coordinates where the number should be positioned.
 	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)
 	const easedCoords = {
-		x: useTransitionedValue(coords?.x, theme.transitions.duration.standard),
-		y: useTransitionedValue(coords?.y, theme.transitions.duration.standard),
+		x: useTransitionedValue(coords?.x, drag ? 0 : theme.transitions.duration.standard),
+		y: useTransitionedValue(coords?.y, drag ? 0 : theme.transitions.duration.standard),
 	}
 
 	// Render the block.

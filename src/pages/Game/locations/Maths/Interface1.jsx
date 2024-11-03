@@ -6,14 +6,18 @@ import { getFactorization, findOptimumIndex, useEventListener, useRefWithEventLi
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
 
-
 // Set up settings for the Interface.
 const width = 8, height = 8
 const initialNumbers = (new Array(width * height)).fill(false)
 const size = 40
 const margin = 12
-const gap = 8
+const gap = 12
 const radius = 10
+const offset = 1
+const blockMargin = 5
+const containerRadius = radius + blockMargin - 2
+const containerParameters = { rx: containerRadius, ry: containerRadius, style: { opacity: 0.4 } }
+const groups = [[0, 2 * width - 1], [2 * width, 4 * width - 1], [4 * width, 6 * width - 1], [6 * width, 8 * width - 1]]
 
 export function Interface({ state, submitAction, isCurrentAction }) {
 	const active = isCurrentAction
@@ -30,15 +34,20 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		})
 	}
 
+	// Grade the input.
+	const correct = groups.map(group => areNumbersCorrect(numbers.slice(group[0], group[1] + 1), group[0] + offset))
+	const allCorrect = correct.every(value => value)
+	console.log(correct, allCorrect)
+
 	// Render the interface.
-	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0.3) : darken(theme.palette.primary.main, 0.3)
+	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0) : darken(theme.palette.primary.main, 1)
 	return <Svg ref={svgRef} size={8 * size + 7 * gap + 2 * margin} style={{ borderRadius: '1rem', overflow: 'visible' }}>
 
 		{/* Feedback rectangles. */}
-		{/* <rect x={margin - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={getContainerColor(correct[3])} />
-		<rect x={margin + 3 * (size + gap) - marginShort} y={margin - marginLong} width={size + 2 * marginShort} height={4 * size + 3 * gap + 2 * marginLong} {...containerParameters} stroke={getContainerColor(correct[1])} />
-		<rect x={margin - marginLong} y={margin - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} rx={radius} {...containerParameters} stroke={getContainerColor(correct[0])} />
-		<rect x={margin - marginLong} y={margin + 3 * (size + gap) - marginShort} width={4 * size + 3 * gap + 2 * marginLong} height={size + 2 * marginShort} {...containerParameters} stroke={getContainerColor(correct[2])} /> */}
+		{groups.map((group, index) => {
+			const start = getPosition(group[0]), end = getPosition(group[1])
+			return <rect key={index} x={start.x - size / 2 - blockMargin} y={start.y - size / 2 - blockMargin} width={end.x - start.x + size + 2 * blockMargin} height={end.y - start.y + size + 2 * blockMargin} {...containerParameters} fill={getContainerColor(correct[index])} />
+		})}
 
 		{/* Block shades for when they are dragged away. */}
 		{[...numbers.map((activated, num) => <Block key={num} num={num} activated={activated} flip={() => flipNumber(num)} active={active} />)]}
@@ -46,11 +55,8 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	</Svg>
 }
 
-
 function Block({ num, activated, flip, active }) {
 	const theme = useTheme()
-
-	// Set up handlers.
 	const [hover, setHover] = useState(false)
 
 	// Set up listeners for various events.
@@ -61,21 +67,35 @@ function Block({ num, activated, flip, active }) {
 	})
 
 	// Determine the coordinates where the number should be positioned.
-	const col = num % width
-	const row = (num - col) / width
-	const x = margin + (size + gap) * col + size / 2
-	const y = margin + (size + gap) * row + size / 2
+	const coords = getPosition(num)
 
 	// Render the block.
 	let fill = activated ? theme.palette.success.main : theme.palette.primary.main
 	if (hover)
 		fill = lighten(fill, 0.2)
-	return <g ref={ref} transform={`translate(${x}, ${y})`} style={{ cursor: active ? 'pointer' : 'default' }}>
+	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: active ? 'pointer' : 'default' }}>
 		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={fill} />
-		<text x={0} y={0} fill="#eee" style={{ fontSize: '16px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 2)">{num + 1}</text>
+		<text x={0} y={0} fill="#eee" style={{ fontSize: '16px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 2)">{num + offset}</text>
 	</g>
+}
+
+function getPosition(num) {
+	const col = num % width
+	const row = (num - col) / width
+	return {
+		x: margin + (size + gap) * col + size / 2,
+		y: margin + (size + gap) * row + size / 2,
+	}
 }
 
 function getNumPrimeFactors(num) {
 	return getFactorization(num).reduce((sum, value) => sum + value, 0)
+}
+
+function hasTwoPrimeFactors(num) {
+	return getNumPrimeFactors(num) === 2
+}
+
+function areNumbersCorrect(numbers, offset) {
+	return numbers.every((activated, index) => activated === hasTwoPrimeFactors(index + offset))
 }

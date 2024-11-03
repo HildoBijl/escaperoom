@@ -22,7 +22,6 @@ function addPrime() {
 	let n = primes[primes.length - 1] + 2
 	while (!isPrime(n))
 		n += 2
-	console.log('Adding', n)
 	primes.push(n)
 }
 

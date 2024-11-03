@@ -1,5 +1,5 @@
 import { Image } from 'components'
-import { UnavailableDoor, MathsDoor1 } from 'assets'
+import { UnavailableDoor, MathsHint1, MathsDoor1 } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -20,6 +20,20 @@ export function Action(props) {
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
+		case 'checkPosters':
+			return <>
+				<Line text="Je bekijkt de posters aan de muur" />
+				{cases(numActionVisits, [0, 2, 3, Infinity], [
+					<>
+						<p>Er hangen talloze posters aan de muur, en hoewel je in een verveelde bui de meesten wel eens aangestaard hebt, heb je er nog nooit echt over nagedacht wat ze nou eigenlijk tonen. Vooral een grote poster met drie getallen trekt je aandacht. Wat betekent het?</p>
+						<Image src={MathsHint1} />
+					</>,
+					<p>Je bekijkt de posters nog een keer, maar er is niets nieuws dat je opvalt.</p>,
+					<p>Gefrustreerd trek je een poster van de muur af. Erachter is een stuk muur zichtbaar dat in twintig jaar waarschijnlijk geen daglicht gezien heeft. Het biedt je alleen weinig extra uitgangen: de muur ziet er net zo hard uit als in de rest van het lokaal. Hopelijk wordt de leraar niet boos op je omdat je z&apos;n poster gesloopt hebt.</p>,
+					<p>De posters staren met grote ogen terug. Je besluit ze nu maar te laten hangen. Je hebt er al genoeg kapot gemaakt vandaag.</p>,
+				])}
+			</>
+
 		case 'checkDoor': {
 			switch (action.to) {
 				case 'Hallway':
@@ -37,9 +51,9 @@ export function Action(props) {
 						<Line text="Je loopt naar de deur naar het geschiedenislokaal" />
 						{cases(numActionVisits, [0, 2, Infinity], [
 							<>
-								<p>Je wist altijd al dat deze tussendeur er was, maar niemand gebruikt hem ooit. Misschien is hij open? Je probeert de deurklink, maar helaas. Hij zit op slot.</p>
+								<p>Je kan je niet herinneren dat iemand deze tussendeur ooit gebruikt heeft. Maar is hij open? Je probeert de deurklink. Helaas, hij zit op slot.</p>
 								<Image src={MathsDoor1} />
-								<p>Je aandacht wordt wederom gegrepen door een klein kastje aan de muur. Wat voor vreemd beveiligingssysteem is dit? Het scherm toont een tabel van cijfers. Moet je iets van een pincode invoeren? Het lijkt je sterk, want er zijn wel 64 cijfers te zien. Maar wat dan wel?</p>
+								<p>Je kijkt naar het kastje naast de muur. Wat voor vreemd beveiligingssysteem is dit? Het scherm toont een groot tabel van cijfers. Moet je iets van een pincode invoeren? Het lijkt je sterk, want er zijn wel 64 cijfers te zien. Maar wat dan wel?</p>
 							</>,
 							<p>De deur is nog steeds op slot. Je moet blijkbaar de juiste getallen activeren. Maar welke zijn de juiste? Misschien is er in het lokaal meer over te vinden.</p>,
 							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, hopend op een reactie van het apparaat.</p>,
@@ -69,7 +83,7 @@ export function Action(props) {
 				case 'History':
 					return <>
 						<Line text="Je lost het getallenrooster op" />
-						<p>Met het laatste groene blok dat verschijnt volgt een bekende klik. De deur gaat voor je open, en je kan via deze tussendeur het vertrouwde geschiedenislokaal in.</p>
+						<p>Met het laatste groene blok dat verschijnt volgt een bekende klik. De deur gaat voor je open, en je kan via de tussendeur het vertrouwde geschiedenislokaal in.</p>
 					</>
 				case 'Music':
 					return <>

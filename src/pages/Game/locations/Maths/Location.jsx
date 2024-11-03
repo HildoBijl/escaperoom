@@ -1,7 +1,7 @@
 import Alert from '@mui/material/Alert'
 
-// import { Image } from 'components'
-// import { OfficeOverview } from 'assets'
+import { Image } from 'components'
+import { MathsRoom } from 'assets'
 
 import { cases, isAdmin, isTester } from '../../util'
 
@@ -18,7 +18,11 @@ export function Location({ numVisits }) {
 
 	// We're in the regular operation of the Escape Room.
 	return cases(numVisits, [0, 3, 6, Infinity], [
-		<p>Het lokaal ziet er exact hetzelfde uit als toen je klas er nog was, behalve dan dat iedereen weg is. Tegenover je is de deur naar de gang. Links is een tussendeur naar het muzieklokaal, en rechts kun je door naar geschiedenis. De deuren kende je al, maar pas nu valt het je op dat ze ook allemaal een elektronisch kastje ernaast hebben. Zijn ze nieuw? Of vallen ze je nu pas voor het eerst op?</p>,
+		<>
+			<p>Het lokaal ziet er exact hetzelfde uit als toen je klas er nog was, behalve dan dat iedereen weg is. De tafels staan nog netjes in rijen door het lokaal, en de muren zijn nog steeds behangd met wiskundige posters.</p>
+			<Image src={MathsRoom} />
+			<p>Je oog gaat vooral uit naar de deuren. Tegenover je, in de verre muur, is de deur naar de gang, links is een tussendeur naar het muzieklokaal, en rechts kun je door naar geschiedenis. De tussendeuren kende je al, maar pas nu valt het je op dat ze ook allemaal een elektronisch kastje ernaast hebben. Zijn die nieuw? Of vallen ze je nu pas voor het eerst op?</p>
+		</>,
 		<p>Het wiskundelokaal is nog steeds hetzelfde als voorheen. Net zo verlaten als de rest van de school.</p>,
 		<p>Het wiskundelokaal ziet er hetzelfde uit, maar het begint op je in te werken. De posters op de muren lijken dichterbij te komen.</p>,
 		<p>Je denkt, &quot;niet weer het wiskundelokaal...&quot; Je blijft hier maar terugkomen. Is het de centrale spil in deze hele situatie?</p>,

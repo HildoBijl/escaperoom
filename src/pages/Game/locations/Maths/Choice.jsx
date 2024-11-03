@@ -10,6 +10,9 @@ function getOptions({ state, lastAction }) {
 		return null
 
 	return [
+		// Posters.
+		lastAction?.type === 'checkPosters' ? undefined : { text: 'Bestudeer de posters aan de muur', action: 'checkPosters' },
+
 		// Hallway.
 		lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway' ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
 

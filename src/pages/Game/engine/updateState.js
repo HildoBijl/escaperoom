@@ -43,6 +43,10 @@ export function updateState(location, state, action) {
 
 		case 'Maths':
 			switch (action.type) {
+				case 'checkPosters': // No state change.
+					break
+				case 'checkDoor': // No state change.
+					break
 				case 'unlockDoor':
 					switch (action.to) {
 						case 'History':
@@ -56,8 +60,6 @@ export function updateState(location, state, action) {
 						default:
 							throw new Error(`Invalid action to parameter: received action type "${action.type}" in room "${location}" but could not determine to unlock the door to what. The parameter value was "${action.to}"`)
 					}
-					break
-				case 'checkDoor': // No state change.
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)

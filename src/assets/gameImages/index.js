@@ -7,4 +7,6 @@ export { default as OfficeDoor } from './OfficeDoor.jpg'
 export { default as OfficeHint } from './OfficeHint.png'
 
 // Maths
+export { default as MathsRoom } from './MathsRoom.jpg'
+export { default as MathsHint1 } from './MathsHint1.png'
 export { default as MathsDoor1 } from './MathsDoor1.jpg'

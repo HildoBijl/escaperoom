@@ -20,17 +20,47 @@ export function updateState(location, state, action) {
 	switch (location) {
 		case 'Office':
 			switch (action.type) {
+				case 'search': // No state change.
+					break
 				case 'checkDoor':
 					state.officeDoor = {
 						checked: true,
 						seed: getRandomInteger(22, 30, [26]),
 					}
 					break
+				case 'checkBox': // No state change.
+					break
 				case 'unlockDoor':
 					state.officeDoor = { ...state.officeDoor, unlocked: true }
 					location = 'Maths'
 					break
+				default:
+					throw new Error(`Invalid action type: received action type ${action.type} but this is not a possible action in the room "${location}".`)
 			}
+			break
+
+		case 'Maths':
+			switch (action.type) {
+				case 'unlockDoor':
+					switch (action.to) {
+						case 'History':
+							state.historyDoorUnlocked = true
+							location = 'History'
+							break
+						case 'Music':
+							state.musicDoorUnlocked = true
+							location = 'Music'
+							break
+						default:
+							throw new Error(`Invalid action to parameter: received action type "${action.type}" in room "${location}" but could not determine to unlock the door to what. The parameter value was "${action.to}"`)
+					}
+					break
+				case 'checkDoor': // No state change.
+					break
+				default:
+					throw new Error(`Invalid action type: received action type ${action.type} but this is not a possible action in the room "${location}".`)
+			}
+			break
 	}
 
 	// Return the updated data.

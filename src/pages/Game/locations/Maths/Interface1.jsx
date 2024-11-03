@@ -34,10 +34,14 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		})
 	}
 
-	// Grade the input.
+	// Check the value of the input.
 	const correct = groups.map(group => areNumbersCorrect(numbers.slice(group[0], group[1] + 1), group[0] + offset))
 	const allCorrect = correct.every(value => value)
 	console.log(correct, allCorrect)
+	useEffect(() => {
+		if (allCorrect && isCurrentAction)
+			submitAction({ type: 'unlockDoor', to: 'History' })
+	}, [allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.
 	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0) : darken(theme.palette.primary.main, 1)

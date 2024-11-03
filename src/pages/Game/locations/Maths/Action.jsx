@@ -7,14 +7,18 @@ import { Line } from '../../components'
 import { Interface as Interface1 } from './Interface1'
 
 export function Action(props) {
-	const { action, numActionVisits, isCurrentAction, nextAction } = props
+	const { location, action, numActionVisits, isCurrentAction, nextAction } = props
 	switch (action.type) {
 		case 'move':
 			switch (action.to) {
 				case 'Office':
 					return <Line text="Je stapt terug in het kantoor" />
+				case 'Music':
+					return <Line text="Je gaat naar het muzieklokaal" />
+				case 'History':
+					return <Line text="Je gaat naar het geschiedenislokaal" />
 				default:
-					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location.`)
+					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
 		case 'checkDoor': {
 			switch (action.to) {
@@ -48,7 +52,7 @@ export function Action(props) {
 						<Line text="Je loopt naar de deur naar het muzieklokaal" />
 						{cases(numActionVisits, [0, 2, 3, Infinity], [
 							<>
-								<p>Je probeert de deur naar muziek te openen, maar niet onverwacht zit hij dicht. Dus bekijk je het elektronische kastje ernaast. Helaas staat er een groot rood kruis op het scherm met een boodschap &quot;Deze deur is nog in ontwikkeling. Kom later terug.&quot;</p>
+								<p>Je probeert de deur naar het muzieklokaal te openen, maar niet onverwacht zit hij dicht. Dus bekijk je het elektronische kastje ernaast. Helaas staat er een groot rood kruis op het scherm met een boodschap &quot;Deze deur is nog in ontwikkeling. Kom later terug.&quot;</p>
 								<Image src={UnavailableDoor} />
 							</>,
 							<p>Helaas ... de deur is nog steeds niet toegevoegd aan de Escape Room. Het rode kruis is nog steeds zichtbaar op het scherm.</p>,
@@ -57,10 +61,25 @@ export function Action(props) {
 						])}
 					</>
 				default:
-					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location.`)
+					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
 		}
+		case 'unlockDoor':
+			switch (action.to) {
+				case 'History':
+					return <>
+						<Line text="Je lost het getallenrooster op" />
+						<p>Met het laatste groene blok dat verschijnt volgt een bekende klik. De deur gaat voor je open, en je kan via deze tussendeur het vertrouwde geschiedenislokaal in.</p>
+					</>
+				case 'Music':
+					return <>
+						<Line text="Je lost het ToDo raadsel op" />
+						<p>Jee! Je kan het muzieklokaal in!</p>
+					</>
+				default:
+					throw new Error(`Invalid action to parameter: cannot determine what to render for an action of type "${action.type}" at the current location "${location}" due to an unknown to-value "${action.to}".`)
+			}
 		default:
-			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location.`)
+			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location "${location}".`)
 	}
 }

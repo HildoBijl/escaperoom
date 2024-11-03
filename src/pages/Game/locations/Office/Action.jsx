@@ -7,7 +7,7 @@ import { Line } from '../../components'
 import { Interface } from './Interface'
 
 export function Action(props) {
-	const { action, numActionVisits, isCurrentAction, nextAction } = props
+	const { location, action, numActionVisits, isCurrentAction, nextAction } = props
 	switch (action.type) {
 		case 'search':
 			return <>
@@ -51,6 +51,6 @@ export function Action(props) {
 		case 'move':
 			return <Line text="Je gaat naar het wiskundelokaal" />
 		default:
-			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location.`)
+			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location "${location}".`)
 	}
 }

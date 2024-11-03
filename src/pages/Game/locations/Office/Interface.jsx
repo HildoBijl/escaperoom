@@ -67,7 +67,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		}
 		setDragging()
 	}
-	useEventListener(['mouseup', 'touchend'], endDragging, window) // Listen to mouse-up on entire window.
+	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
 	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
 
 	// Check the value of the input.
@@ -128,12 +128,12 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 	const theme = useTheme()
 
 	// Set up listeners for various events.
-	const ref = useRefWithEventListeners({
+	const ref = useRefWithEventListeners(active ? {
 		mouseenter: onHoverStart,
 		mouseleave: onHoverEnd,
 		mousedown: onDown,
 		touchstart: onDown,
-	})
+	} : {})
 
 	// Determine the coordinates where the number should be positioned.
 	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { getFactorization, findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue } from 'util'
+import { getFactorization, useRefWithEventListeners } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -19,7 +19,7 @@ const containerRadius = radius + blockMargin - 2
 const containerParameters = { rx: containerRadius, ry: containerRadius, style: { opacity: 0.4 } }
 const groups = [[0, 2 * width - 1], [2 * width, 4 * width - 1], [4 * width, 6 * width - 1], [6 * width, 8 * width - 1]]
 
-export function Interface({ state, submitAction, isCurrentAction }) {
+export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
@@ -37,7 +37,6 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	// Check the value of the input.
 	const correct = groups.map(group => areNumbersCorrect(numbers.slice(group[0], group[1] + 1), group[0] + offset))
 	const allCorrect = correct.every(value => value)
-	console.log(correct, allCorrect)
 	useEffect(() => {
 		if (allCorrect && isCurrentAction)
 			submitAction({ type: 'unlockDoor', to: 'History' })
@@ -64,18 +63,16 @@ function Block({ num, activated, flip, active }) {
 	const [hover, setHover] = useState(false)
 
 	// Set up listeners for various events.
-	const ref = useRefWithEventListeners({
+	const ref = useRefWithEventListeners(active ? {
 		mouseenter: () => setHover(true),
 		mouseleave: () => setHover(false),
 		click: () => flip(),
-	})
-
-	// Determine the coordinates where the number should be positioned.
-	const coords = getPosition(num)
+	} : {})
 
 	// Render the block.
+	const coords = getPosition(num)
 	let fill = activated ? theme.palette.success.main : theme.palette.primary.main
-	if (hover)
+	if (active && hover)
 		fill = lighten(fill, 0.2)
 	return <g ref={ref} transform={`translate(${coords.x}, ${coords.y})`} style={{ cursor: active ? 'pointer' : 'default' }}>
 		<rect key={num} x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={fill} />

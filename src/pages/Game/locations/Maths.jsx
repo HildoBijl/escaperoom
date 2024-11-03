@@ -1,11 +1,11 @@
 import Alert from '@mui/material/Alert'
 
-import { cases, isAdmin } from '../util'
+import { cases, isAdmin, isTester } from '../util'
 import { ChoiceButtons, Line } from '../components'
 
 export function Location({ numVisits }) {
-	// If we're not in admin mode, then we're at the end of the teaser.
-	if (!isAdmin()) {
+	// If we're not in admin mode or a tester, then we're at the end of the teaser.
+	if (!isAdmin() && !isTester()) {
 		return <>
 			<Alert severity="info" sx={{ my: 2 }}>
 				Gefeliciteerd! Je bent ontsnapt uit het kantoor! Maar dit was slechts de teaser...<br />
@@ -42,7 +42,7 @@ export function Choice(props) {
 }
 
 function getOptions() {
-	if (!isAdmin())
+	if (!isAdmin() && !isTester())
 		return null
 	return [{ text: 'Ga terug naar het kantoor', action: { type: 'move', to: 'Office' } }]
 }

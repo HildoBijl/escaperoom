@@ -1,15 +1,36 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Subpage } from 'components'
 
 export function About() {
+	// Set up tester activation system.
+	const [, setTesterCount] = useState(0)
+	const testerHandler = () => {
+		setTesterCount(count => {
+			if (count > 4)
+				localStorage.setItem('tester', 'on')
+			return count + 1
+		})
+	}
+
+	// Set up admin activation system.
+	const [, setAdminCount] = useState(0)
+	const adminHandler = () => {
+		setAdminCount(count => {
+			if (count > 9)
+				localStorage.setItem('adminmode', 'on')
+			return count + 1
+		})
+	}
+
 	return <Subpage>
 		<p>Hier vind je informatie over de achtergrond van deze Escape Room web-app, inclusief de actievoorwaarden rondom de prijzen.</p>
 		<h2>Achtergrond en prijzen</h2>
 		<p>Stichting <Link to="https://www.vierkantvoorwiskunde.nl/">Vierkant voor Wiskunde</Link> organiseert al vanaf 1993 wiskundige activiteiten voor jongeren. Onder andere organiseert de stichting elk jaar wiskundezomerkampen voor groep 6 tot en met klas 6. Om dit mooie initiatief te ondersteunen, hebben de <Link to="https://www.vierkantvoorwiskunde.nl/2023/10/uitbouw-van-de-vierkant-voor-wiskunde-zomerkampen/">bèta-vicedecanen van de Nederlandse universiteiten</Link> een bijdrage toegekend om de zomerkampen uit te breiden.</p>
 		<p>Je hoeft geen wiskundeheld te zijn om mee te gaan op kamp, maar wel een liefhebber van puzzels en problemen. Tijdens de kampen wordt een aantal onderwerpen met een wiskundig thema verkend, zoals veelvlakken, getallen, grafen, magische vierkanten, geheimschrift of verzamelingen. Je kunt ook aan de slag gaan met berekeningen, bouwwerken, tekeningen of kunstwerken gebaseerd op een nieuw uitdagend onderwerp. Hierbij kun je denken aan Escher-tekeningen of fractals. Naast de wiskunde is er natuurlijk ook tijd voor andere activiteiten, zoals sport, spelletjes, zwemmen en creatieve activiteiten. Er zijn twee deskundige begeleiders per groepje van 6 deelnemers, zodat iedereen voldoende meegenomen en uitgedaagd wordt.</p>
 		<p>Zin om mee te gaan op kamp? Om kennis te maken met onze kampen geven we twintig gratis kampplaatsen ter waarde van €355 weg. Doe mee aan deze Escape Room en loot mee voor één van de twintig gratis plaatsen! Kun jij alle raadsels oplossen en uit de Escape Room ontsnappen? Dan is een Vierkant-zomerkamp zeker wat voor jou!</p>
-		<p>Meer informatie over de zomerkampen vind je op de website van Vierkant voor Wiskunde:<br/><Link to="https://www.vierkantvoorwiskunde.nl/kampen/">https://www.vierkantvoorwiskunde.nl/kampen/</Link></p>
-		<h2>Actievoorwaarden en tijdslijn</h2>
+		<p>Meer informatie over de zomerkampen vind je op de website van Vierkant voor Wiskunde:<br /><Link to="https://www.vierkantvoorwiskunde.nl/kampen/">https://www.vierkantvoorwiskunde.nl/kampen/</Link></p>
+		<h2 onClick={() => testerHandler()}>Actievoorwaarden en tijdslijn</h2>
 		<p>De Escape Room is gericht op scholieren uit de onderbouw van de middelbare school. Voor hen zijn er in 2025 twee kampen (kampen Bx en By) met elk maximaal zestig plaatsen. Er worden in totaal twintig gratis plaatsen verloot onder de oplossers van de Escape Room.</p>
 		<p>Om in aanmerking te komen voor één van de twintig gratis plaatsen, moet je voldoen aan de volgende voorwaarden.</p>
 		<ul>
@@ -23,8 +44,8 @@ export function About() {
 		<h2>Makers</h2>
 		<p>Deze Escape Room is gemaakt door:</p>
 		<ul>
-			<li>Raadsels: Rianne Florijn en Daniël Kuckartz</li>
-			<li>Programmering: Hildo Bijl</li>
+			<li>Raadsels: Rianne Florijn</li>
+			<li onClick={() => adminHandler()}>Programmering &amp; Verhaal: Hildo Bijl</li>
 		</ul>
 		<p>Afbeeldingen zijn gegenereerd via <Link to="https://deepai.org/">DeepAI</Link>.</p>
 	</Subpage>

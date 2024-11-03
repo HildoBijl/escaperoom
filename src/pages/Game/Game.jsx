@@ -43,7 +43,7 @@ function Location(props) {
 		<Location {...{ ...props, numVisits }} />
 		{actions.map((actionData, actionIndex) => {
 			const isCurrentAction = isCurrentLocation && actionIndex === actions.length - 1
-			const numActionVisits = getNumActionVisits(history, location, actionData.action.type, locationIndex, actionIndex)
+			const numActionVisits = getNumActionVisits(history, location, actionData.action, locationIndex, actionIndex)
 			const previousAction = getPreviousAction(history, locationIndex, actionIndex)
 			const nextAction = getNextAction(history, locationIndex, actionIndex)
 			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits, previousAction, nextAction }} />

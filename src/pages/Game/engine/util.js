@@ -1,4 +1,4 @@
-import { lastOf, clearLocalStorageValue } from 'util'
+import { lastOf, clearLocalStorageValue, deepEquals } from 'util'
 
 import { initialState, localStorageKey } from './settings'
 
@@ -53,8 +53,8 @@ export function getNumVisits(history, location, beforeIndex = Infinity) {
 }
 
 // getNumActionVisits calculates how many times the user has taken a given action in a given location.
-export function getNumActionVisits(history, location, actionType, locationIndex = Infinity, actionIndex = Infinity) {
+export function getNumActionVisits(history, location, action, locationIndex = Infinity, actionIndex = Infinity) {
 	return history.reduce((counter, item, currLocationIndex) => counter + (currLocationIndex <= locationIndex && item.location === location ? (
-		item.actions.reduce((counter, actionData, currActionIndex) => counter + ((currLocationIndex < locationIndex || currActionIndex < actionIndex) && actionData.action.type === actionType ? 1 : 0), 0)
+		item.actions.reduce((counter, actionData, currActionIndex) => counter + ((currLocationIndex < locationIndex || currActionIndex < actionIndex) && deepEquals(action, actionData.action) ? 1 : 0), 0)
 	) : 0), 0)
 }

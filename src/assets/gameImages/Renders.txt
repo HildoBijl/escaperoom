@@ -1,0 +1,8 @@
+https://deepai.org/machine-learning-model/dystopian-landscape-generator
+
+Office: A large book about mathematical fractals, with pictures of complicated fractal patterns, is lying on a desk cluttered with cubes, icoasahedrons and other mathematical objects. The desk is inside an office with a large bookcase.
+OfficeDoor: A large door with an ornamental door handle is positioned right of a large bookcase. On the right side of the door, on head height, is a small key box with an empty electronic touch screen on its front. The floor of the room is a clean carpet with a basic pattern.
+
+Maths
+MathsRoom: A tidy mathematics classroom. There are various tables for students orderly spread across the room. The walls are lined with various mathematically themed posters. The floor is clean and uncluttered. The back wall has a door back to the school hallway. 
+MathsDoor1: A door in a tidy classroom. Next to the door is a small box where keys might be stored. The floor is clean. There are mathematical posters on the walls.

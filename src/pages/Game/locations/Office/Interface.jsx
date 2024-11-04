@@ -68,7 +68,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		setDragging()
 	}
 	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
-	const closestPosition = dragging ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
+	const closestPosition = (mousePosition && dragging) ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
 
 	// Check the value of the input.
 	const correct = [
@@ -89,7 +89,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		const hover = hovering === pos
 		const drag = dragging?.pos === pos
 		const delta = dragging?.delta
-		const closest = !drag && closestPosition === pos
+		const closest = !drag && (closestPosition === pos)
 		const onDown = (event) => startDragging(pos, event)
 		const onHoverStart = () => setHovering(active && pos)
 		const onHoverEnd = () => setHovering()
@@ -136,7 +136,7 @@ function Block({ num, pos, hover, drag, delta, shade, mousePosition, closest, on
 	} : {})
 
 	// Determine the coordinates where the number should be positioned.
-	const coords = drag ? subtract(mousePosition, delta) : posToCoords(pos)
+	const coords = (mousePosition && drag) ? subtract(mousePosition, delta) : posToCoords(pos)
 	const easedCoords = {
 		x: useTransitionedValue(coords?.x, drag ? 0 : theme.transitions.duration.standard),
 		y: useTransitionedValue(coords?.y, drag ? 0 : theme.transitions.duration.standard),

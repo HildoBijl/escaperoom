@@ -20,6 +20,7 @@ export function Action(props) {
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
+
 		case 'checkPosters':
 			return <>
 				<Line text="Je bekijkt de posters aan de muur" />
@@ -34,7 +35,7 @@ export function Action(props) {
 				])}
 			</>
 
-		case 'checkDoor': {
+		case 'checkDoor':
 			switch (action.to) {
 				case 'Hallway':
 					return <>
@@ -45,7 +46,6 @@ export function Action(props) {
 							<p>Je beukt met je vuisten op de deur en schreeuwt luid &quot;Laat me eruit!&quot; Helaas word je wanhoopskreis beantwoord door een ijzige stilte. Er is niemand in de buurt die je kan helpen.</p>,
 						])}
 					</>
-
 				case 'History':
 					return <>
 						<Line text="Je loopt naar de deur naar het geschiedenislokaal" />
@@ -60,7 +60,6 @@ export function Action(props) {
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface1 {...props} /> : null}
 					</>
-
 				case 'Music':
 					return <>
 						<Line text="Je loopt naar de deur naar het muzieklokaal" />
@@ -77,7 +76,7 @@ export function Action(props) {
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
-		}
+
 		case 'unlockDoor':
 			switch (action.to) {
 				case 'History':
@@ -88,11 +87,12 @@ export function Action(props) {
 				case 'Music':
 					return <>
 						<Line text="Je lost het ToDo raadsel op" />
-						<p>Jee! Je kan het muzieklokaal in!</p>
+						<p>Je gebruikt je magische admin-krachten en de deur zwaait open!</p>
 					</>
 				default:
 					throw new Error(`Invalid action to parameter: cannot determine what to render for an action of type "${action.type}" at the current location "${location}" due to an unknown to-value "${action.to}".`)
 			}
+			
 		default:
 			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location "${location}".`)
 	}

@@ -34,7 +34,7 @@ export function About() {
 		<p>De Escape Room is gericht op scholieren uit de onderbouw van de middelbare school. Voor hen zijn er in 2025 twee kampen (kampen Bx en By) met elk maximaal zestig plaatsen. Er worden in totaal twintig gratis plaatsen verloot onder de oplossers van de Escape Room.</p>
 		<p>Om in aanmerking te komen voor één van de twintig gratis plaatsen, moet je voldoen aan de volgende voorwaarden.</p>
 		<ul>
-			<li>Je zit in schooljaar 2024/2025 in groep 8 of klas 1 of 2 van het voortgezet onderwijs.</li>
+			<li>Je zit in schooljaar 2024/2025 in klas 1, 2 of 3 van het voortgezet onderwijs.</li>
 			<li>Je bent nog niet eerder op een zomerkamp van Vierkant voor Wiskunde meegeweest.</li>
 			<li>Je bent beschikbaar om aan één van de kampen (Bx: 21 t/m 25 juli 2025, By: 11 t/m 15 augustus 2025) deel te nemen.</li>
 		</ul>

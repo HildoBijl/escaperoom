@@ -1,20 +1,22 @@
-import { useState, useRef, useEffect } from 'react'
-import { useTheme, darken, lighten, styled } from '@mui/material/styles'
+import { useRef, useEffect } from 'react'
+import { useTheme, lighten, styled } from '@mui/material/styles'
 
-import { mod, useRefWithEventListeners } from 'util'
+import { mod, useTransitionedValue } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
 
 // Set up settings for the Interface.
-const size = 60
-const margin = 20
-const gap = 12
-const radius = 10
+const size = 60 // Size of a dial square.
+const margin = 20 // Around the lock.
+const gap = 12 // Between dials.
+const radius = 10 // Border radius.
+const dialGap = 2 // Between numbers on the dial.
+const wheelDigitSize = 10 // Adjust the number of digits the wheel seems to have.
+const buttonGap = 16 // Between dial and arrow buttons.
+const displayBoundary = wheelDigitSize / 4
+const dialRadius = (wheelDigitSize * (size + dialGap)) / (2 * Math.PI)
 const height = 4 * size + 2 * margin + 3 * gap
-const dialGap = 20 // Between numbers on the dial.
-const dialRadius = (10 * size + dialGap) / (2 * Math.PI)
-const buttonGap = 20 // Between dial and arrow buttons.
 const width = 2 * dialRadius + 2 * buttonGap + 2 * size / Math.sqrt(2) + 2 * margin
 
 export function Interface({ submitAction, isCurrentAction }) {
@@ -28,7 +30,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 			return
 		setNumbers(numbers => {
 			numbers = [...numbers]
-			numbers[index] = (numbers[index] + (toRight ? 1 : 9)) % 10
+			numbers[index] = numbers[index] + (toRight ? -1 : 1)
 			return numbers
 		})
 	}
@@ -49,6 +51,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 const digits = (new Array(10)).fill(0).map((_, index) => index)
 function Dial({ index, number, adjust, active }) {
 	const theme = useTheme()
+	const numberEased = useTransitionedValue(number, 300)
 
 	// Render the block.
 	const coords = getPosition(index)
@@ -56,31 +59,30 @@ function Dial({ index, number, adjust, active }) {
 	return <g transform={`translate(${coords.x}, ${coords.y})`}>
 		{/* All digits */}
 		{digits.map(digit => {
-			const displayBoundary = 2.5
-			const distance = (digit - number)
+			const distance = (digit - numberEased)
 			const cyclicDistance = mod(distance + 5, 10) - 5
-			const angle = cyclicDistance / (2 * displayBoundary) * Math.PI
+			const ratio = cyclicDistance / displayBoundary
+			const angle = ratio * Math.PI / 2
 			const visible = Math.abs(cyclicDistance) < displayBoundary
 			const shift = (visible ? Math.sin(angle) : Math.sign(cyclicDistance)) * dialRadius
 			const scale = (visible ? Math.cos(angle) : 0)
-			console.log(digit, number, cyclicDistance, shift, scale)
 
-			return <g key={digit} transform={`translate(${shift}, 0) scale(${scale}, 1)`} style={{ opacity: visible ? (1 - Math.abs(cyclicDistance / displayBoundary)) : 0 }}>
+			return <g key={digit} transform={`translate(${shift}, 0) scale(${scale}, 1)`} style={{ opacity: visible ? (1 - 0.9 * Math.abs(Math.sin(angle))) : 0 }}>
 				<rect x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={theme.palette.primary.main} />
 				<text x={0} y={0} fill="#eee" style={{ fontSize: '32px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 2)">{digit}</text>
 			</g>
 		})}
 
 		{/* Buttons */}
-		<StyledPath d={`M${-dialRadius - buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 1 ${-radius * (1 + f)} ${radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 0 ${-2 * radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 ${radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(false)} />
-		<StyledPath d={`M${dialRadius + buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 0 ${radius * (1 + f)} ${radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 0 ${-2 * radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 ${-radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(true)} />
+		<StyledPath active={active} d={`M${-dialRadius - buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 1 ${-radius * (1 + f)} ${radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 0 ${-2 * radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 ${radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(false)} />
+		<StyledPath active={active} d={`M${dialRadius + buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 0 ${radius * (1 + f)} ${radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 0 ${-2 * radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 ${-radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(true)} />
 	</g>
 }
 
-const StyledPath = styled('path')(({ theme }) => ({
+const StyledPath = styled('path')(({ theme, active }) => ({
 	fill: theme.palette.primary.main,
 	'&:hover': {
-		fill: lighten(theme.palette.primary.main, 0.2),
+		fill: active ? lighten(theme.palette.primary.main, 0.2) : undefined,
 	},
 }))
 

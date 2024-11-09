@@ -6,6 +6,11 @@ export function getRandomInteger(min, max, exclude = []) {
 	return num
 }
 
+// mod is a function that (unlike Javascript) always returns on modulo a number between 0 (inclusive) and n (exclusive).
+export function mod(a, n) {
+	return ((a % n) + n) % n
+}
+
 // These are a few easing functions.
 export const easeInOut = x => (x * x) / (2 * (x * x - x) + 1)
 export const easeShift = x => x < 0.5 ? 2 * x ** 2 : 1 - 2 * (1 - x) ** 2

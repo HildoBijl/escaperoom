@@ -1,13 +1,13 @@
 import { Image } from 'components'
-import { MusicHint, MusicHintAfter } from 'assets'
+import { MusicHint, MusicHintAfter, MusicDoor } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
 
-// import { Interface as Interface1 } from './Interface1'
+import { Interface } from './Interface'
 
 export function Action(props) {
-	const { location, action, numActionVisits } = props
+	const { location, action, numActionVisits, isCurrentAction, nextAction } = props
 	switch (action.type) {
 		case 'move':
 			switch (action.to) {
@@ -51,11 +51,17 @@ export function Action(props) {
 				case 'CS':
 					return <>
 						<Line text="Je bekijkt de deur naar informatica" />
-						{cases(numActionVisits, [0, 2, Infinity], [
-							<p>ToDo</p>,
-							<p>ToDo</p>,
-							<p>ToDo</p>,
+						{cases(numActionVisits, [0, 2, 3, Infinity], [
+							<>
+								<p>Wat krijgen we nou, deze deur heeft geen elektronisch kastje ernaast. Het is een oud hangslot! Dat moet het een stuk makkelijker maken. Het hangslot heeft vier draaischijven, allen boven elkaar, met de cijfers 0 tot en met 9.</p>
+								<Image src={MusicDoor} />
+								<p>Naast het slot heeft iemand een post-it geplakt. Erop staat de meest onzinnige vraag die iemand ooit gesteld heeft, &quot;Hoeveel is DRIE?&quot; Je haalt je schouders op en probeert het slot los te krijgen.</p>
+							</>,
+							<p>Het hangslot houdt de deur nog steeds goed gesloten.</p>,
+							<p>Het hangslot hangt nog steeds naast de post-it. Wat je opvalt is dat &quot;DRIE&quot; met hoofdletters geschreven is. Vier hoofdletters naast elkaar. En het slot heeft ook vier draaischijven. Is dat toeval?</p>,
+							<p>Het slot heeft nog steeds niet de juiste code.</p>,
 						])}
+						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 					</>
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)

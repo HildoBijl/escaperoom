@@ -45,7 +45,8 @@ export function About() {
 		<p>Deze Escape Room is gemaakt door:</p>
 		<ul>
 			<li>Raadsels: Rianne Florijn</li>
-			<li onClick={() => adminHandler()}>Programmering &amp; Verhaal: Hildo Bijl</li>
+			<li>Verhaal: Hildo Bijl</li>
+			<li onClick={() => adminHandler()}>Programmering: Hildo Bijl</li>
 		</ul>
 		<p>Afbeeldingen zijn gegenereerd via <Link to="https://deepai.org/">DeepAI</Link>.</p>
 	</Subpage>

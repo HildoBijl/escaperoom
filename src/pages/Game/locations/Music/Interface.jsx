@@ -51,7 +51,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 const digits = (new Array(10)).fill(0).map((_, index) => index)
 function Dial({ index, number, adjust, active }) {
 	const theme = useTheme()
-	const numberEased = useTransitionedValue(number, 300)
+	const numberEased = useTransitionedValue(number, theme.transitions.duration.standard)
 
 	// Render the block.
 	const coords = getPosition(index)

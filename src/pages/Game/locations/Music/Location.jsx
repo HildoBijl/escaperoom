@@ -6,7 +6,7 @@ import { cases } from '../../util'
 export function Location({ numVisits }) {
 	return cases(numVisits, [0, 2, 3, 6, 7, Infinity], [
 		<>
-			<p>Terwijl je het muzieklokaal binnenloopt, kun je haast de muziekstukken horen die de docent hier altijd met de klas speelt. Maar als je rondkijkt, valt je deze keer vooral de ijzige stilte op die in de ruimte heerst. Er is zeker niemand die nu muziek maakt.</p>
+			<p>Terwijl je het muzieklokaal binnenloopt, kun je in gedachten haast de muziekstukken horen die de docent hier altijd met de klas speelt. Maar als je rondkijkt, valt je de ijzige stilte op die in de ruimte heerst. Er is niemand aanwezig om überhaupt muziek te maken.</p>
 			<Image src={MusicRoom} />
 			<p>Er is weinig vreemds te zien in het muzieklokaal. De piano staat nog steeds naast het raam. De gitaren hangen nog aan de muur. De deur naar de gang staat op de gebruikelijke plek, maar die zal vast op slot zijn. En achterin het lokaal, naast de deur naar informatica, hangt het volgekladde schoolbord nog steeds aan de muur.</p>
 		</>,

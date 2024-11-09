@@ -1,5 +1,5 @@
-// import { Image } from 'components'
-// import { UnavailableDoor, MathsHint1, MathsDoor1 } from 'assets'
+import { Image } from 'components'
+import { MusicHint, MusicHintAfter } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -20,7 +20,22 @@ export function Action(props) {
 			}
 
 		case 'checkBlackboard':
-			return <p>Je bekijkt het schoolbord.</p>
+			return <>
+				<Line text="Je bekijkt het schoolbord" />
+				{cases(numActionVisits, [0, 2, 3, 4, Infinity], [
+					<>
+						<p>Het schoolbord is volgeklad met allemaal muziektermen. Blijkbaar ging het over de basistoonladders: Do Re Mi Fa Sol La Ti Do. Je hebt dat ooit ook eens geleerd ergens.</p>
+						<Image src={MusicHint} />
+					</>,
+					<p>Er is niets verandert met het schoolbord. Dezelfde vreemde scribbles staan er nog steeds op.</p>,
+					<p>De kleine toevoeging rechtsonder op het schoolbord valt je op. Iets met ongelijkheid? Alle letters moeten ongelijk aan elkaar zijn? Wat zou het betekenen?</p>,
+					<>
+						<p>De chaos op het schoolbord begint je te frustreren. Je pakt de wisser en veegt het bord grondig schoon. Zo, allemaal leeg. Dit is veel netter.</p>
+						<Image src={MusicHintAfter} />
+					</>,
+					<p>Er is niets meer te zien op het schoolbord. Mogelijk had je het toch niet uit moeten vegen? Gelukkig heb je nog een aardig idee van wat er zojuist op stond.</p>,
+				])}
+			</>
 
 		case 'checkDoor':
 			switch (action.to) {
@@ -37,6 +52,8 @@ export function Action(props) {
 					return <>
 						<Line text="Je bekijkt de deur naar informatica" />
 						{cases(numActionVisits, [0, 2, Infinity], [
+							<p>ToDo</p>,
+							<p>ToDo</p>,
 							<p>ToDo</p>,
 						])}
 					</>

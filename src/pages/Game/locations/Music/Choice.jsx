@@ -6,7 +6,6 @@ export function Choice(props) {
 }
 
 function getOptions({ state, lastAction }) {
-	
 	return [
 		// Posters.
 		lastAction?.type === 'checkBlackboard' ? undefined : { text: 'Bekijk het schoolbord', action: 'checkBlackboard' },

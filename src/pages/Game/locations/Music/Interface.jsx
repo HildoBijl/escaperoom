@@ -14,9 +14,12 @@ const radius = 10 // Border radius.
 const dialGap = 2 // Between numbers on the dial.
 const wheelDigitSize = 10 // Adjust the number of digits the wheel seems to have.
 const buttonGap = 16 // Between dial and arrow buttons.
+const verticalFactor = 0.15 // How much should the digits move vertically?
 const displayBoundary = wheelDigitSize / 4
 const dialRadius = (wheelDigitSize * (size + dialGap)) / (2 * Math.PI)
-const height = 4 * size + 2 * margin + 3 * gap
+const verticalRadius = dialRadius * verticalFactor
+const buttonsShift = verticalRadius * 0.1 // How much should the buttons shift along with the vertical shift of the dial?
+const height = 4 * size + 2 * margin + 3 * gap + verticalRadius
 const width = 2 * dialRadius + 2 * buttonGap + 2 * size / Math.sqrt(2) + 2 * margin
 
 export function Interface({ submitAction, isCurrentAction }) {
@@ -64,23 +67,27 @@ function Dial({ index, number, adjust, active }) {
 			const ratio = cyclicDistance / displayBoundary
 			const angle = ratio * Math.PI / 2
 			const visible = Math.abs(cyclicDistance) < displayBoundary
-			const shift = (visible ? Math.sin(angle) : Math.sign(cyclicDistance)) * dialRadius
+			const shiftX = (visible ? Math.sin(angle) : Math.sign(cyclicDistance)) * dialRadius
+			const shiftY = (visible ? Math.cos(angle) : Math.sign(cyclicDistance)) * verticalRadius
 			const scale = (visible ? Math.cos(angle) : 0)
+			const skew = -(visible ? Math.sin(angle) : Math.sign(cyclicDistance)) * 60 * verticalFactor
 
-			return <g key={digit} transform={`translate(${shift}, 0) scale(${scale}, 1)`} style={{ opacity: visible ? (1 - 0.9 * Math.abs(Math.sin(angle))) : 0 }}>
+			return <g key={digit} transform={`translate(${shiftX}, ${shiftY}) scale(${scale}, 1) skewY(${skew})`} style={{ opacity: visible ? (1 - 0.9 * Math.abs(Math.sin(angle))) : 0 }}>
 				<rect x={-size / 2} y={-size / 2} width={size} height={size} rx={radius} ry={radius} fill={theme.palette.primary.main} />
 				<text x={0} y={0} fill="#eee" style={{ fontSize: '32px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 2)">{digit}</text>
 			</g>
 		})}
 
 		{/* Buttons */}
-		<StyledPath active={active} d={`M${-dialRadius - buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 1 ${-radius * (1 + f)} ${radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 0 ${-2 * radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 ${radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(false)} />
-		<StyledPath active={active} d={`M${dialRadius + buttonGap} 0 v${size / 2 - radius} a${radius} ${radius} 0 0 0 ${radius * (1 + f)} ${radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 0 ${-2 * radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 ${-radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(true)} />
+		<StyledPath active={active} d={`M${-dialRadius - buttonGap} ${buttonsShift} v${size / 2 - radius} a${radius} ${radius} 0 0 1 ${-radius * (1 + f)} ${radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 0 ${-2 * radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 1 ${radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(false)} />
+		<StyledPath active={active} d={`M${dialRadius + buttonGap} ${buttonsShift} v${size / 2 - radius} a${radius} ${radius} 0 0 0 ${radius * (1 + f)} ${radius * f} l${size / 2 - radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 0 ${-2 * radius * f} l${-size / 2 + radius} ${-size / 2 + radius} a${radius} ${radius} 0 0 0 ${-radius * (1 + f)} ${radius * f} v${size / 2 - radius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => adjust(true)} />
 	</g>
 }
 
 const StyledPath = styled('path')(({ theme, active }) => ({
 	fill: theme.palette.primary.main,
+	userSelect: 'none',
+	'-webkit-tap-highlight-color': 'transparent',
 	'&:hover': {
 		fill: active ? lighten(theme.palette.primary.main, 0.2) : undefined,
 	},

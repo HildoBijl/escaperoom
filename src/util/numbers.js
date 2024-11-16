@@ -53,3 +53,13 @@ export function getFactorization(num) {
 	}
 	return factors
 }
+
+// findMinimumIndex returns the index of the lowest value of the list.
+export function findMinimumIndex(list) {
+	let index
+	list.forEach((v, i) => {
+		if (index === undefined || v < list[index])
+			index = i
+	})
+	return index
+}

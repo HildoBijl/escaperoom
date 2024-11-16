@@ -1,4 +1,5 @@
 export * from './numbers'
 export * from './objects'
+export * from './vectors'
 export * from './react'
 export * from './localStorage'

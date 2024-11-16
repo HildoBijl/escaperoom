@@ -3,7 +3,7 @@ import { useTheme, darken, lighten, styled } from '@mui/material/styles'
 import { Rotate90DegreesCw as RotateIcon, Flip as FlipIcon } from '@mui/icons-material'
 import Fab from '@mui/material/Fab'
 
-import { useRefWithEventListeners } from 'util'
+import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, subtract, squaredDistance } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -42,18 +42,6 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const [positions, setPositions] = useRiddleStorage('mathsDoor2', initialPositions)
 	const [selected, setSelected] = useState()
 
-	// Set up handlers to rotate/flip pieces.
-	const rotate = (index, cw) => {
-		const elementIndex = positions.findIndex(position => position.i === index)
-		const oldPosition = positions[elementIndex]
-		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), { ...oldPosition, r: oldPosition.r + oldPosition.m * (cw ? -1 : 1) }])
-	}
-	const mirror = (index) => {
-		const elementIndex = positions.findIndex(position => position.i === index)
-		const oldPosition = positions[elementIndex]
-		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), { ...oldPosition, m: -oldPosition.m }])
-	}
-
 	// Set up a handler to flip the selection of a piece.
 	const flipSelected = (index) => {
 		// Select or deselect the item.
@@ -66,6 +54,49 @@ export function Interface({ submitAction, isCurrentAction }) {
 		})
 	}
 
+	// Set up handlers to rotate/flip pieces.
+	const rotate = (index, cw) => {
+		const elementIndex = positions.findIndex(position => position.i === index)
+		const oldPosition = positions[elementIndex]
+		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), { ...oldPosition, r: oldPosition.r + oldPosition.m * (cw ? -1 : 1) }])
+	}
+	const mirror = (index) => {
+		const elementIndex = positions.findIndex(position => position.i === index)
+		const oldPosition = positions[elementIndex]
+		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), { ...oldPosition, m: -oldPosition.m }])
+	}
+
+	// Set up the dragging system.
+	const [dragging, setDragging] = useState()
+	const mousePositionClient = useMousePosition()
+	const mousePosition = svgToUnity(transformClientToSvg(mousePositionClient, svgRef.current))
+	const startDragging = (index, event) => {
+		if (!active)
+			return
+		const dragLocation = svgToUnity(transformClientToSvg(getEventPosition(event), svgRef.current))
+		const positionIndex = positions.findIndex(position => position.i === index)
+		const position = positions[positionIndex]
+		const delta = subtract(dragLocation, position)
+		setDragging({ index, delta })
+		setPositions(positions => { // Move the dragged element to the end so it's on top.
+			const positionIndex = positions.findIndex(position => position.i === index)
+			return [...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1), positions[positionIndex]]
+		})
+		event.preventDefault()
+	}
+	const endDragging = (event) => {
+		if (dragging) {
+			const endDragLocation = svgToUnity(transformClientToSvg(getEventPosition(event), svgRef.current))
+			setPositions(positions => {
+				const positionIndex = positions.findIndex(position => position.i === dragging.index)
+				const newPosition = { ...positions[positionIndex], ...subtract(endDragLocation, dragging.delta) }
+				return [...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1), newPosition]
+			})
+		}
+		setDragging()
+	}
+	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
+
 	// Check the value of the input.
 
 	// Render the interface.
@@ -73,7 +104,13 @@ export function Interface({ submitAction, isCurrentAction }) {
 		<Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible', marginBottom: '0.4rem' }}>
 
 			{/* Shapes. */}
-			{positions.map(position => <Shape key={position.i} index={position.i} active={active} position={position} selected={selected === position.i} flipSelected={() => flipSelected(position.i)} />)}
+			{positions.map(position => {
+				const drag = dragging && dragging.index === position.i
+				const onDown = (event) => startDragging(position.i, event)
+				if (drag)
+					position = { ...position, ...subtract(mousePosition, dragging.delta) }
+				return <Shape key={position.i} index={position.i} active={active} position={position} selected={selected === position.i} flipSelected={() => flipSelected(position.i)} drag={dragging && dragging.index === position.i} onDown={onDown} />
+			})}
 
 			{/* Grading indicators. */}
 			{/* ToDo */}
@@ -96,13 +133,24 @@ export function Interface({ submitAction, isCurrentAction }) {
 	</>
 }
 
-function Shape({ index, active, position, selected, flipSelected }) {
+function Shape({ index, active, position, selected, flipSelected, onDown, drag }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
 	const ref = useRefWithEventListeners(active ? {
-		click: () => flipSelected(),
+		click: flipSelected,
+		mousedown: onDown,
+		touchstart: onDown,
 	} : {})
+
+	// Transition the position
+	position = {
+		...position,
+		x: useTransitionedValue(position.x, drag ? 0 : theme.transitions.duration.standard),
+		y: useTransitionedValue(position.y, drag ? 0 : theme.transitions.duration.standard),
+		r: useTransitionedValue(position.r, drag ? 0 : theme.transitions.duration.standard),
+		m: useTransitionedValue(position.m, drag ? 0 : theme.transitions.duration.standard),
+	}
 
 	// Calculate the coordinates of the block, first in unity coordinates and then in SVG coordinates.
 	const angle = position.r * Math.PI / 4
@@ -131,3 +179,13 @@ const StyledPolygon = styled('polygon')(({ theme, active, selected }) => ({
 		fill: active ? lighten(theme.palette.primary.main, 0.25) : undefined,
 	},
 }))
+
+const unityToSvg = (coords) => (coords === undefined ? undefined : {
+	x: width / 2 + coords.x * f,
+	y: height / 2 + coords.y * f,
+})
+
+const svgToUnity = (coords) => (coords === undefined ? undefined : {
+	x: (coords.x - width / 2) / f,
+	y: (coords.y - height / 2) / f,
+})

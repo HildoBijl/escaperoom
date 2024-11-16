@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue } from 'util'
+import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue, subtract, squaredDistance } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -21,8 +21,6 @@ const posToCoords = pos => ({
 	x: margin + size / 2 + posToRowCol(pos).x * (size + gap),
 	y: margin + size / 2 + posToRowCol(pos).y * (size + gap),
 })
-const subtract = (a, b) => ({ x: a.x - b.x, y: a.y - b.y })
-const squaredDistance = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2
 
 const marginLong = 24
 const marginShort = 10

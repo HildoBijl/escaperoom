@@ -12,8 +12,10 @@ import { Svg } from '../../components'
 const width = 400
 const height = 400
 const margin = 6
-const f = 80
+const f = 60
 const snapThreshold = 0.2
+const lightRadius = 12
+const lightMargin = 10
 
 // Define the shapes and their initial positions.
 const r = Math.sqrt(2)
@@ -38,6 +40,7 @@ const initialPositions = [
 
 export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
+	const theme = useTheme()
 	const svgRef = useRef()
 	const [positions, setPositions] = useRiddleStorage('mathsDoor2', initialPositions)
 	const [selected, setSelected] = useState()
@@ -113,13 +116,14 @@ export function Interface({ submitAction, isCurrentAction }) {
 				return <Shape key={position.i} index={position.i} active={active} position={position} selected={selected === position.i} flipSelected={() => flipSelected(position.i)} drag={dragging && dragging.index === position.i} onDown={onDown} />
 			})}
 
-			{/* Grading indicators. */}
+			{/* Grading indicators/lights. */}
+			<circle fill={theme.palette.error.main} cx={width / 2} cy={lightMargin + lightRadius} r={lightRadius} />
+			<circle fill={theme.palette.error.main} cx={width / 2 - 2 * lightRadius - lightMargin} cy={lightMargin + lightRadius} r={lightRadius} />
+			<circle fill={theme.palette.error.main} cx={width / 2 + 2 * lightRadius + lightMargin} cy={lightMargin + lightRadius} r={lightRadius} />
 			{/* ToDo */}
-
-			{/* Rotation buttons. */}
-			{/* ToDo */}
-
 		</Svg>
+
+		{/* Rotation buttons. */}
 		<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', gap: '1rem', }}>
 			<Fab color="primary" disabled={selected === undefined} onClick={() => selected !== undefined && rotate(selected, true)}>
 				<RotateIcon />

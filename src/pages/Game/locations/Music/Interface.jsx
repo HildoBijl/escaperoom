@@ -87,7 +87,7 @@ function Dial({ index, number, adjust, active }) {
 const StyledPath = styled('path')(({ theme, active }) => ({
 	fill: theme.palette.primary.main,
 	userSelect: 'none',
-	'-webkit-tap-highlight-color': 'transparent',
+	WebkitTapHighlightColor: 'transparent',
 	'&:hover': {
 		fill: active ? lighten(theme.palette.primary.main, 0.2) : undefined,
 	},

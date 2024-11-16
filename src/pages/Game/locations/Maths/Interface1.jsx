@@ -52,7 +52,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 			return <rect key={index} x={start.x - size / 2 - blockMargin} y={start.y - size / 2 - blockMargin} width={end.x - start.x + size + 2 * blockMargin} height={end.y - start.y + size + 2 * blockMargin} {...containerParameters} fill={getContainerColor(correct[index])} />
 		})}
 
-		{/* Block shades for when they are dragged away. */}
+		{/* All number blocks. */}
 		{[...numbers.map((activated, num) => <Block key={num} num={num} activated={activated} flip={() => flipNumber(num)} active={active} />)]}
 
 	</Svg>

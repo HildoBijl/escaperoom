@@ -20,53 +20,39 @@ const lightMargin = 10
 // Define the shapes and their initial positions.
 const r = Math.sqrt(2)
 const shapes = [
-	[{ x: -0.5, y: -0.5 }, { x: -0.5, y: 0.5 }, { x: 0.5, y: -0.5 }], // Small triangle.
-	[{ x: -0.5, y: -0.5 }, { x: -0.5, y: 0.5 }, { x: 0.5, y: -0.5 }], // Small triangle.
-	[{ x: -r / 2, y: -r / 2 }, { x: -r / 2, y: r / 2 }, { x: r / 2, y: -r / 2 }], // Medium triangle.
-	[{ x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }], // Large triangle.
-	[{ x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }], // Large triangle.
+	[{ x: -0.25, y: -0.25 }, { x: -0.25, y: 0.75 }, { x: 0.75, y: -0.25 }], // Small triangle.
+	[{ x: -r / 4, y: -r / 4 }, { x: -r / 4, y: r * 3 / 4 }, { x: r * 3 / 4, y: -r / 4 }], // Medium triangle.
+	[{ x: -0.5, y: -0.5 }, { x: -0.5, y: 1.5 }, { x: 1.5, y: -0.5 }], // Large triangle.
 	[{ x: -0.5, y: -0.5 }, { x: -0.5, y: 0.5 }, { x: 0.5, y: 0.5 }, { x: 0.5, y: -0.5 }], // Square.
 	[{ x: -r / 4, y: -r / 4 }, { x: -r * 3 / 4, y: r / 4 }, { x: r / 4, y: r / 4 }, { x: r * 3 / 4, y: -r / 4 }], // Trapezoid.
 ]
 const initialPositions = [
-	{ x: 0, y: -r / 2, r: 3, m: 1, i: 0 },
-	{ x: -r, y: r / 2, r: -3, m: 1, i: 1 },
-	{ x: -r / 2, y: -r / 2, r: 0, m: 1, i: 2 },
-	{ x: r, y: 0, r: 1, m: 1, i: 3 },
-	{ x: 0, y: r, r: -1, m: 1, i: 4 },
-	{ x: -r / 2, y: 0, r: 1, m: 1, i: 5 },
-	{ x: r / 4, y: -r * 3 / 4, r: 0, m: 1, i: 6 },
-]
+	{ x: 0, y: -r / 4, r: 3, m: 1, s: 0 },
+	{ x: -r * 3 / 4, y: r / 2, r: -3, m: 1, s: 0 },
+	{ x: -r * 3 / 4, y: -r * 3 / 4, r: 0, m: 1, s: 1 },
+	{ x: r / 2, y: 0, r: 1, m: 1, s: 2 },
+	{ x: 0, y: r / 2, r: -1, m: 1, s: 2 },
+	{ x: -r / 2, y: 0, r: 1, m: 1, s: 3 },
+	{ x: r / 4, y: -r * 3 / 4, r: 0, m: 1, s: 4 },
+].map((obj, i) => ({ ...obj, i }))
 
 export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
 	const [positions, setPositions] = useRiddleStorage('mathsDoor2', initialPositions)
-	const [selected, setSelected] = useState()
-
-	// Set up a handler to flip the selection of a piece.
-	const flipSelected = (index) => {
-		// Select or deselect the item.
-		setSelected(selected => selected === index ? undefined : index)
-
-		// Move the item to the end to show it to be on top.
-		setPositions(positions => {
-			const positionIndex = positions.findIndex(position => position.i === index)
-			return [...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1), positions[positionIndex]]
-		})
-	}
+	const [selected, setSelected] = useState(false)
 
 	// Set up handlers to rotate/flip pieces.
 	const rotate = (index, cw) => {
 		const elementIndex = positions.findIndex(position => position.i === index)
 		const oldPosition = positions[elementIndex]
-		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), constrainShape({ ...oldPosition, r: oldPosition.r + oldPosition.m * (cw ? -1 : 1) }, index)])
+		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), constrainShape({ ...oldPosition, r: oldPosition.r + oldPosition.m * (cw ? -1 : 1) })])
 	}
 	const mirror = (index) => {
 		const elementIndex = positions.findIndex(position => position.i === index)
 		const oldPosition = positions[elementIndex]
-		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), constrainShape({ ...oldPosition, m: -oldPosition.m }, index)])
+		setPositions(positions => [...positions.slice(0, elementIndex), ...positions.slice(elementIndex + 1), constrainShape({ ...oldPosition, m: -oldPosition.m })])
 	}
 
 	// Set up the dragging system.
@@ -74,6 +60,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const mousePositionClient = useMousePosition()
 	const mousePosition = svgToUnity(transformClientToSvg(mousePositionClient, svgRef.current))
 	const startDragging = (index, event) => {
+		const isSelected = selected === index
 		setSelected(index)
 		if (!active || !mousePosition)
 			return
@@ -81,7 +68,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 		const positionIndex = positions.findIndex(position => position.i === index)
 		const position = positions[positionIndex]
 		const delta = subtract(dragLocation, position)
-		setDragging({ index, delta })
+		setDragging({ index, delta, isSelected, start: new Date() })
 		setPositions(positions => { // Move the dragged element to the end so it's on top.
 			const positionIndex = positions.findIndex(position => position.i === index)
 			return [...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1), positions[positionIndex]]
@@ -89,17 +76,29 @@ export function Interface({ submitAction, isCurrentAction }) {
 		event.preventDefault()
 	}
 	const endDragging = (event) => {
+		// Store the new position.
 		if (dragging) {
 			const endDragLocation = svgToUnity(transformClientToSvg(getEventPosition(event), svgRef.current))
 			setPositions(positions => {
 				const positionIndex = positions.findIndex(position => position.i === dragging.index)
-				const newPosition = { ...positions[positionIndex], ...processDrag(endDragLocation, dragging.delta, dragging.index, positions) }
+				const newPosition = { ...positions[positionIndex], ...processDrag(endDragLocation, dragging.delta, positions[positionIndex], positions) }
 				return [...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1), newPosition]
 			})
+
+			// On a short tap on a selected shape, also rotate.
+			if (dragging.isSelected && new Date() - dragging.start < 200)
+				rotate(dragging.index, true)
 		}
 		setDragging()
 	}
 	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
+
+	// On a mouse down that's not on a shape, deselect.
+	const deselect = (event) => {
+		if (event.target.tagName !== 'polygon')
+			setSelected()
+	}
+	useEventListener(active ? ['mousedown', 'touchstart'] : [], deselect, svgRef) // Listen to mouse-up on entire window.
 
 	// Check the value of the input.
 
@@ -112,8 +111,8 @@ export function Interface({ submitAction, isCurrentAction }) {
 				const drag = dragging && dragging.index === position.i
 				const onDown = (event) => startDragging(position.i, event)
 				if (drag)
-					position = { ...position, ...processDrag(mousePosition, dragging.delta, dragging.index, positions) }
-				return <Shape key={position.i} index={position.i} active={active} position={position} selected={selected === position.i} flipSelected={() => flipSelected(position.i)} drag={dragging && dragging.index === position.i} onDown={onDown} />
+					position = { ...position, ...processDrag(mousePosition, dragging.delta, position, positions) }
+				return <Shape key={position.i} active={active} position={position} selected={selected === position.i} drag={dragging && dragging.index === position.i} onDown={onDown} />
 			})}
 
 			{/* Grading indicators/lights. */}
@@ -138,7 +137,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	</>
 }
 
-function Shape({ index, active, position, selected, onDown, drag }) {
+function Shape({ active, position, selected, onDown, drag }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -157,12 +156,12 @@ function Shape({ index, active, position, selected, onDown, drag }) {
 	}
 
 	// Calculate the coordinates of the block, first in unity coordinates and then in SVG coordinates.
-	const shapeCorners = shapes[index].map(corner => transformPoint(corner, position))
+	const shapeCorners = shapes[position.s].map(corner => transformPoint(corner, position))
 	const shapeCornersSvg = shapeCorners.map(corner => unityToSvg(corner))
 
 	// Render the shape.
 	const color = theme.palette.primary.main
-	return <StyledPolygon ref={ref} active={active} selected={selected} points={shapeCornersSvg.map(corner => `${corner.x} ${corner.y}`).join(' ')} fill={color} />
+	return <StyledPolygon ref={ref} active={active} selected={selected} points={shapeCornersSvg.map(corner => `${corner.x} ${corner.y}`).join(' ')} fill={color} index={position.i} />
 }
 
 const StyledPolygon = styled('polygon')(({ theme, active, selected }) => ({
@@ -187,20 +186,19 @@ const svgToUnity = (coords) => (coords === undefined ? undefined : {
 	y: (coords.y - height / 2) / f,
 })
 
-const processDrag = (mousePosition, delta, index, positions) => {
+const processDrag = (mousePosition, delta, position, positions) => {
 	// Get orientation data.
-	const positionIndex = positions.findIndex(position => position.i === index)
-	const position = positions[positionIndex]
+	const positionIndex = positions.findIndex(currPosition => currPosition.i === position.i)
 
 	// Find the new position.
 	let newPosition = { ...position, ...subtract(mousePosition, delta) }
 
 	// Bound the position to the frame.
-	newPosition = constrainShape(newPosition, index)
+	newPosition = constrainShape(newPosition)
 
 	// Snap to a corner if there is a corner sufficiently close.
 	const allCorners = getAllCorners([...positions.slice(0, positionIndex), ...positions.slice(positionIndex + 1)])
-	const corners = shapes[index].map(corner => transformPoint(corner, newPosition))
+	const corners = shapes[position.s].map(corner => transformPoint(corner, newPosition))
 	const squaredDistances = allCorners.map(c1 => corners.map(c2 => squaredDistance(c1, c2)))
 	const minimalDistances = squaredDistances.map(list => Math.min(...list))
 	if (Math.min(...minimalDistances) < snapThreshold ** 2) {
@@ -211,7 +209,7 @@ const processDrag = (mousePosition, delta, index, positions) => {
 	}
 
 	// Bound again, just in case.
-	newPosition = constrainShape(newPosition, index)
+	newPosition = constrainShape(newPosition)
 	return newPosition
 }
 
@@ -223,7 +221,7 @@ const transformPoint = (point, position) => {
 	}
 }
 
-const constrainShape = (newPosition, index) => {
+const constrainShape = (newPosition) => {
 	// Determine the bounds in unity coordinates.
 	const maxX = (width / 2 - margin) / f
 	const minX = -maxX
@@ -231,7 +229,7 @@ const constrainShape = (newPosition, index) => {
 	const minY = -maxY
 
 	// Determine the current bounds for the shape and compare them with the actual bounds.
-	const corners = shapes[index].map(corner => transformPoint(corner, newPosition))
+	const corners = shapes[newPosition.s].map(corner => transformPoint(corner, newPosition))
 	const bounds = getPointsBounds(corners)
 	const shift = {
 		x: Math.max(0, minX - bounds.minX) + Math.min(0, maxX - bounds.maxX),
@@ -247,7 +245,7 @@ const constrainShape = (newPosition, index) => {
 const getAllCorners = (positions) => {
 	let allCorners = []
 	positions.forEach(position => {
-		const corners = shapes[position.i].map(corner => transformPoint(corner, position))
+		const corners = shapes[position.s].map(corner => transformPoint(corner, position))
 		allCorners = [...allCorners, ...corners]
 	})
 	return allCorners

@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useTheme, lighten, styled } from '@mui/material/styles'
 import { Rotate90DegreesCw as RotateIcon, Flip as FlipIcon } from '@mui/icons-material'
 import Fab from '@mui/material/Fab'
 
-import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex } from 'util'
+import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex, doShapesOverlap, areShapesEqual, doShapesIntersect, isPointInsideShape } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -86,7 +86,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 			})
 
 			// On a short tap on a selected shape, also rotate.
-			if (dragging.isSelected && new Date() - dragging.start < 200)
+			if (dragging.isSelected && new Date() - dragging.start < 100)
 				rotate(dragging.index, true)
 		}
 		setDragging()
@@ -100,19 +100,27 @@ export function Interface({ submitAction, isCurrentAction }) {
 	}
 	useEventListener(active ? ['mousedown', 'touchstart'] : [], deselect, svgRef) // Listen to mouse-up on entire window.
 
-	// Check the value of the input.
+	// Check if some shapes overlap each other.
+	const overlap = useMemo(() => {
+		const allShapes = getAllShapes(positions, 0.999999) // Add a factor to prevent numerical issues on adjacency.
+		return allShapes.map((shape1, i) => allShapes.some((shape2, j) => j < i && doShapesOverlap(shape1, shape2)))
+	}, [positions])
+	const isOverlap = overlap.some(v => v)
+
+	// Check if the shapes match any of the goal shapes.
+	// ToDo next.
 
 	// Render the interface.
 	return <>
 		<Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible', marginBottom: '0.4rem' }}>
 
 			{/* Shapes. */}
-			{positions.map(position => {
+			{positions.map((position, index) => {
 				const drag = dragging && dragging.index === position.i
 				const onDown = (event) => startDragging(position.i, event)
 				if (drag)
 					position = { ...position, ...processDrag(mousePosition, dragging.delta, position, positions) }
-				return <Shape key={position.i} active={active} position={position} selected={selected === position.i} drag={dragging && dragging.index === position.i} onDown={onDown} />
+				return <Shape key={position.i} active={active} position={position} selected={selected === position.i} drag={dragging && dragging.index === position.i} onDown={onDown} isOverlap={overlap[index]} />
 			})}
 
 			{/* Grading indicators/lights. */}
@@ -137,7 +145,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	</>
 }
 
-function Shape({ active, position, selected, onDown, drag }) {
+function Shape({ active, position, selected, onDown, drag, isOverlap }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -146,7 +154,7 @@ function Shape({ active, position, selected, onDown, drag }) {
 		touchstart: onDown,
 	} : {})
 
-	// Transition the position
+	// Transition the position.
 	position = {
 		...position,
 		x: useTransitionedValue(position.x, drag ? 0 : theme.transitions.duration.standard),
@@ -160,19 +168,19 @@ function Shape({ active, position, selected, onDown, drag }) {
 	const shapeCornersSvg = shapeCorners.map(corner => unityToSvg(corner))
 
 	// Render the shape.
-	const color = theme.palette.primary.main
+	const color = isOverlap && !drag ? theme.palette.error.main : theme.palette.primary.main
 	return <StyledPolygon ref={ref} active={active} selected={selected} points={shapeCornersSvg.map(corner => `${corner.x} ${corner.y}`).join(' ')} fill={color} index={position.i} />
 }
 
-const StyledPolygon = styled('polygon')(({ theme, active, selected }) => ({
+const StyledPolygon = styled('polygon')(({ fill, active, selected }) => ({
 	stroke: '#000000',
 	strokeWidth: '1px',
 	cursor: active ? 'grab' : 'default',
-	fill: selected ? lighten(theme.palette.primary.main, 0.18) : theme.palette.primary.main,
+	fill: selected ? lighten(fill, 0.18) : fill,
 	userSelect: 'none',
 	WebkitTapHighlightColor: 'transparent',
 	'&:hover': {
-		fill: active ? lighten(theme.palette.primary.main, 0.25) : undefined,
+		fill: active ? lighten(fill, 0.25) : undefined,
 	},
 }))
 
@@ -213,11 +221,11 @@ const processDrag = (mousePosition, delta, position, positions) => {
 	return newPosition
 }
 
-const transformPoint = (point, position) => {
+const transformPoint = (point, position, factor = 1) => {
 	const angle = position.r * Math.PI / 4
 	return {
-		x: position.x + position.m * (point.x * Math.cos(angle) + point.y * Math.sin(angle)),
-		y: position.y + (-point.x * Math.sin(angle) + point.y * Math.cos(angle)),
+		x: position.x + position.m * (point.x * Math.cos(angle) + point.y * Math.sin(angle)) * factor,
+		y: position.y + (-point.x * Math.sin(angle) + point.y * Math.cos(angle)) * factor,
 	}
 }
 
@@ -242,11 +250,13 @@ const constrainShape = (newPosition) => {
 	return newPosition
 }
 
-const getAllCorners = (positions) => {
-	let allCorners = []
+const getAllShapes = (positions, factor) => {
+	let allShapes = []
 	positions.forEach(position => {
-		const corners = shapes[position.s].map(corner => transformPoint(corner, position))
-		allCorners = [...allCorners, ...corners]
+		const shape = shapes[position.s].map(corner => transformPoint(corner, position, factor))
+		allShapes.push(shape)
 	})
-	return allCorners
+	return allShapes
 }
+
+const getAllCorners = (positions, factor) => getAllShapes(positions, factor).flat()

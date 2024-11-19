@@ -1,9 +1,9 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { useTheme, lighten, styled } from '@mui/material/styles'
 import { Rotate90DegreesCw as RotateIcon, Flip as FlipIcon } from '@mui/icons-material'
 import Fab from '@mui/material/Fab'
 
-import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex, doShapesOverlap, areShapesEqual, doShapesIntersect, isPointInsideShape } from 'util'
+import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex, doShapesOverlap, isShapeInsideShape } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -36,11 +36,39 @@ const initialPositions = [
 	{ x: r / 4, y: -r * 3 / 4, r: 0, m: 1, s: 4 },
 ].map((obj, i) => ({ ...obj, i }))
 
+// Define the shapes to grade.
+const solutions = [
+	[ // Key shape. (Clock-wise, starting from left.)
+		{ x: 0, y: r },
+		{ x: r, y: 0 },
+		{ x: r * 3 / 2, y: r / 2 },
+		{ x: r * 7 / 2 + 1, y: r / 2 },
+		{ x: r * 7 / 2 + 1, y: r / 2 + 2 },
+		{ x: r * 7 / 2, y: r / 2 + 1 },
+		{ x: r * 7 / 2, y: r * 3 / 2 },
+		{ x: r * 3, y: r * 2 },
+		{ x: r * 3, y: r },
+		{ x: r * 2, y: r },
+		{ x: r, y: r * 2 },
+	],
+	[ // Dummy.
+		{ x: 0, y: 1 },
+		{ x: 1, y: 1 },
+		{ x: 1, y: 0 },
+	],
+	[ // Dummy.
+		{ x: 0, y: 1 },
+		{ x: 1, y: 1 },
+		{ x: 1, y: 0 },
+	],
+]
+
 export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
-	const [positions, setPositions] = useRiddleStorage('mathsDoor2', initialPositions)
+	const [positions, setPositions] = useRiddleStorage('mathsDoor2Positions', initialPositions)
+	const [solved, setSolved] = useRiddleStorage('mathsDoor2Solved', solutions.map(() => false))
 	const [selected, setSelected] = useState(false)
 
 	// Set up handlers to rotate/flip pieces.
@@ -100,17 +128,44 @@ export function Interface({ submitAction, isCurrentAction }) {
 	}
 	useEventListener(active ? ['mousedown', 'touchstart'] : [], deselect, svgRef) // Listen to mouse-up on entire window.
 
-	// Check if some shapes overlap each other.
-	const overlap = useMemo(() => {
-		const allShapes = getAllShapes(positions, 0.999999) // Add a factor to prevent numerical issues on adjacency.
-		return allShapes.map((shape1, i) => allShapes.some((shape2, j) => j < i && doShapesOverlap(shape1, shape2)))
-	}, [positions])
-	const isOverlap = overlap.some(v => v)
+	// Do the grading of the outcome.
+	const gradingData = useMemo(() => {
+		// Check if there is any overlap between pieces. That's not allowed.
+		const allShapes = getAllShapes(positions, 1 - 1e-6) // Add a factor to prevent numerical issues on adjacency.
+		const overlap = allShapes.map((shape1, i) => allShapes.some((shape2, j) => j < i && doShapesOverlap(shape1, shape2)))
+		const isOverlap = overlap.some(v => v)
 
-	// Check if the shapes match any of the goal shapes.
-	// ToDo next.
+		// If there's no overlap, check if all pieces fit within a target shape. Shift the solution to match the position of the shapes.
+		let correct = solutions.map(() => false)
+		const pointsBounds = getPointsBounds(getAllShapes(positions).flat())
+		const solutionShift = { x: pointsBounds.minX, y: pointsBounds.minY }
+		if (!isOverlap) {
+			correct = solutions.map((solution) => {
+				solution = solution.map(point => add(point, solutionShift))
+				return allShapes.every(shape => isShapeInsideShape(shape, solution))
+			})
+		}
+		return { allShapes, overlap, isOverlap, correct }
+	}, [positions])
+	const { overlap, correct } = gradingData
+	const isCorrect = correct.some(v => v)
+	useEffect(() => {
+		const updateIndex = correct.findIndex((currCorrect, index) => currCorrect && !solved[index])
+		if (updateIndex !== -1) {
+			const newSolved = [...solved]
+			newSolved[updateIndex] = true
+			setSolved(newSolved)
+			if (solved.every(v => v))
+				submitAction({ type: 'unlockDoor', to: 'Music' })
+		}
+	}, [solved, setSolved, correct, submitAction])
 
 	// Render the interface.
+	const lightX = [
+		width / 2 - 2 * lightRadius - lightMargin,
+		width / 2,
+		width / 2 + 2 * lightRadius + lightMargin,
+	]	
 	return <>
 		<Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible', marginBottom: '0.4rem' }}>
 
@@ -120,14 +175,12 @@ export function Interface({ submitAction, isCurrentAction }) {
 				const onDown = (event) => startDragging(position.i, event)
 				if (drag)
 					position = { ...position, ...processDrag(mousePosition, dragging.delta, position, positions) }
-				return <Shape key={position.i} active={active} position={position} selected={selected === position.i} drag={dragging && dragging.index === position.i} onDown={onDown} isOverlap={overlap[index]} />
+				return <Shape key={position.i} active={active} position={position} selected={selected === position.i} drag={dragging && dragging.index === position.i} onDown={onDown} isOverlap={overlap[index]} isCorrect={isCorrect} />
 			})}
 
 			{/* Grading indicators/lights. */}
-			<circle fill={theme.palette.error.main} cx={width / 2} cy={lightMargin + lightRadius} r={lightRadius} />
-			<circle fill={theme.palette.error.main} cx={width / 2 - 2 * lightRadius - lightMargin} cy={lightMargin + lightRadius} r={lightRadius} />
-			<circle fill={theme.palette.error.main} cx={width / 2 + 2 * lightRadius + lightMargin} cy={lightMargin + lightRadius} r={lightRadius} />
-			{/* ToDo */}
+			{solved.map((isSolved, index) => <circle key={index} fill={theme.palette[isSolved ? 'success' : 'error'].main} cx={lightX[index]} cy={lightMargin + lightRadius} r={lightRadius} />
+			)}
 		</Svg>
 
 		{/* Rotation buttons. */}
@@ -145,7 +198,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	</>
 }
 
-function Shape({ active, position, selected, onDown, drag, isOverlap }) {
+function Shape({ active, position, selected, onDown, drag, isOverlap, isCorrect }) {
 	const theme = useTheme()
 
 	// Set up listeners for various events.
@@ -168,7 +221,7 @@ function Shape({ active, position, selected, onDown, drag, isOverlap }) {
 	const shapeCornersSvg = shapeCorners.map(corner => unityToSvg(corner))
 
 	// Render the shape.
-	const color = isOverlap && !drag ? theme.palette.error.main : theme.palette.primary.main
+	const color = isCorrect ? theme.palette.success.main : ((isOverlap && !drag) ? theme.palette.error.main : theme.palette.primary.main)
 	return <StyledPolygon ref={ref} active={active} selected={selected} points={shapeCornersSvg.map(corner => `${corner.x} ${corner.y}`).join(' ')} fill={color} index={position.i} />
 }
 

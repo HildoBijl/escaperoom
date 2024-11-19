@@ -88,6 +88,13 @@ export function areShapesEqual(s1, s2) {
 	return s1.every((p1, i) => arePointsEqual(p1, s2[mod(shift + i, s2.length)])) || s1.every((p1, i) => arePointsEqual(p1, s2[mod(shift - i, s2.length)]))
 }
 
+// isShapeInsideShape checks if a shape is fully encompassed in another shape.
+export function isShapeInsideShape(s1, s2) {
+	if (doShapesIntersect(s1, s2))
+		return false // Some lines cross.
+	return isPointInsideShape(s1[0], s2)
+}
+
 window.areShapesEqual = areShapesEqual
 window.doShapesOverlap = doShapesOverlap
 window.doShapesIntersect = doShapesIntersect

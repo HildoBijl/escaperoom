@@ -15,7 +15,7 @@ function getOptions({ state, lastAction }) {
 		(state.hall1Unlocked && state.hall2Unlocked) || (lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway') ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
 
 		// Riddle.
-		!state.hall1Unlocked && lastAction?.type === 'checkBox' ? undefined : { text: 'Bekijk het elektronische kastje', action: 'checkBox' },
+		state.hall1Unlocked || lastAction?.type === 'checkBox' ? undefined : { text: 'Bekijk het elektronische kastje', action: 'checkBox' },
 		!state.hall1Unlocked && lastAction?.type === 'checkBox' && isAdmin() ? { text: 'Admin mode: los raadsel op', action: 'unlockDoor' } : undefined,
 
 		// Music.

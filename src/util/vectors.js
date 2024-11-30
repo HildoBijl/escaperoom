@@ -32,7 +32,7 @@ export function doLinesIntersect(l1, l2) {
 
 	// Check the determinant for parallel lines.
 	const det = (p1b.x - p1a.x) * (p2b.y - p2a.y) - (p2b.x - p2a.x) * (p1b.y - p1a.y)
-	if (Math.abs(det) < 1e-12)
+	if (Math.abs(det) < 1e-16)
 		return false
 
 	// Find where on the two lines the intersection point is.
@@ -94,9 +94,3 @@ export function isShapeInsideShape(s1, s2) {
 		return false // Some lines cross.
 	return isPointInsideShape(s1[0], s2)
 }
-
-window.areShapesEqual = areShapesEqual
-window.doShapesOverlap = doShapesOverlap
-window.doShapesIntersect = doShapesIntersect
-window.isPointInsideShape = isPointInsideShape
-window.doLinesIntersect = doLinesIntersect

@@ -3,7 +3,7 @@ import { useTheme, lighten, styled } from '@mui/material/styles'
 import { Rotate90DegreesCw as RotateIcon, Flip as FlipIcon } from '@mui/icons-material'
 import Fab from '@mui/material/Fab'
 
-import { useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex, doShapesOverlap, isShapeInsideShape } from 'util'
+import { mod, useRefWithEventListeners, useEventListener, useTransitionedValue, transformClientToSvg, useMousePosition, getEventPosition, add, subtract, squaredDistance, getPointsBounds, findMinimumIndex, doShapesOverlap, isShapeInsideShape } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -12,7 +12,7 @@ import { Svg } from '../../components'
 const width = 400
 const height = 400
 const margin = 6
-const f = 60
+const f = 50
 const snapThreshold = 0.2
 const lightRadius = 12
 const lightMargin = 10
@@ -37,38 +37,42 @@ const initialPositions = [
 ].map((obj, i) => ({ ...obj, i }))
 
 // Define the shapes to grade.
-const solutions = [
-	[ // Key shape. (Clock-wise, starting from left.)
-		{ x: 0, y: r },
-		{ x: r, y: 0 },
-		{ x: r * 3 / 2, y: r / 2 },
-		{ x: r * 7 / 2 + 1, y: r / 2 },
-		{ x: r * 7 / 2 + 1, y: r / 2 + 2 },
-		{ x: r * 7 / 2, y: r / 2 + 1 },
-		{ x: r * 7 / 2, y: r * 3 / 2 },
-		{ x: r * 3, y: r * 2 },
-		{ x: r * 3, y: r },
-		{ x: r * 2, y: r },
-		{ x: r, y: r * 2 },
-	],
-	[ // Dummy.
-		{ x: 0, y: 1 },
-		{ x: 1, y: 1 },
-		{ x: 1, y: 0 },
-	],
-	[ // Dummy.
-		{ x: 0, y: 1 },
-		{ x: 1, y: 1 },
-		{ x: 1, y: 0 },
-	],
+const key = [ // Key shape. (Clock-wise, starting from left.)
+	{ x: 0, y: r },
+	{ x: r, y: 0 },
+	{ x: r * 3 / 2, y: r / 2 },
+	{ x: r * 7 / 2 + 1, y: r / 2 },
+	{ x: r * 7 / 2 + 1, y: r / 2 + 2 },
+	{ x: r * 7 / 2, y: r / 2 + 1 },
+	{ x: r * 7 / 2, y: r * 3 / 2 },
+	{ x: r * 3, y: r * 2 },
+	{ x: r * 3, y: r },
+	{ x: r * 2, y: r },
+	{ x: r, y: r * 2 },
 ]
+const exclamation = [
+	{ x: r / 2, y: 0 },
+	{ x: r, y: r / 2 },
+	{ x: r, y: r * 7 / 2 },
+	{ x: r / 2, y: r * 4 },
+	{ x: 0, y: r * 7 / 2 },
+	{ x: 0, y: r / 2 },
+]
+const fractionBar = [
+	{ x: 0, y: 0 },
+	{ x: 4, y: 0 },
+	{ x: 4, y: 1 },
+	{ x: 0, y: 1 },
+]
+const solutionShapes = [key, exclamation, fractionBar]
+const exclude = [undefined, 3, 2]
 
 export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
 	const [positions, setPositions] = useRiddleStorage('mathsDoor2Positions', initialPositions)
-	const [solved, setSolved] = useRiddleStorage('mathsDoor2Solved', solutions.map(() => false))
+	const [solved, setSolved] = useRiddleStorage('mathsDoor2Solved', solutionShapes.map(() => false))
 	const [selected, setSelected] = useState(false)
 
 	// Set up handlers to rotate/flip pieces.
@@ -131,34 +135,38 @@ export function Interface({ submitAction, isCurrentAction }) {
 	// Do the grading of the outcome.
 	const gradingData = useMemo(() => {
 		// Check if there is any overlap between pieces. That's not allowed.
-		const allShapes = getAllShapes(positions, 1 - 1e-6) // Add a factor to prevent numerical issues on adjacency.
+		const allShapes = getAllShapes(positions, 1 - 1e-5) // Add a factor to prevent numerical issues on adjacency.
 		const overlap = allShapes.map((shape1, i) => allShapes.some((shape2, j) => j < i && doShapesOverlap(shape1, shape2)))
 		const isOverlap = overlap.some(v => v)
 
-		// If there's no overlap, check if all pieces fit within a target shape. Shift the solution to match the position of the shapes.
-		let correct = solutions.map(() => false)
-		const pointsBounds = getPointsBounds(getAllShapes(positions).flat())
-		const solutionShift = { x: pointsBounds.minX, y: pointsBounds.minY }
+		// If there's no overlap, check if the pieces match with one of the goals.
+		let correct = solutionShapes.map(() => false)
 		if (!isOverlap) {
-			correct = solutions.map((solution) => {
-				solution = solution.map(point => add(point, solutionShift))
-				return allShapes.every(shape => isShapeInsideShape(shape, solution))
+			correct = solutionShapes.map((_, index) => {
+				return isValidSolution(positions, index)
 			})
 		}
 		return { allShapes, overlap, isOverlap, correct }
 	}, [positions])
 	const { overlap, correct } = gradingData
 	const isCorrect = correct.some(v => v)
+
+	// On a newly correct entry, store it.
 	useEffect(() => {
 		const updateIndex = correct.findIndex((currCorrect, index) => currCorrect && !solved[index])
 		if (updateIndex !== -1) {
 			const newSolved = [...solved]
 			newSolved[updateIndex] = true
 			setSolved(newSolved)
-			if (solved.every(v => v))
-				submitAction({ type: 'unlockDoor', to: 'Music' })
 		}
-	}, [solved, setSolved, correct, submitAction])
+	}, [solved, setSolved, correct])
+
+	// Check for three green lights.
+	useEffect(() => {
+		if (solved.every(v => v) && isCurrentAction)
+			submitAction('unlockDoor')
+	}, [solved, isCurrentAction, submitAction])
+
 
 	// Render the interface.
 	const lightX = [
@@ -304,12 +312,72 @@ const constrainShape = (newPosition) => {
 }
 
 const getAllShapes = (positions, factor) => {
-	let allShapes = []
-	positions.forEach(position => {
-		const shape = shapes[position.s].map(corner => transformPoint(corner, position, factor))
-		allShapes.push(shape)
-	})
-	return allShapes
+	return positions.map(position => shapes[position.s].map(corner => transformPoint(corner, position, factor)))
 }
 
 const getAllCorners = (positions, factor) => getAllShapes(positions, factor).flat()
+
+function isValidSolution(positions, index) {
+	// Extract data about the solution.
+	let solutionShape = solutionShapes[index]
+	const toExclude = exclude[index]
+
+	// Check that all relevant items are in the solution shape.
+	const filteredPositions = positions.filter(position => position.s !== toExclude)
+	const allShapes = getAllShapes(filteredPositions, 1 - 1e-5) // Add a factor to prevent numerical issues on adjacency.
+	const pointsBounds = getPointsBounds(getAllShapes(filteredPositions).flat())
+	const solutionShift = { x: pointsBounds.minX, y: pointsBounds.minY }
+	solutionShape = solutionShape.map(point => add(point, solutionShift))
+	if (!allShapes.every(shape => isShapeInsideShape(shape, solutionShape)))
+		return false
+
+	// Check if the remaining shapes are also in the right place.
+	if (index === 0) // Key
+		return true
+
+	if (index === 1) { // Exclamation
+		let remaining = positions.filter(position => position.s === toExclude)[0]
+
+		// Check orientation.
+		if (mod(remaining.r, 2) === 1)
+			return false
+
+		// Check x-coordinate.
+		const midX = (pointsBounds.minX + pointsBounds.maxX) / 2
+		if (remaining.x < midX - 0.25 || remaining.x > midX + 0.25)
+			return false
+
+		// Check y-coordinate.
+		const midY = (pointsBounds.minY + pointsBounds.maxY) / 2
+		if (remaining.y < midY + 3.5 || remaining.y > midY + 4)
+			return false
+
+		// All clear!
+		return true
+	}
+
+	if (index === 2) { // Division
+		let remaining = positions.filter(position => position.s === toExclude)
+
+		// Check orientation.
+		if (mod(remaining[0].r, 8) === 3 && mod(remaining[1].r, 8) === 7)
+			remaining = remaining.reverse()
+		if (!(mod(remaining[0].r, 8) === 7 && mod(remaining[1].r, 8) === 3))
+			return false
+
+		// Check x-coordinate.
+		const midX = (pointsBounds.minX + pointsBounds.maxX) / 2
+		if (remaining.some(position => position.x < midX - 0.15 || position.x > midX + 0.15))
+			return false
+
+		// Check y-coordinate.
+		const midY = (pointsBounds.minY + pointsBounds.maxY) / 2
+		if (remaining[0].y < midY - 2 || remaining[0].y > midY - 1.3)
+			return false
+		if (remaining[1].y < midY + 1.3 || remaining[1].y > midY + 2)
+			return false
+
+		// All clear!
+		return true
+	}
+}

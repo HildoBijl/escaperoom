@@ -51,7 +51,7 @@ export function Action(props) {
 					<>
 						<p>Het kleine kastje is weinig meer dan een simpele touchscreen. Verschillende ingewikkelde geometrische figuren dansen erop rond.</p>
 						<Image src={ArtInterface} />
-						<p>Zodra je het touchscreen aanraakt, komende alle dansende figuren samen in een groot vierkant. Blijkbaar moet je iets ermee doen.</p>
+						<p>Zodra je het touchscreen aanraakt, komen alle dansende figuren samen in een groot vierkant. Blijkbaar moet je iets ermee doen.</p>
 					</>,
 					<p>De figuren op het touchscreen staan er nog onveranderd bij.</p>,
 					<p>Was er maar ergens een sleutel om dit kastje te ontgrendelen. En wat betekenen die drie lampjes bovenin het scherm? Heb je drie sleutels nodig?</p>,
@@ -66,7 +66,7 @@ export function Action(props) {
 				{state.hall2Unlocked ? <>
 					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Kort verschijnt er een boodschap op het scherm, &apos;Gebouwvergredenling opgeheven.&apos; Vervolgens hoor je een harde klik naast je, ergens in de deur. Dat belooft wat! Je kijkt uit naar je aankomende vrijheid.</p>
 				</> : <>
-					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Vervolgens hoor je een piepje uit het scherm komen, en kort verschijnt er een melding, &apos;Gebouwvergrendeling opheffen: stap 1/2 voltooid.&apos; De eerste stap van twee? Je moet nog verder? Je slaakt een diepe zucht en haalt je schouders op. Het is in ieder geval een mooie stap vooruit! Maar wat nu?</p>
+					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Vervolgens hoor je een piepje uit het scherm komen, en kort verschijnt er een melding, &apos;Gebouwvergrendeling opheffen: stap 1/2 voltooid.&apos; De eerste stap van twee? Je moet nog verder? Je slaakt een diepe zucht en haalt je schouders op. Het is in ieder geval een mooie stap vooruit. Maar wat nu?</p>
 				</>}
 			</>
 

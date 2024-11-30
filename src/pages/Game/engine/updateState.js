@@ -22,6 +22,8 @@ export function updateState(location, state, action) {
 			switch (action.type) {
 				case 'search': // No state change.
 					break
+				case 'lookAround': // No state change.
+					break
 				case 'checkDoor':
 					state.officeDoor = {
 						checked: true,

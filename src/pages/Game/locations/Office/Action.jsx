@@ -1,5 +1,5 @@
 import { Image } from 'components'
-import { OfficeDoor, OfficeHint } from 'assets'
+import { OfficeDoor, OfficeHint, FactorialHint } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -11,14 +11,32 @@ export function Action(props) {
 	switch (action.type) {
 		case 'search':
 			return <>
-				<Line text="Je doorzoekt het kantoor" />
+				<Line text="Je doorzoekt het bureau" />
 				{cases(numActionVisits, [0, 2, Infinity], [
 					<>
-						<p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van het bureau vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon.</p>
+						<p>Er liggen talloze notities verstrooid rond het bureau. Ergens aan de rand van vind je eentje die je opvalt. Het is een stuk papier met getallen erop in een bepaald patroon.</p>
 						<Image src={OfficeHint} />
 					</>,
-					<p>Je gaat nogmaals het kantoor door, maar vindt niets wat je nog niet eerder gezien hebt.</p>,
-					<p>Je doorzoekt nogmaals hopeloos voor de zoveelste keer het kantoor, maar er is werkelijk niets nieuws te vinden.</p>,
+					<p>Je gaat nogmaals de notities op het bureau door, maar vindt niets wat je nog niet eerder gezien hebt.</p>,
+					<p>Je doorzoekt nogmaals hopeloos voor de zoveelste keer het bureau, maar er is werkelijk niets nieuws te vinden.</p>,
+				])}
+			</>
+		case 'lookAround':
+			return <>
+				<Line text="Je kijkt rond in het kantoor" />
+				{cases(numActionVisits, [0, 2, 3, 5, 6, Infinity], [
+					<>
+						<p>Tussen alle stoffige boekenkasten (wordt hier nooit schoongemaakt?) wordt je aandacht getrokken door een wat spacy poster. Blijkbaar ziet je wiskundedocent graag wiskunde in een mooi ruimte-thema. Het is een uitleg over de faculteit: door een uitroepteken achter een getal te zetten krijg je een vermenigvuldiging.</p>
+						<Image src={FactorialHint} />
+					</>,
+					<p>Je kijkt nogmaals het kantoor rond, maar het enige wat dit oplevert is een extra hoestbui van al het stof in de boekenkasten.</p>,
+					<>
+						<p>Je kijkt nog een keer naar de poster over faculteiten. Het grote uitroepteken aan de rechterkant ziet er wel vreemd uit. Hij is veel te hoekig voor een poster die voor de rest een prima layout heeft. Is daar een reden voor? Betekent het iets?</p>
+						<Image src={FactorialHint} />
+					</>,
+					<p>Je doorzoekt weer het kantoor, maar er is nog steeds niets nieuws te vinden.</p>,
+					<p>In een hoek van het lokaal vind je tot je verrassing een plumeau! Zat van al het stof besluit je de kamer eens goed af te stoffen. Na een paar minuten werk ziet het er al een stuk beter uit.</p>,
+					<p>Er is niets nieuws te vinden in het kantoor, maar hij is tenminste wel mooi schoon.</p>,
 				])}
 			</>
 		case 'checkDoor':
@@ -41,7 +59,7 @@ export function Action(props) {
 		case 'return':
 			return <>
 				<Line text="Je gaat terug naar het kantoor" />
-				<p>Je laat het kastje voorlopig met rust, doet een stap terug, en kijkt weer rond in het kantoor.</p>
+				<p>Je laat het kastje voorlopig met rust, doet een stap terug, en staat weer middenin het kantoor.</p>
 			</>
 		case 'unlockDoor':
 			return <>

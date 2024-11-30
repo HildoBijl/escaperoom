@@ -9,7 +9,8 @@ function getOptions({ state, lastAction }) {
 	if (lastAction?.type === 'checkBox')
 		return [{ text: 'Ga terug naar het kantoor', action: 'return' }, isAdmin() ? { text: 'Admin mode: los raadsel op', action: 'unlockDoor' } : undefined]
 	return [
-		lastAction?.type === 'search' ? undefined : { text: 'Doorzoek het kantoor', action: 'search' },
+		lastAction?.type === 'search' ? undefined : { text: 'Doorzoek het bureau', action: 'search' },
+		lastAction?.type === 'lookAround' ? undefined : { text: 'Kijk wat rond in het kantoor', action: 'lookAround' },
 		!state.officeDoor?.checked ?
 			{ text: 'Ga terug naar het klaslokaal', action: 'checkDoor' } :
 			!state.officeDoor?.unlocked ?

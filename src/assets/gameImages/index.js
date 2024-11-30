@@ -5,6 +5,7 @@ export { default as UnavailableDoor } from './UnavailableDoor.jpg'
 export { default as OfficeOverview } from './OfficeOverview.jpg'
 export { default as OfficeDoor } from './OfficeDoor.jpg'
 export { default as OfficeHint } from './OfficeHint.png'
+export { default as FactorialHint } from './FactorialHint.png'
 
 // Maths
 export { default as MathsRoom } from './MathsRoom.jpg'

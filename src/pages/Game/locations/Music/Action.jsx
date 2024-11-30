@@ -47,7 +47,7 @@ export function Action(props) {
 					</>,
 					<p>Nu het propje papier opgeruimd is, zijn alle tafels verder leeg.</p>,
 					<p>De tafels in het lokaal zijn nog steeds leeg, maar het doet je wel denken aan het propje papier dat je hier eerder gevonden had, dat nog in je broekzak zit. Je haalt hem eruit en bekijkt hem nog eens. Het is een patroon van vierkantjes, sommigen recht en sommigen gedraaid, en elk met een letter of cijfer erin. Ook de grote stip onderin valt je op. Is dat een willekeurige inktvlek, of heeft die een betekenis?</p>,
-					<p>De tafels in het muzieklokaal staan nog steeds allemaal netjes in rijtjes naar het schoolbord gericht.</p>,
+					<p>De tafels in het muzieklokaal staan nog steeds allemaal netjes in rijtjes naar het schoolbord gericht. Ze zijn allemaal leeg.</p>,
 				])}
 			</>
 

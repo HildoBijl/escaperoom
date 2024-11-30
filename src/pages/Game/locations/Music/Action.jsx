@@ -1,5 +1,5 @@
 import { Image } from 'components'
-import { MusicHint, MusicHintAfter, MusicDoor } from 'assets'
+import { MusicHint, MusicHintAfter, MusicDoor, CypherKey } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -13,8 +13,8 @@ export function Action(props) {
 			switch (action.to) {
 				case 'Maths':
 					return <Line text="Je gaat naar het wiskundelokaal" />
-				case 'CS':
-					return <Line text="Je gaat naar het informaticalokaal" />
+				case 'Art':
+					return <Line text="Je gaat naar het kunstlokaal" />
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
@@ -37,6 +37,20 @@ export function Action(props) {
 				])}
 			</>
 
+		case 'search':
+			return <>
+				<Line text="Je doorzoekt het muzieklokaal" />
+				{cases(numActionVisits, [0, 2, 3, Infinity], [
+					<>
+						<p>De meeste tafels zijn leeg, maar op een tafel in de hoek van het klaslokaal heeft iemand een opgevouwen propje papier achtergelaten. Je vouwt het uit en ziet een paar willekeurige scribbles. Erg creatief, maar het ziet er meer uit als een kunstproject dan iets wat in het muzieklokaal hoort. Om het lokaal netjes te houden, stop je het blad papier maar in je broekzak.</p>
+						<Image src={CypherKey} />
+					</>,
+					<p>Nu het propje papier opgeruimd is, zijn alle tafels verder leeg.</p>,
+					<p>De tafels in het lokaal zijn nog steeds leeg, maar het doet je wel denken aan het propje papier dat je hier eerder gevonden had, dat nog in je broekzak zit. Je haalt hem eruit en bekijkt hem nog eens. Het is een patroon van vierkantjes, sommigen recht en sommigen gedraaid, en elk met een letter of cijfer erin. Ook de grote stip onderin valt je op. Is dat een willekeurige inktvlek, of heeft die een betekenis?</p>,
+					<p>De tafels in het muzieklokaal staan nog steeds allemaal netjes in rijtjes naar het schoolbord gericht.</p>,
+				])}
+			</>
+
 		case 'checkDoor':
 			switch (action.to) {
 				case 'Hallway':
@@ -48,9 +62,9 @@ export function Action(props) {
 							<p>Je slaat je hoofd tegen de deur aan. Het heeft geen effect op de deur: die blijft dicht. Je krijgt er wel hoofdpijn van.</p>,
 						])}
 					</>
-				case 'CS':
+				case 'Art':
 					return <>
-						<Line text="Je bekijkt de deur naar informatica" />
+						<Line text="Je bekijkt de deur naar kunst" />
 						{cases(numActionVisits, [0, 2, 3, Infinity], [
 							<>
 								<p>Wat krijgen we nou, deze deur heeft geen elektronisch kastje ernaast. Het is een oud hangslot! Dat moet het een stuk makkelijker maken. Het hangslot heeft vier draaischijven, allen boven elkaar, met de cijfers 0 tot en met 9.</p>

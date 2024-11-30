@@ -74,11 +74,13 @@ export function updateState(location, state, action) {
 			switch (action.type) {
 				case 'checkBlackboard': // No state change.
 					break
+				case 'search': // No state change.
+					break
 				case 'checkDoor': // No state change.
 					break
 				case 'unlockDoor':
-					state.csDoorUnlocked = true
-					location = 'CS'
+					state.artDoorUnlocked = true
+					location = 'Art'
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)

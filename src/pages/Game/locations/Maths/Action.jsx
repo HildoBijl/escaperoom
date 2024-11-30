@@ -41,7 +41,7 @@ export function Action(props) {
 				<Line text="Je bekijkt het schoolbord" />
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
-						<p>Er staat nog een som met breuken op het schoolbord. Dat is vreemd, de les die je zojuist had ging helemaal niet over breuken! Je haalt je schouders op. Het zal wel niets betekenen.</p>
+						<p>Er staat nog een tweetal sommen met breuken op het schoolbord. Dat is vreemd, de les die je zojuist had ging helemaal niet over breuken! Je haalt je schouders op. Het zal wel niets betekenen.</p>
 						<Image src={FractionHint} />
 					</>,
 					<p>Je bekijkt het schoolbord nog eens, maar er is niets veranderd. De twee breukensommen staan er nog steeds op.</p>,

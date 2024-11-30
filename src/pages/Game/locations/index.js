@@ -1,5 +1,5 @@
 export * as Office from './Office'
 export * as Maths from './Maths'
-export * as History from './History'
 export * as Music from './Music'
-export * as CS from './CS'
+export * as Art from './Art'
+export * as History from './History'

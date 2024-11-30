@@ -42,7 +42,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const allCorrect = areNumbersCorrect(numbers)
 	useEffect(() => {
 		if (allCorrect && isCurrentAction)
-			submitAction({ type: 'unlockDoor', to: 'CS' })
+			submitAction({ type: 'unlockDoor', to: 'Art' })
 	}, [allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

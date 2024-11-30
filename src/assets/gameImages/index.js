@@ -20,3 +20,8 @@ export { default as MusicDoor } from './MusicDoor.jpg'
 export { default as MusicHint } from './MusicHint.png'
 export { default as MusicHintAfter } from './MusicHintAfter.png'
 export { default as CypherKey } from './CypherKey.png'
+
+// Art
+export { default as ArtRoom } from './ArtRoom.jpg'
+export { default as ArtInterface } from './ArtInterface.jpg'
+export { default as KeyPainting } from './KeyPainting.png'

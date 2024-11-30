@@ -18,6 +18,8 @@ export function Action(props) {
 					return <Line text="Je gaat naar het muzieklokaal" />
 				case 'History':
 					return <Line text="Je gaat naar het geschiedenislokaal" />
+				case 'Hallway':
+					return <Line text="Je gaat via de gang naar de aula" />
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}

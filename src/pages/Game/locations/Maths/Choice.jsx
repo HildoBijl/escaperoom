@@ -17,7 +17,8 @@ function getOptions({ state, lastAction }) {
 		lastAction?.type === 'checkBlackboard' ? undefined : { text: 'Bekijk het schoolbord', action: 'checkBlackboard' },
 
 		// Hallway.
-		lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway' ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
+		!state.hall1Unlocked || !state.hall2Unlocked ? undefined : { text: 'Ga naar de aula', action: { type: 'move', to: 'Hallway' } },
+		(state.hall1Unlocked && state.hall2Unlocked) || (lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway') ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
 
 		// Music.
 		state.musicDoorUnlocked ? { text: 'Ga naar het muzieklokaal', action: { type: 'move', to: 'Music' } } : undefined,

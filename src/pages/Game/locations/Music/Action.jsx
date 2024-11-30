@@ -15,6 +15,8 @@ export function Action(props) {
 					return <Line text="Je gaat naar het wiskundelokaal" />
 				case 'Art':
 					return <Line text="Je gaat naar het kunstlokaal" />
+				case 'Hallway':
+					return <Line text="Je gaat via de gang naar de aula" />
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
@@ -42,7 +44,7 @@ export function Action(props) {
 				<Line text="Je doorzoekt het muzieklokaal" />
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
-						<p>De meeste tafels zijn leeg, maar op een tafel in de hoek van het klaslokaal heeft iemand een opgevouwen propje papier achtergelaten. Je vouwt het uit en ziet een paar willekeurige scribbles. Erg creatief, maar het ziet er meer uit als een kunstproject dan iets wat in het muzieklokaal hoort. Om het lokaal netjes te houden, stop je het blad papier maar in je broekzak.</p>
+						<p>De meeste tafels zijn leeg, maar op een tafel in de hoek van het klaslokaal heeft iemand een opgevouwen propje papier achtergelaten. Je vouwt het uit en ziet een paar willekeurige scribbles. Erg creatief, maar het ziet er meer uit als een kunstproject dan iets dat in het muzieklokaal hoort. Om het lokaal netjes te houden, stop je het blad papier maar in je broekzak.</p>
 						<Image src={CypherKey} />
 					</>,
 					<p>Nu het propje papier opgeruimd is, zijn alle tafels verder leeg.</p>,

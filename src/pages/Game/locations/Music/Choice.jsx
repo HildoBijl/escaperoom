@@ -14,7 +14,8 @@ function getOptions({ state, lastAction }) {
 		lastAction?.type === 'search' ? undefined : { text: 'Doorzoek het lokaal', action: 'search' },
 
 		// Hallway.
-		lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway' ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
+		!state.hall1Unlocked || !state.hall2Unlocked ? undefined : { text: 'Ga naar de aula', action: { type: 'move', to: 'Hallway' } },
+		(state.hall1Unlocked && state.hall2Unlocked) || (lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway') ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
 
 		// Art.
 		state.artDoorUnlocked ? { text: 'Ga naar het kunstlokaal', action: { type: 'move', to: 'Art' } } : undefined,

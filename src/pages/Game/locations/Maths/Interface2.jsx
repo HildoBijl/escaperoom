@@ -165,7 +165,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 		width / 2 - 2 * lightRadius - lightMargin,
 		width / 2,
 		width / 2 + 2 * lightRadius + lightMargin,
-	]	
+	]
 	return <>
 		<Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible', marginBottom: '0.4rem' }}>
 
@@ -184,7 +184,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 		</Svg>
 
 		{/* Rotation buttons. */}
-		<div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', gap: '1rem', }}>
+		{active ? <div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', gap: '1rem', }}>
 			<Fab color="primary" disabled={selected === undefined} onClick={() => selected !== undefined && rotate(selected, true)}>
 				<RotateIcon />
 			</Fab>
@@ -194,7 +194,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 			<Fab color="primary" disabled={selected === undefined} onClick={() => selected !== undefined && mirror(selected)}>
 				<FlipIcon />
 			</Fab>
-		</div>
+		</div> : null}
 	</>
 }
 

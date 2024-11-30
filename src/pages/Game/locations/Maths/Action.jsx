@@ -82,14 +82,14 @@ export function Action(props) {
 						<Line text="Je loopt naar de deur naar het muzieklokaal" />
 						{cases(numActionVisits, [0, 2, 3, Infinity], [
 							<>
-								<p>Je probeert de deur naar het muzieklokaal te openen, maar niet onverwacht zit hij dicht. Dus bekijk je het elektronische kastje ernaast. Helaas staat er een groot rood kruis op het scherm met een boodschap &quot;Deze deur is nog in ontwikkeling. Kom later terug.&quot;</p>
+								<p>Je probeert de deur naar het muzieklokaal te openen, maar niet onverwacht zit hij dicht. Dus bekijk je het elektronische kastje ernaast. Helaas staat er een groot rood kruis op het scherm met een boodschap &quot;Deze deur is nog in ontwikkeling.&quot;</p>
 								<Image src={UnavailableDoor} />
 							</>,
 							<p>Helaas ... de deur is nog steeds niet toegevoegd aan de Escape Room. Het rode kruis is nog steeds zichtbaar op het scherm.</p>,
 							<p>Nog steeds is er een rood kruis zichtbaar op het scherm, maar deze keer hoor je bij het grijpen van de deurklink opeens een stem over de schoolluidspreker. &quot;Beste Escape Room tester. Enorm bedankt dat je de kamer test! We waarderen het zeer. Maar hoe vaak je ook naar de deur loopt, hij is nog steeds niet beschikbaar. Ga simpelweg naar huis en kom een paar dagen later terug. (Ja, vraag me niet hoe, als je in de school opgesloten zit.)&quot;</p>,
 							<p>Je loopt nog een keer naar de deur toe in de hoop de stem over de luidspreker weer te horen, maar helaas. Het blijft stil.</p>,
 						])}
-						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <><p>Maar tijdelijk staat hier even het eindraadsel, omdat hij anders nog niet te bereiken is. Kijken of je hem op kan lossen.</p><Interface2 {...props} /></> : null}
+						{/* {isCurrentAction || nextAction?.type === 'unlockDoor' ? <><p>Maar tijdelijk staat hier even het eindraadsel, omdat hij anders nog niet te bereiken is. Kijken of je hem op kan lossen.</p><Interface2 {...props} /></> : null} */}
 					</>
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)

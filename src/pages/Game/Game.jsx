@@ -4,6 +4,7 @@ import Alert from '@mui/material/Alert'
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
 
+import { isAdmin, isTester } from './util'
 import * as locations from './locations'
 import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits, getPreviousAction, getNextAction } from './engine'
 
@@ -20,6 +21,8 @@ export function Game() {
 	// Render the Game.
 	return <Subpage>
 		<Alert severity="info" sx={{ my: 2 }}>De Escape Room is nog in ontwikkeling. Op het moment staat alleen de eerste kamer online als teaser. De volledige Escape Room is beschikbaar vanaf <strong>6 januari 2025</strong>.</Alert>
+		{isAdmin() ? <Alert severity="warning" sx={{ my: 2 }}>Adminrechten zijn actief. De gehele Escape Room is beschikbaar, en je kunt puzzels overslaan indien gewenst.</Alert> : null}
+		{isTester() ? <Alert severity="warning" sx={{ my: 2 }}>Tester modus is actief. De gehele Escape Room is beschikbaar, voor zover hij al gebouwd is. Bedankt voor het testen!</Alert> : null}
 		{history.map((item, locationIndex) => {
 			// Gather data about the location that we're in.
 			const { location, actions } = item

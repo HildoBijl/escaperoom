@@ -66,7 +66,7 @@ export function Action(props) {
 				{state.hall2Unlocked ? <>
 					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Kort verschijnt er een boodschap op het scherm, &apos;Gebouwvergredenling opgeheven.&apos; Vervolgens hoor je een harde klik naast je, ergens in de deur. Dat belooft wat! Je kijkt uit naar je aankomende vrijheid.</p>
 				</> : <>
-					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Vervolgens hoor je een piepje uit het scherm komen, en kort verschijnt er een melding, &apos;Gebouwvergrendeling opheffen: stap 1/2 voltooid.&apos; De eerste stap van twee? Je moet nog verder? Je slaakt een diepe zucht en haalt je schouders op. Het is in ieder geval een mooie stap vooruit. Maar wat nu?</p>
+					<p>Bij het invoeren van de derde vorm wordt het derde lampje groen. Vervolgens hoor je een piepje uit het scherm komen, en kort verschijnt er een melding, &apos;Gebouwvergrendeling opheffen: stap één van de twee voltooid.&apos; De eerste stap? Je moet nog verder? Je slaakt een diepe zucht en haalt je schouders op. Het is in ieder geval een mooie stap vooruit. Maar wat nu?</p>
 				</>}
 			</>
 

@@ -19,7 +19,7 @@ export function Location({ numVisits }) {
 	// We're in the regular operation of the Escape Room.
 	return cases(numVisits, [0, 3, 6, Infinity], [
 		<>
-			<p>Het lokaal ziet er exact hetzelfde uit als toen je klas er nog was, behalve dan dat iedereen weg is. De tafels staan netjes in rijen door het lokaal, allen naar het schoolbord gericht, en de muren zijn nog steeds behangd met wiskundige posters.</p>
+			<p>Het lokaal ziet er exact hetzelfde uit als toen je klas er nog was, behalve dan dat iedereen weg is. De tafels staan netjes in rijen door het lokaal, allen naar het schoolbord gericht, en de muren zijn nog steeds behangen met wiskundige posters.</p>
 			<Image src={MathsRoom} />
 			<p>Je oog gaat vooral uit naar de deuren. Tegenover je, in de verre muur, is de deur naar de gang, links is een tussendeur naar het muzieklokaal, en rechts kun je door naar geschiedenis. De tussendeuren kende je al, maar pas nu valt het je op dat ze ook allemaal een elektronisch kastje ernaast hebben. Zijn die nieuw? Of vallen ze je nu pas voor het eerst op?</p>
 		</>,

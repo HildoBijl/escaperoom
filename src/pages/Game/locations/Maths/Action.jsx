@@ -1,5 +1,5 @@
 import { Image } from 'components'
-import { UnavailableDoor, MathsHint1, MathsDoor1 } from 'assets'
+import { UnavailableDoor, MathsHint1, MathsDoor1, FractionHint } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -32,7 +32,21 @@ export function Action(props) {
 					</>,
 					<p>Je bekijkt de posters nog een keer, maar er is niets nieuws dat je opvalt.</p>,
 					<p>Gefrustreerd trek je een poster van de muur af. Erachter is een stuk muur zichtbaar dat in twintig jaar waarschijnlijk geen daglicht gezien heeft. Het biedt je alleen weinig extra uitgangen: de muur ziet er net zo hard uit als in de rest van het lokaal. Hopelijk wordt de leraar niet boos op je omdat je z&apos;n poster gesloopt hebt.</p>,
-					<p>De posters staren met grote ogen terug. Je besluit ze nu maar te laten hangen. Je hebt er al genoeg kapot gemaakt vandaag.</p>,
+					<p>De resterende posters staren met grote ogen terug. Je besluit ze nu maar te laten hangen. Je hebt er al genoeg kapot gemaakt vandaag.</p>,
+				])}
+			</>
+
+		case 'checkBlackboard':
+			return <>
+				<Line text="Je bekijkt het schoolbord" />
+				{cases(numActionVisits, [0, 2, 3, Infinity], [
+					<>
+						<p>Er staat nog een som met breuken op het schoolbord. Dat is vreemd, de les die je zojuist had ging helemaal niet over breuken! Je haalt je schouders op. Het zal wel niets betekenen.</p>
+						<Image src={FractionHint} />
+					</>,
+					<p>Je bekijkt het schoolbord nog eens, maar er is niets veranderd. De twee breukensommen staan er nog steeds op.</p>,
+					<p>Je bekijkt de twee vergelijkingen op het schoolbord nog eens. Een derde plus een kwart is gelijk aan een half plus een twaalfde? Na wat rekenen zie je in dat het inderdaad klopt. Grappig dat meerdere breukensommen zo op hetzelfde uit kunnen komen. Je vraagt je af hoe men hier ooit achter gekomen is. En hoe lang weet men dit al? Misschien heeft het geschiedenislokaal hier meer info over.</p>,
+					<p>Het schoolbord heeft nog steeds dezelfde vergelijkingen. De getallen beginnen inmiddels langzaam voor je ogen te dansen.</p>,
 				])}
 			</>
 

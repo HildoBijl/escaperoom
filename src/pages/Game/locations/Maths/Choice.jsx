@@ -13,6 +13,9 @@ function getOptions({ state, lastAction }) {
 		// Posters.
 		lastAction?.type === 'checkPosters' ? undefined : { text: 'Bestudeer de posters aan de muur', action: 'checkPosters' },
 
+		// Blackboard.
+		lastAction?.type === 'checkBlackboard' ? undefined : { text: 'Bekijk het schoolbord', action: 'checkBlackboard' },
+
 		// Hallway.
 		lastAction?.type === 'checkDoor' && lastAction?.to === 'Hallway' ? undefined : { text: 'Bekijk de deur naar de gang', action: { type: 'checkDoor', to: 'Hallway' } },
 

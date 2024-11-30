@@ -47,6 +47,8 @@ export function updateState(location, state, action) {
 			switch (action.type) {
 				case 'checkPosters': // No state change.
 					break
+				case 'checkBlackboard': // No state change.
+					break
 				case 'checkDoor': // No state change.
 					break
 				case 'unlockDoor':

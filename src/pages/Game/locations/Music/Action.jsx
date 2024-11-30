@@ -66,7 +66,7 @@ export function Action(props) {
 					</>
 				case 'Art':
 					return <>
-						<Line text="Je bekijkt de deur naar kunst" />
+						<Line text="Je bekijkt de deur naar het kunstlokaal" />
 						{cases(numActionVisits, [0, 2, 3, Infinity], [
 							<>
 								<p>Wat krijgen we nou, deze deur heeft geen elektronisch kastje ernaast. Het is een oud hangslot! Dat moet het een stuk makkelijker maken. Het hangslot heeft vier draaischijven, allen boven elkaar, met de cijfers 0 tot en met 9.</p>

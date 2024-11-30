@@ -11,3 +11,6 @@ Music
 MusicRoom: A tidy music classroom. There are student tables in the center. One wall has a large piano. The other wall has several guitars and other musical instruments hanging along the wall. The floor is clean. In the back of the room is a door locked by a small padlock. Next to it is a large blackboard with a few unintelligible scribbles.
 MusicDoor: A padlock is used to lock a door in a room. The door is closed. The padlock is attached to a metal ring right below the door handle. The padlock has four dials in a vertical pattern. There is no other text on the padlock. Next to the padlock is a small post-it note with the word "DRIE". 
 
+Art
+ArtRoom: An art classroom has various empty tables set up in rows in the middle of the room. On the outside of the classroom are various easels, sculptures and paintings. The room is clean and gives a tidy impression.
+ArtInterface: A small electronic box is hanging on a wall. It has a touch screen with various geometrical shapes shown on it. The box is hanging next to a door, which is on its left side.

@@ -19,7 +19,7 @@ function getOptions({ state, lastAction }) {
 
 		// Art.
 		state.artDoorUnlocked ? { text: 'Ga naar het kunstlokaal', action: { type: 'move', to: 'Art' } } : undefined,
-		!state.artDoorUnlocked && !(lastAction?.type === 'checkDoor' && lastAction?.to === 'Art') ? { text: 'Bekijk de deur naar kunst', action: { type: 'checkDoor', to: 'Art' } } : undefined,
+		!state.artDoorUnlocked && !(lastAction?.type === 'checkDoor' && lastAction?.to === 'Art') ? { text: 'Bekijk de deur naar het kunstlokaal', action: { type: 'checkDoor', to: 'Art' } } : undefined,
 		!state.artDoorUnlocked && lastAction?.type === 'checkDoor' && lastAction?.to === 'Art' && isAdmin() ? { text: 'Admin mode: los raadsel op', action: { type: 'unlockDoor', to: 'Art' } } : undefined,
 
 		// Maths.

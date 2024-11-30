@@ -73,7 +73,7 @@ export function Action(props) {
 								<p>Je kijkt naar het kastje naast de muur. Wat voor vreemd beveiligingssysteem is dit? Het scherm toont een groot tabel van cijfers. Moet je iets van een pincode invoeren? Het lijkt je sterk, want er zijn wel 64 cijfers te zien. Maar wat dan wel?</p>
 							</>,
 							<p>De deur is nog steeds op slot. Je moet blijkbaar de juiste getallen activeren. Maar welke zijn de juiste? Misschien is er in het lokaal meer over te vinden.</p>,
-							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, hopend op een reactie van het apparaat.</p>,
+							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, vooral bij de kleine getallen, hopend op een reactie van het apparaat.</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface1 {...props} /> : null}
 					</>
@@ -104,8 +104,8 @@ export function Action(props) {
 					</>
 				case 'Music':
 					return <>
-						<Line text="Je lost het ToDo raadsel op" />
-						<p>Je gebruikt je magische admin-krachten en de deur zwaait open!</p>
+						<Line text="Je lost het nog te maken raadsel op" />
+						<p>Je gebruikt je magische tester-krachten en de deur zwaait open!</p>
 					</>
 				default:
 					throw new Error(`Invalid action to parameter: cannot determine what to render for an action of type "${action.type}" at the current location "${location}" due to an unknown to-value "${action.to}".`)

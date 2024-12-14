@@ -1,4 +1,4 @@
-import { getRandomInteger } from 'util'
+import { getRandomInteger, getRandomPermutation } from 'util'
 
 /* The updateState function is the game engine. It works as a reducer. It takes three parameters:
  * - location (string): where the user is. For instance "Office".
@@ -50,6 +50,12 @@ export function updateState(location, state, action) {
 				case 'checkBlackboard': // No state change.
 					break
 				case 'checkDoor': // No state change.
+					if (action.to === 'Music' && !state.musicDoor) {
+						state.musicDoor = {
+							seed1: getRandomPermutation(5),
+							seed2: getRandomPermutation(10),
+						}
+					}
 					break
 				case 'unlockDoor':
 					switch (action.to) {
@@ -87,21 +93,21 @@ export function updateState(location, state, action) {
 			}
 			break
 
-			case 'Art':
-				switch (action.type) {
-					case 'checkPaintings': // No state change.
-						break
-					case 'checkBox': // No state change.
-						break
-					case 'checkDoor': // No state change.
-						break
-					case 'unlockDoor':
-						state.hall1Unlocked = true
-						break
-					default:
-						throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
-				}
-				break
+		case 'Art':
+			switch (action.type) {
+				case 'checkPaintings': // No state change.
+					break
+				case 'checkBox': // No state change.
+					break
+				case 'checkDoor': // No state change.
+					break
+				case 'unlockDoor':
+					state.hall1Unlocked = true
+					break
+				default:
+					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
+			}
+			break
 	}
 
 	// Return the updated data.

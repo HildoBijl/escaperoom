@@ -6,6 +6,18 @@ export function getRandomInteger(min, max, exclude = []) {
 	return num
 }
 
+// getRandomPermutation takes a number n and shuffles the numbers 0 to n-1 in a random order, returning them as list. So getRandomPermutation(5) may return [3,1,0,4,2].
+export function getRandomPermutation(n) {
+	const result = []
+	const list = (new Array(n)).fill(0).map((_, i) => i)
+	while (list.length > 0) {
+		const i = getRandomInteger(0, list.length - 1)
+		result.push(list[i])
+		list.splice(i, 1)
+	}
+	return result
+}
+
 // mod is a function that (unlike Javascript) always returns on modulo a number between 0 (inclusive) and n (exclusive).
 export function mod(a, n) {
 	return ((a % n) + n) % n

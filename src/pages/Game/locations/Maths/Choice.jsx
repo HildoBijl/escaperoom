@@ -23,7 +23,6 @@ function getOptions({ state, lastAction }) {
 		// Music.
 		state.musicDoorUnlocked ? { text: 'Ga naar het muzieklokaal', action: { type: 'move', to: 'Music' } } : undefined,
 		!state.musicDoorUnlocked && !(lastAction?.type === 'checkDoor' && lastAction?.to === 'Music') ? { text: 'Bekijk de deur naar muziek', action: { type: 'checkDoor', to: 'Music' } } : undefined,
-		!state.musicDoorUnlocked && lastAction?.type === 'checkDoor' && lastAction?.to === 'Music' && isTester() ? { text: 'Test mode: los raadsel op', action: { type: 'unlockDoor', to: 'Music' } } : undefined, // ToDo: remove
 		!state.musicDoorUnlocked && lastAction?.type === 'checkDoor' && lastAction?.to === 'Music' && isAdmin() ? { text: 'Admin mode: los raadsel op', action: { type: 'unlockDoor', to: 'Music' } } : undefined,
 
 		// History.

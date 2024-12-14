@@ -11,6 +11,7 @@ export { default as FactorialHint } from './FactorialHint.png'
 export { default as MathsRoom } from './MathsRoom.jpg'
 export { default as MathsHint1 } from './MathsHint1.png'
 export { default as MathsDoor1 } from './MathsDoor1.jpg'
+export { default as MathsDoor2 } from './MathsDoor2.jpg'
 export { default as FractionHint } from './FractionHint.png'
 
 // Music

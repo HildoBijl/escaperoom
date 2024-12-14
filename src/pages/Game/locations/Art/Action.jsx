@@ -24,7 +24,7 @@ export function Action(props) {
 				<Line text="Je bekijkt de schilderijen" />
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
-						<p>Naast het zelfportret van de docent staat een schilderij van de lelijkste sleutel die je ooit gezien hebt. Een sleutel zou voor jou wel handig zijn om uit het lokaal te komen, maar je betwijfelt of een sleutel zoals deze op het schilderij ooit een deur kan openen.</p>
+						<p>Naast het zelfportret van de docent staat een schilderij van de lelijkste sleutel die je ooit gezien hebt. Een sleutel zou voor jou wel handig zijn om uit het lokaal te komen, maar je betwijfelt of een sleutel zoals deze ooit een deur kan openen.</p>
 						<Image src={KeyPainting} />
 					</>,
 					<p>Er is niets veranderd aan de schilderijen: naast het zelfportret van de docent staat nog steeds een schilderij van een sleutel.</p>,

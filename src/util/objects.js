@@ -93,3 +93,8 @@ export function ensureConsistency(newValue, oldValue) {
 export function findOptimumIndex(array, isBetter) {
 	return array.reduce((bestIndex, element, index) => bestIndex === -1 || isBetter(element, array[bestIndex]) ? index : bestIndex, -1)
 }
+
+// applyPermutation takes an array like [a, b, c] and a permutation like [2, 0, 1] and shuffles the list according to the permutation, resulting in [c, a, b].
+export function applyPermutation(list, permutation) {
+	return permutation.map(index => list[index])
+}

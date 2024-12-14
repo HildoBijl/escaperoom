@@ -26,7 +26,7 @@ export function Action(props) {
 				<Line text="Je bekijkt het schoolbord" />
 				{cases(numActionVisits, [0, 2, 3, 4, Infinity], [
 					<>
-						<p>Het schoolbord is volgeklad met allemaal muziektermen. Blijkbaar ging het over de basistoonladders: Do Re Mi Fa Sol La Ti Do. Je hebt dat ooit ook eens geleerd ergens.</p>
+						<p>Het schoolbord is volgeklad met allemaal muziektermen. Blijkbaar ging het over de basistoonladders: de bekende Do Re Mi. Je hebt dat ooit ook eens geleerd ergens.</p>
 						<Image src={MusicHint} />
 					</>,
 					<p>Er is niets verandert met het schoolbord. Dezelfde vreemde scribbles staan er nog steeds op.</p>,

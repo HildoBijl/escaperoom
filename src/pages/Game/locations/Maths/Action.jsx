@@ -70,7 +70,7 @@ export function Action(props) {
 							<>
 								<p>Je kan je niet herinneren dat iemand deze tussendeur ooit gebruikt heeft. Maar is hij open? Je probeert de deurklink. Helaas, hij zit op slot.</p>
 								<Image src={MathsDoor1} />
-								<p>Je kijkt naar het kastje naast de muur. Wat voor vreemd beveiligingssysteem is dit? Het scherm toont een groot tabel van cijfers. Moet je iets van een pincode invoeren? Het lijkt je sterk, want er zijn wel 64 getallen te zien. Maar wat dan wel?</p>
+								<p>Je kijkt naar het kastje naast de muur. Wat voor vreemd beveiligingssysteem is dit? Het scherm toont een groot tabel van getallen. Moet je iets van een pincode invoeren? Het lijkt je sterk, want er zijn wel 64 getallen te zien. Maar wat dan wel?</p>
 							</>,
 							<p>De deur is nog steeds op slot. Je moet blijkbaar de juiste getallen activeren. Maar welke zijn de juiste? Misschien is er in het lokaal meer over te vinden.</p>,
 							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, vooral bij de kleine getallen, hopend op een reactie van het apparaat.</p>,

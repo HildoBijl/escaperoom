@@ -67,15 +67,19 @@ export function Action(props) {
 				case 'Art':
 					return <>
 						<Line text="Je bekijkt de deur naar het kunstlokaal" />
-						{cases(numActionVisits, [0, 2, 3, Infinity], [
+						{cases(numActionVisits, [0, 1, 2, 3, 4, 5, 6, Infinity], [
 							<>
 								<p>Wat krijgen we nou, deze deur heeft geen elektronisch kastje ernaast. Het is een oud hangslot! Dat moet het een stuk makkelijker maken. Het hangslot heeft vier draaischijven, allen boven elkaar, met de cijfers 0 tot en met 9.</p>
 								<Image src={MusicDoor} />
 								<p>Naast het slot heeft iemand een post-it geplakt. Erop staat de meest onzinnige vraag die iemand ooit gesteld heeft, &quot;Hoeveel is DRIE?&quot; Je haalt je schouders op en probeert het slot los te krijgen.</p>
 							</>,
-							<p>Het hangslot houdt de deur nog steeds goed gesloten.</p>,
 							<p>Het hangslot hangt nog steeds naast de post-it. Wat je opvalt is dat &quot;DRIE&quot; met hoofdletters geschreven is. Vier hoofdletters naast elkaar. En het slot heeft ook vier draaischijven. Is dat toeval?</p>,
-							<p>Het slot heeft nog steeds niet de juiste code.</p>,
+							<p>Het hangslot houdt de deur nog steeds goed gesloten. Je kijkt wederom naar het briefje met DRIE erop. Heb je deze letters niet al ergens anders in het lokaal gezien?</p>,
+							<p>Je kijkt nog eens goed naar het schoolbord. Vooral de letters rechtsonder trekken je aandacht. De S, de O en de L, die zou je toch moeten kunnen vinden?</p>,
+							<p>De letters beginnen voor je ogen te dwarrelen. Er zijn zo veel mogelijkheden! Of misschien niet? Je kijkt nog eens goed naar het schoolbord, en wel naar de hoek rechtsonder. Kun je daar wat mee?</p>,
+							<p>Je weigert op te geven. Na de SOL gaat je aandacht nu uit naar de klinkers. Die lijken nog alle kanten op te kunnen gaan, maar eigenlijk valt dit mee. Na alles op een rijtje gezet te hebben, zie je dat er nog maar drie mogelijkheden zijn! Dat valt toch best mee. Maar welke van de drie combinaties is het?</p>,
+							<p>Je besluit ook voor de resterende medeklinkers alle mogelijkheden op papier te zetten. Welke van de mogelijkheden past mooi naast de waarden van de klinkers?</p>,
+							<p>Het slot heeft nog steeds niet de juiste code, maar je blijft mogelijkheden controleren. Uiteindelijk moet er eentje toch kloppen?</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 					</>

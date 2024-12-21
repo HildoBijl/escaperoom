@@ -6,6 +6,7 @@ OfficeDoor: A large door with an ornamental door handle is positioned right of a
 Maths
 MathsRoom: A tidy mathematics classroom. There are various tables for students orderly spread across the room. The walls are lined with various mathematically themed posters. The floor is clean and uncluttered. The back wall has a door back to the school hallway. 
 MathsDoor1: A door in a tidy classroom. Next to the door is a small box where keys might be stored. The floor is clean. There are mathematical posters on the walls.
+MathsDoor2: There is a door in a classroom. Next to the door is a small box with a screen on its front. The floor is clean. There is nothing else hanging on the walls. Above the door are three non-glowing green lightbulbs next to each other. The lightbulbs are not glowing or giving light.
 
 Music
 MusicRoom: A tidy music classroom. There are student tables in the center. One wall has a large piano. The other wall has several guitars and other musical instruments hanging along the wall. The floor is clean. In the back of the room is a door locked by a small padlock. Next to it is a large blackboard with a few unintelligible scribbles.

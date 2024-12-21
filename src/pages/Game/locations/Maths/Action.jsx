@@ -13,20 +13,19 @@ export function Action(props) {
 		case 'move':
 			switch (action.to) {
 				case 'Office':
-					return <Line text="Je stapt terug in het kantoor" />
+					return null
 				case 'Music':
-					return <Line text="Je gaat naar het muzieklokaal" />
+					return null
 				case 'History':
-					return <Line text="Je gaat naar het geschiedenislokaal" />
+					return null
 				case 'Hallway':
-					return <Line text="Je gaat via de gang naar de aula" />
+					return null
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
 
 		case 'checkPosters':
-			return <>
-				<Line text="Je bekijkt de posters aan de muur" />
+			return <Line text="Je bekijkt de posters aan de muur">
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
 						<p>Er hangen talloze posters aan de muur, en hoewel je in een verveelde bui de meesten wel eens aangestaard hebt, heb je er nog nooit echt over nagedacht wat ze nou eigenlijk tonen. Vooral een grote poster met drie getallen trekt je aandacht. Wat betekent het?</p>
@@ -36,11 +35,10 @@ export function Action(props) {
 					<p>Gefrustreerd trek je een poster van de muur af. Erachter is een stuk muur zichtbaar dat in twintig jaar waarschijnlijk geen daglicht gezien heeft. Het biedt je alleen weinig extra uitgangen: de muur ziet er net zo hard uit als in de rest van het lokaal. Hopelijk wordt de leraar niet boos op je omdat je z&apos;n poster gesloopt hebt.</p>,
 					<p>De resterende posters staren met grote ogen terug. Je besluit ze nu maar te laten hangen. Je hebt er al genoeg kapot gemaakt vandaag.</p>,
 				])}
-			</>
+			</Line>
 
 		case 'checkBlackboard':
-			return <>
-				<Line text="Je bekijkt het schoolbord" />
+			return <Line text="Je bekijkt het schoolbord">
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
 						<p>Er staat nog een tweetal sommen met breuken op het schoolbord. Dat is vreemd, de les die je zojuist had ging helemaal niet over breuken! Je haalt je schouders op. Het zal wel niets betekenen.</p>
@@ -50,22 +48,20 @@ export function Action(props) {
 					<p>Je bekijkt de twee vergelijkingen op het schoolbord nog eens. Een derde plus een kwart is gelijk aan een half plus een twaalfde? Na wat rekenen zie je in dat het inderdaad klopt. Grappig dat meerdere breukensommen zo op hetzelfde uit kunnen komen. Je vraagt je af hoe men hier ooit achter gekomen is. En hoe lang weet men dit al? Misschien heeft het geschiedenislokaal hier meer info over.</p>,
 					<p>Het schoolbord heeft nog steeds dezelfde vergelijkingen. De getallen beginnen inmiddels langzaam voor je ogen te dansen.</p>,
 				])}
-			</>
+			</Line>
 
 		case 'checkDoor':
 			switch (action.to) {
 				case 'Hallway':
-					return <>
-						<Line text="Je bekijkt de deur naar de gang" />
+					return <Line text="Je bekijkt de deur naar de gang">
 						{cases(numActionVisits, [0, 2, Infinity], [
 							<p>In de hoop gewoon naar buiten te kunnen lopen grijp je de deurklink en trek je aan de deur. Zoals je al vreeste is er geen beweging in te krijgen. Hij zit op slot. Je bent zo vaak door deze deur gelopen, maar dan was hij altijd gewoon open. Je volgde simpelweg de rest van je klas. Maar die optie is er nu helaas niet. Misschien is er nog een andere uitgang?</p>,
 							<p>Je probeert nog eens of de deur wel echt op slot zit, maar dat zit hij zeker. Er is hoe dan ook geen beweging in te krijgen.</p>,
 							<p>Je beukt met je vuisten op de deur en schreeuwt luid &quot;Laat me eruit!&quot; Helaas word je wanhoopskreis beantwoord door een ijzige stilte. Er is niemand in de buurt die je kan helpen.</p>,
 						])}
-					</>
+					</Line>
 				case 'History':
-					return <>
-						<Line text="Je loopt naar de deur naar het geschiedenislokaal" />
+					return <Line text="Je loopt naar de deur naar het geschiedenislokaal">
 						{cases(numActionVisits, [0, 2, Infinity], [
 							<>
 								<p>Je kan je niet herinneren dat iemand deze tussendeur ooit gebruikt heeft. Maar is hij open? Je probeert de deurklink. Helaas, hij zit op slot.</p>
@@ -76,10 +72,9 @@ export function Action(props) {
 							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, vooral bij de kleine getallen, hopend op een reactie van het apparaat.</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface1 {...props} /> : null}
-					</>
+					</Line>
 				case 'Music':
-					return <>
-						<Line text="Je loopt naar de deur naar het muzieklokaal" />
+					return <Line text="Je loopt naar de deur naar het muzieklokaal">
 						{cases(numActionVisits, [0, 2, 3, Infinity], [
 							<>
 								<p>Je hebt nooit echt op deze tussendeur gelet. Hopelijk is hij open? Je grijpt de deurklink en trekt hem omlaag, maar de deur gaat geen kant op.</p>
@@ -91,7 +86,7 @@ export function Action(props) {
 							<p>De vijf foute codes op het scherm staren je nog steeds aan. Wat is de juiste code?</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface2 {...props} /> : null}
-					</>
+					</Line>
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
@@ -99,15 +94,9 @@ export function Action(props) {
 		case 'unlockDoor':
 			switch (action.to) {
 				case 'History':
-					return <>
-						<Line text="Je lost het getallenrooster op" />
-						<p>Met het laatste groene blok dat verschijnt volgt een luide klik. De deur gaat voor je open, en je kan via de tussendeur het vertrouwde geschiedenislokaal in.</p>
-					</>
+					return null
 				case 'Music':
-					return <>
-						<Line text="Je vindt de juiste cijfercombinatie" />
-						<p>De drie groene lampen boven de deur flitsen aan en de deur zwaait open.</p>
-					</>
+					return null
 				default:
 					throw new Error(`Invalid action to parameter: cannot determine what to render for an action of type "${action.type}" at the current location "${location}" due to an unknown to-value "${action.to}".`)
 			}

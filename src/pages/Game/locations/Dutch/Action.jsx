@@ -1,7 +1,7 @@
-import { Line } from '../../components'
+// import { Line } from '../../components'
 
 export function Action() {
-	return <Line text="Je gaat terug naar het geschiedenislokaal" />
+	return null
 }
 
 // export function Action(props) {

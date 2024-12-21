@@ -12,18 +12,17 @@ export function Action(props) {
 		case 'move':
 			switch (action.to) {
 				case 'Maths':
-					return <Line text="Je gaat naar het wiskundelokaal" />
+					return null
 				case 'Art':
-					return <Line text="Je gaat naar het kunstlokaal" />
+					return null
 				case 'Hallway':
-					return <Line text="Je gaat via de gang naar de aula" />
+					return null
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
 
 		case 'checkBlackboard':
-			return <>
-				<Line text="Je bekijkt het schoolbord" />
+			return <Line text="Je bekijkt het schoolbord">
 				{cases(numActionVisits, [0, 2, 3, 4, Infinity], [
 					<>
 						<p>Het schoolbord is volgeklad met allemaal muziektermen. Blijkbaar ging het over de basistoonladders: de bekende Do Re Mi. Je hebt dat ooit ook eens geleerd ergens.</p>
@@ -37,11 +36,10 @@ export function Action(props) {
 					</>,
 					<p>Er is niets meer te zien op het schoolbord. Mogelijk had je het toch niet uit moeten vegen? Gelukkig heb je nog een aardig idee van wat er zojuist op stond.</p>,
 				])}
-			</>
+			</Line>
 
 		case 'search':
-			return <>
-				<Line text="Je doorzoekt het muzieklokaal" />
+			return <Line text="Je doorzoekt het muzieklokaal">
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
 						<p>De meeste tafels zijn leeg, maar op een tafel in de hoek van het klaslokaal heeft iemand een opgevouwen propje papier achtergelaten. Je vouwt het uit en ziet een paar willekeurige scribbles. Erg creatief, maar het ziet er meer uit als een kunstproject dan iets dat in het muzieklokaal hoort. Om het lokaal netjes te houden, stop je het blad papier maar in je broekzak.</p>
@@ -51,22 +49,20 @@ export function Action(props) {
 					<p>De tafels in het lokaal zijn nog steeds leeg, maar het doet je wel denken aan het propje papier dat je hier eerder gevonden had, dat nog in je broekzak zit. Je haalt hem eruit en bekijkt hem nog eens. Het is een patroon van vierkantjes, sommigen recht en sommigen gedraaid, en elk met een letter of cijfer erin. Ook de grote stip onderin valt je op. Is dat een willekeurige inktvlek, of heeft die een betekenis?</p>,
 					<p>De tafels in het muzieklokaal staan nog steeds allemaal netjes in rijtjes naar het schoolbord gericht. Ze zijn allemaal leeg.</p>,
 				])}
-			</>
+			</Line>
 
 		case 'checkDoor':
 			switch (action.to) {
 				case 'Hallway':
-					return <>
-						<Line text="Je bekijkt de deur naar de gang" />
+					return <Line text="Je bekijkt de deur naar de gang">
 						{cases(numActionVisits, [0, 2, Infinity], [
 							<p>Je probeert het klaslokaal op de normale manier te verlaten, maar de deur naar de gang is op slot. Tja, het was te verwachten. Werkelijk alles is hermetisch afgesloten.</p>,
 							<p>In een vlaag van verstandsverbijstering probeer je de deur die op slot zich nogmaals te openen. Hij is nog steeds op slot.</p>,
 							<p>Je slaat je hoofd tegen de deur aan. Het heeft geen effect op de deur: die blijft dicht. Je krijgt er wel hoofdpijn van.</p>,
 						])}
-					</>
+					</Line>
 				case 'Art':
-					return <>
-						<Line text="Je bekijkt de deur naar het kunstlokaal" />
+					return <Line text="Je bekijkt de deur naar het kunstlokaal">
 						{cases(numActionVisits, [0, 1, 2, 3, 4, 5, 6, Infinity], [
 							<>
 								<p>Wat krijgen we nou, deze deur heeft geen elektronisch kastje ernaast. Het is een oud hangslot! Dat moet het een stuk makkelijker maken. Het hangslot heeft vier draaischijven, allen boven elkaar, met de cijfers 0 tot en met 9.</p>
@@ -82,16 +78,13 @@ export function Action(props) {
 							<p>Het slot heeft nog steeds niet de juiste code, maar je blijft mogelijkheden controleren. Uiteindelijk moet er eentje toch kloppen?</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
-					</>
+					</Line>
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)
 			}
 
 		case 'unlockDoor':
-			return <>
-				<Line text="Je voert de juiste code in" />
-				<p>Met het draaien van het laatste wiel klikt het hangslot open. Je grijpt de deurklink en opent de deur.</p>
-			</>
+			return null
 
 		default:
 			throw new Error(`Invalid action type: cannot determine what to render for an action of type "${action.type}" at the current location "${location}".`)

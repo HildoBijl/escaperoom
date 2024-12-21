@@ -4,7 +4,7 @@ import { HistoryDoor } from 'assets'
 import { cases } from '../../util'
 import { Line } from '../../components'
 
-// import { Interface } from './Interface'
+import { Interface } from './Interface'
 
 export function Action(props) {
 	const { location, action, numActionVisits, isCurrentAction, nextAction } = props
@@ -58,7 +58,7 @@ export function Action(props) {
 							<p>Je vraagt je nog steeds af wat de hyrogliefen precies inhouden. Misschien moet je toch wat oud-Egyptische wiskunde leren. Is er niet ergens een voorbeeld van wat het allemaal zou kunnen betekenen?</p>,
 							<p>De rode lampjes op het scherm staren je nog steeds aan. Er is blijkbaar nog meer te doen.</p>,
 						])}
-						{/* {isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null} */}
+						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 					</Line>
 				default:
 					throw new Error(`Invalid ${action.type} location: cannot determine what to render for an action of type "${action.type}" and to-parameter "${action.to}" at the current location "${location}".`)

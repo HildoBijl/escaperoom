@@ -24,7 +24,7 @@ export function Line({ text, children }) {
 			<Box sx={arrowStyle}><ArrowIcon sx={{ transition: `transform ${theme.transitions.duration.standard}ms`, transform: `scale(1.3) rotate(${open ? 0 : 90}deg)` }} /></Box>
 		</Box>
 		<Collapse orientation="vertical" in={open}>
-			<Box sx={{ mt: -1.2 }}>
+			<Box>
 				{children}
 			</Box>
 		</Collapse>

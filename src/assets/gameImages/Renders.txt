@@ -15,3 +15,7 @@ MusicDoor: A padlock is used to lock a door in a room. The door is closed. The p
 Art
 ArtRoom: An art classroom has various empty tables set up in rows in the middle of the room. On the outside of the classroom are various easels, sculptures and paintings. The room is clean and gives a tidy impression.
 ArtInterface: A small electronic box is hanging on a wall. It has a touch screen with various geometrical shapes shown on it. The box is hanging next to a door, which is on its left side.
+
+History
+HistoryRoom: A history classroom with tables neatly aligned. There are posters with pyramids and other historic artifacts along the walls. The floor is clean.
+HistoryDoor: A closed door in a history classroom. The floor is tidy. Next to the door, hanging on the wall, is a small electronic box with a screen on its front. There is a poster of pyramids on the wall, half visible at the edge of the picture.

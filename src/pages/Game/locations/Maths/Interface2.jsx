@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { useTheme, lighten, styled } from '@mui/material/styles'
 
-import { getRandomInteger, applyPermutation, mod } from 'util'
+import { getRandomInteger, mod } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'

@@ -26,3 +26,7 @@ export { default as CypherKey } from './CypherKey.png'
 export { default as ArtRoom } from './ArtRoom.jpg'
 export { default as ArtInterface } from './ArtInterface.jpg'
 export { default as KeyPainting } from './KeyPainting.png'
+
+// History
+export { default as HistoryRoom } from './HistoryRoom.jpg'
+export { default as HistoryDoor } from './HistoryDoor.jpg'

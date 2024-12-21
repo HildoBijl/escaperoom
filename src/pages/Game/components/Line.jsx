@@ -16,7 +16,7 @@ export function Line({ text, children }) {
 
 	// Render the line.
 	return <>
-		<Box sx={{ cursor: 'pointer', display: 'flex', flexFlow: 'row nowrap', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => setOpen(open => !open)}>
+		<Box sx={{ cursor: 'pointer', display: 'flex', flexFlow: 'row nowrap', alignItems: 'center', justifyContent: 'space-between', userSelect: 'none', '-webkit-tap-highlight-color': 'rgba(255,0,0,0)' }} onClick={() => setOpen(open => !open)}>
 			<Box sx={arrowStyle}><ArrowIcon sx={{ transition: `transform ${theme.transitions.duration.standard}ms`, transform: `scale(1.3) rotate(${open ? 0 : -90}deg)` }} /></Box>
 			<Box sx={lineStyle} />
 			<Box sx={{ flexGrow: 0, color, fontWeight: 500, padding: '2px 6px', textAlign: 'center' }}>{text}</Box>

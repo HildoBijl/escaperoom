@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
 import { isUndefined, findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue, subtract, squaredDistance } from 'util'
@@ -24,7 +24,7 @@ const solutionCols = 3
 const numInputs = solutionRows * solutionCols
 const gridCols = 9
 const gridRows = 2
-const numStorage = gridRows * gridCols
+// const numStorage = gridRows * gridCols
 const numLights = 2
 
 // Define the input.
@@ -123,18 +123,44 @@ export function Interface({ submitAction, isCurrentAction }) {
 	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
 	const closestPosition = (mousePosition && dragging) ? findClosestPosition(subtract(mousePosition, dragging.delta), dragging.index) : undefined
 
-	// // Check the value of the input.
-	// const correct = [
-	// 	numbers[0] + numbers[1] + numbers[2] + numbers[3] === seed,
-	// 	numbers[3] + numbers[4] + numbers[5] + numbers[6] === seed,
-	// 	numbers[6] + numbers[7] + numbers[8] + numbers[9] === seed,
-	// 	numbers[9] + numbers[10] + numbers[11] + numbers[0] === seed,
-	// ]
-	// const allCorrect = correct.every(value => value)
-	// useEffect(() => {
-	// 	if (allCorrect && isCurrentAction)
-	// 		submitAction('unlockDoor')
-	// }, [allCorrect, isCurrentAction, submitAction])
+	// Check the value of the input.
+	useEffect(() => {
+		// For each row, check the solution.
+		(new Array(solutionRows)).fill(0).map((_, solIndex) => {
+			// See if every field is filled.
+			const numberIndices = (new Array(solutionCols)).fill(0).map((_, numIndex) => locations.indexOf(solIndex * solutionRows + numIndex))
+			if (numberIndices.some(numIndex => numIndex === -1))
+				return
+
+			// Check if the numbers have already been entered as a solution.
+			const currNumbers = numberIndices.map(numIndex => numbers[numIndex])
+			const pastSolutions = solutions[solIndex]
+			if (pastSolutions.some(pastSolution => pastSolution && pastSolution.every(entry => currNumbers.includes(entry))))
+				return
+
+			// Grade the exercise.
+			const exercise = exercises[solIndex]
+			const exerciseOutcome = exercise.reduce((sum, num) => sum + 1 / num, 0)
+			const currOutcome = currNumbers.reduce((sum, num) => sum + 1 / num, 0)
+			if (Math.abs(exerciseOutcome - currOutcome) < 1e-9) {
+				// Add the numbers to the solutions storage.
+				setSolutions(solutions => {
+					solutions = [...solutions]
+					solutions[solIndex] = [...solutions[solIndex]]
+					const newIndex = solutions[solIndex].findIndex(value => isUndefined(value))
+					solutions[solIndex][newIndex] = currNumbers
+					return solutions
+				})
+			}
+		})
+	}, [locations, solutions, setSolutions])
+
+	// Check if all lights are green.
+	useEffect(() => {
+		const allCorrect = solutions.every(row => row.every(light => !isUndefined(light)))
+		if (allCorrect && isCurrentAction)
+			submitAction('unlockDoor')
+	})
 
 	// Set up a handler to render a block.
 	const renderBlock = (index) => {

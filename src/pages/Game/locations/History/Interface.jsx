@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue, subtract, squaredDistance } from 'util'
+import { isUndefined, findOptimumIndex, useEventListener, useRefWithEventListeners, getEventPosition, useMousePosition, transformClientToSvg, useTransitionedValue, subtract, squaredDistance } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -80,39 +80,48 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const [locations, setLocations] = useRiddleStorage('historyDoorLocations', initialLocations)
 	const [solutions, setSolutions] = useRiddleStorage('historyDoorSolutions', initialSolutions)
 
-	// // Track the mouse position.
-	// const mousePositionClient = useMousePosition()
+	// Track the mouse position.
+	const mousePositionClient = useMousePosition()
 
-	// // Set up handlers for hovering/dragging.
-	// const [hovering, setHovering] = useState()
-	// const [dragging, setDragging] = useState()
-	// const mousePosition = transformClientToSvg(mousePositionClient, svgRef.current)
-	// const startDragging = (pos, event) => {
-	// 	if (active) {
-	// 		const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
-	// 		const blockCoords = posToCoords(pos)
-	// 		const delta = subtract(dragLocation, blockCoords)
-	// 		setDragging({ pos, delta })
-	// 		event.preventDefault()
-	// 	}
-	// }
-	// const endDragging = (event) => {
-	// 	if (dragging) {
-	// 		const endDragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
-	// 		const closestPosition = findClosestPosition(subtract(endDragLocation, dragging.delta))
-	// 		if (closestPosition !== dragging.pos) {
-	// 			setNumbers(numbers => {
-	// 				const newNumbers = [...numbers]
-	// 				newNumbers[dragging.pos] = numbers[closestPosition]
-	// 				newNumbers[closestPosition] = numbers[dragging.pos]
-	// 				return newNumbers
-	// 			})
-	// 		}
-	// 	}
-	// 	setDragging()
-	// }
-	// useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
-	// const closestPosition = (mousePosition && dragging) ? findClosestPosition(subtract(mousePosition, dragging.delta)) : undefined
+	// Set up handlers for hovering/dragging.
+	const [hovering, setHovering] = useState()
+	const [dragging, setDragging] = useState()
+	const mousePosition = transformClientToSvg(mousePositionClient, svgRef.current)
+	const startDragging = (index, event) => {
+		if (active) {
+			const numLocation = locations[index]
+			const dragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+			const blockCoords = isUndefined(numLocation) ? numIndexToCoords(index) : inputIndexToCoords(numLocation)
+			const delta = subtract(dragLocation, blockCoords)
+			setDragging({ index, delta })
+			event.preventDefault()
+		}
+	}
+	const endDragging = (event) => {
+		if (dragging) {
+			const endDragLocation = transformClientToSvg(getEventPosition(event), svgRef.current)
+			const closestPosition = findClosestPosition(subtract(endDragLocation, dragging.delta), dragging.index)
+			if (closestPosition === numInputs) { // Closest to own storage. Put it there.
+				setLocations(locations => {
+					locations = [...locations]
+					locations[dragging.index] = undefined
+					return locations
+				})
+			} else { // Closest to an input field. If there is something remove it. Put the new one in.
+				setLocations(locations => {
+					locations = [...locations]
+					const currentlyInField = locations.findIndex(value => value === closestPosition)
+					if (currentlyInField !== -1)
+						locations[currentlyInField] = undefined
+					locations[dragging.index] = closestPosition
+					return locations
+				})
+			}
+		}
+		setDragging()
+	}
+	useEventListener(active ? ['mouseup', 'touchend'] : [], endDragging, window) // Listen to mouse-up on entire window.
+	const closestPosition = (mousePosition && dragging) ? findClosestPosition(subtract(mousePosition, dragging.delta), dragging.index) : undefined
 
 	// // Check the value of the input.
 	// const correct = [
@@ -127,21 +136,27 @@ export function Interface({ submitAction, isCurrentAction }) {
 	// 		submitAction('unlockDoor')
 	// }, [allCorrect, isCurrentAction, submitAction])
 
-	// // Set up a handler to render a block.
-	// const renderBlock = (pos) => {
-	// 	const num = numbers[pos]
-	// 	const hover = hovering === pos
-	// 	const drag = dragging?.pos === pos
-	// 	const delta = dragging?.delta
-	// 	const closest = !drag && (closestPosition === pos)
-	// 	const onDown = (event) => startDragging(pos, event)
-	// 	const onHoverStart = () => setHovering(active && pos)
-	// 	const onHoverEnd = () => setHovering()
-	// 	return <Block key={num} {...{ num, pos, hover, drag, delta, mousePosition, closest, onDown, onHoverStart, onHoverEnd, active }} />
-	// }
+	// Set up a handler to render a block.
+	const renderBlock = (index) => {
+		const location = locations[index]
+		return <Block
+			key={index}
+			index={isUndefined(location) ? index : location}
+			value={numbers[index]}
+			inStorage={isUndefined(location)}
+			mousePosition={mousePosition}
+			hover={hovering === index}
+			drag={dragging?.index === index}
+			delta={dragging?.delta}
+			onDown={(event) => startDragging(index, event)}
+			onHoverStart={() => setHovering(active && index)}
+			onHoverEnd={() => setHovering()}
+			closest={dragging && closestPosition === location}
+			active={active}
+		/>
+	}
 
 	// Render the interface.
-	// const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0.3) : darken(theme.palette.error.main, 0.3)
 	return <Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible' }}>
 
 		{/* The text symbols. */}
@@ -155,25 +170,28 @@ export function Interface({ submitAction, isCurrentAction }) {
 			{(new Array(solutionRows)).fill(0).map((_, row) => (new Array(solutionCols - 1)).fill(0).map((_, col) => <text key={`${col}:${row}`} x={(exerciseCols + 1 + col) * (size + split) - split / 2} y={row * (size + verticalGap) + size / 2} style={{ fontSize: '30px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', fill: '#eee' }} transform="translate(0, 0)">+</text>)).flat()}
 		</g>
 
-		{/* Block shades for when they are dragged away, first for storage and then for input. */}
-		{locations.map((_, index) => <Block key={index} index={index} inStorage={true} shade={true} />)}
-		{(new Array(numInputs)).fill(0).map((_, index) => <Block key={index} index={index} inStorage={false} shade={true} />)}
-
-		{/* The exercise field blocks. */}
-		{new Array(numExerciseFields).fill(0).map((_, index) => <Block key={index} index={index} value={exercises.flat()[index]} isExercise={true} />)}
-
-		{/* The actual blocks. */}
-		{locations.map((location, index) => <Block key={index} index={location === undefined ? index : location} value={numbers[index]} inStorage={location === undefined} />)}
-
 		{/* Lights. */}
 		<g transform={`translate(${margin + (2 + solutionCols) * size + (1 + solutionCols) * split + inBetween}, ${margin})`}>
 			{solutions.map((list, row) => list.map((value, col) => <circle key={`${col}:${row}`} cx={lightRadius + col * (2 * lightRadius + lightGap)} cy={size / 2 + row * (size + verticalGap)} r={lightRadius} fill={theme.palette[value ? 'success' : 'error'].main} />)).flat()}
 		</g>
+
+		{/* Block shades for when they are dragged away, first for storage and then for input. */}
+		{locations.map((_, index) => <Block key={index} value={numbers[index]} index={index} inStorage={true} shade={true} closest={dragging?.index === index && closestPosition === numInputs} />)}
+		{(new Array(numInputs)).fill(0).map((_, index) => <Block key={index} index={index} inStorage={false} shade={true} closest={closestPosition === index} />)}
+
+		{/* The exercise field blocks. */}
+		{new Array(numExerciseFields).fill(0).map((_, index) => <Block key={index} index={index} value={exercises.flat()[index]} isExercise={true} />)}
+
+		{/* The actual blocks. Render the dragged one last to put it on top. */}
+		{[...locations.map((_, index) => dragging?.index === index ? null : renderBlock(index)),
+		dragging ? renderBlock(dragging.index) : null]}
 	</Svg>
 }
 
-function findClosestPosition(coords) {
-	const squaredDistances = initialNumbers.map((_, index) => squaredDistance(coords, posToCoords(index)))
+function findClosestPosition(coords, index) {
+	const extraPosition = numIndexToCoords(index)
+	const positions = [...(new Array(numInputs)).fill(0).map((_, index) => inputIndexToCoords(index)), extraPosition]
+	const squaredDistances = positions.map((pCoords) => squaredDistance(coords, pCoords))
 	return findOptimumIndex(squaredDistances, (a, b) => a < b)
 }
 
@@ -182,10 +200,10 @@ function Block({ value, index, inStorage, isExercise, hover, drag, delta, shade,
 
 	// Set up listeners for various events.
 	const ref = useRefWithEventListeners(active ? {
-		// 	mouseenter: onHoverStart,
-		// 	mouseleave: onHoverEnd,
-		// 	mousedown: onDown,
-		// 	touchstart: onDown,
+		mouseenter: onHoverStart,
+		mouseleave: onHoverEnd,
+		mousedown: onDown,
+		touchstart: onDown,
 	} : {})
 
 	// Determine the coordinates where the number should be positioned.
@@ -201,7 +219,43 @@ function Block({ value, index, inStorage, isExercise, hover, drag, delta, shade,
 	if (!easedCoords)
 		return null
 	return <g ref={ref} transform={`translate(${easedCoords.x}, ${easedCoords.y})`} style={{ cursor: active ? 'grab' : 'default' }}>
-		<rect key={value} x={-size / 2} y={-size / 2} width={size} height={size} rx={borderRadius} ry={borderRadius} fill={shade ? darken(fill, 0.7) : (hover || drag ? darken(fill, 0.4) : (closest ? lighten(fill, 0.3) : fill))} />
-		{shade ? null : <text x={0} y={0} fill="#eee" style={{ fontSize: '30px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle' }} transform="translate(0, 4)">{value}</text>}
+		<rect key={`rect${value}`} x={-size / 2} y={-size / 2} width={size} height={size} rx={borderRadius} ry={borderRadius} fill={shade ? (closest ? darken(fill, 0.4) : darken(fill, 0.7)) : (hover || drag ? darken(fill, 0.4) : (closest ? lighten(fill, 0.2) : fill))} />
+		{(shade && !inStorage) ? null : <Glyph key={`glyph${value}`} value={value} fade={shade && inStorage} />}
 	</g>
+}
+
+const glyphStyle = { stroke: '#fff', strokeWidth: 2.5, fill: 'none' }
+const oneWidth = 4
+const tenWidth = 12
+const maxWidth = 40
+function Glyph({ value, fade }) {
+	const ones = value % 10
+	const tens = (value - ones) / 10
+	const width = tens * tenWidth + ones * oneWidth
+	const scale = Math.min(maxWidth / width, 1)
+
+	return <g style={{ opacity: fade ? 0.1 : 1 }}>
+		{/* Top bar. */}
+		<g transform="translate(0,-8)">
+			<path d="M-16 0 c10 8 20 8 32 0 c-10 -8 -20 -8 -32 0" style={glyphStyle} />
+		</g>
+
+		{/* Digits. */}
+		<g transform={`translate(${-width * scale / 2}, 20) scale(${scale} 1)`}>
+			{(new Array(tens)).fill(0).map((_, index) => <Ten key={`ten${index}`} transform={`translate(${(index + 0.5) * tenWidth}, 0)`} />)}
+			{(new Array(ones)).fill(0).map((_, index) => <One key={`one${index}`} transform={`translate(${tens * tenWidth + (index + 0.5) * oneWidth}, 0)`} />)}
+		</g>
+
+		{/* Temporary number filler. */}
+		{/* <text x={0} y={0} fill="#eee" style={{ fontSize: '30px', fontWeight: 500, textAnchor: 'middle', dominantBaseline: 'middle', opacity: 0.2 }} transform="translate(0, 4)">{value}</text> */}
+	</g>
+}
+
+const gh = 5 // Glyph half-height
+const gw = 4 // Glyph half-width
+function One({ transform }) {
+	return <path d={`M0 -${gh} l0 -${2 * gh}`} style={glyphStyle} transform={transform} />
+}
+function Ten({ transform }) {
+	return <path d={`M-${gw} -${gh} l0 -${gh} a${gw} ${gh} 0 0 1 ${2 * gw} 0 l0 ${gh}`} style={glyphStyle} transform={transform} />
 }

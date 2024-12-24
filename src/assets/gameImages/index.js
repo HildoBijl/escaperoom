@@ -30,3 +30,4 @@ export { default as KeyPainting } from './KeyPainting.png'
 // History
 export { default as HistoryRoom } from './HistoryRoom.jpg'
 export { default as HistoryDoor } from './HistoryDoor.jpg'
+export { default as FractionHint2 } from './FractionHint2.png'

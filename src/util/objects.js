@@ -13,6 +13,11 @@ export function isBasicObject(obj) {
 	return isObject(obj) && obj.constructor === Object
 }
 
+// isUndefined checks if a value is undefined or null.
+export function isUndefined(value) {
+	return value === undefined || value === null
+}
+
 // deepEquals checks whether two objects are equal. It does this iteratively: if the parameters are objects or arrays, these are recursively checked. It tracks references of objects to prevent infinite loops.
 export function deepEquals(a, b, referenceList = []) {
 	// Check reference equality.

@@ -1,5 +1,5 @@
 import { Image } from 'components'
-import { HistoryDoor } from 'assets'
+import { HistoryDoor, FractionHint2 } from 'assets'
 
 import { cases } from '../../util'
 import { Line } from '../../components'
@@ -25,10 +25,9 @@ export function Action(props) {
 			return <Line text="Je bekijkt het schoolbord">
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
-						<p>Het valt je nu pas voor het eerst op dat ze in geschiedenis een whiteboard hebben! Hoezo heeft het meest ouderwetse onderwerp de meest moderne (nouja, relatief gezien) uitrusting? Je hebt geen idee.</p>
-						<p>ToDo: generate picture.</p>
-						{/* <Image src={HistoryHint} /> */}
-						<p>Aan de achtergebleven krabbels te zien was er zojuist een les over Egyptische hierogliefen. Helaas heb jij die module nog niet gehad. Je hebt geen idee waar het over gaat.</p>
+						<p>Het valt je nu pas voor het eerst op dat ze in geschiedenis een whiteboard hebben! Hoezo heeft het meest ouderwetse onderwerp de meest moderne uitrusting? Je hebt geen idee.</p>
+						<Image src={FractionHint2} />
+						<p>Maar modern is ook relatief. Dit whiteboard ziet er uit als dat het betere jaren heeft gehad. Aan de achtergebleven krabbels te zien was er zojuist een les over Egyptische hierogliefen. Helaas heb jij die module nog niet gehad. Je hebt geen idee waar het over gaat.</p>
 					</>,
 					<p>De hierogliefen staan nog steeds op het whiteboard. En nog steeds heb je geen idee hoe oud Egyptisch werkt.</p>,
 					<p>Je bekijkt het schoolbord nog eens. Tot je verbazing merk je tussen de onbekende hierogliefen wel een plus en een is-teken op. Hoe kan dat? Deden de oude Egyptenaren ook aan wiskunde? Tja, het zal wel. Je wiskundedocent zegt immers de hele tijd dat wiskunde overal is.</p>,

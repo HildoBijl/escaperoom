@@ -108,6 +108,35 @@ export function updateState(location, state, action) {
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
 			}
 			break
+
+		case 'History':
+			switch (action.type) {
+				case 'checkBlackboard': // No state change.
+					break
+				case 'checkDoor': // No state change.
+					break
+				case 'unlockDoor':
+					state.dutchtDoorUnlocked = true
+					location = 'Dutch'
+					break
+				default:
+					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
+			}
+			break
+
+		case 'Dutch':
+			switch (action.type) {
+				case 'checkBox': // No state change.
+					break
+				case 'checkDoor': // No state change.
+					break
+				case 'unlockDoor':
+					state.hall2Unlocked = true
+					break
+				default:
+					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
+			}
+			break
 	}
 
 	// Return the updated data.

@@ -116,7 +116,7 @@ export function updateState(location, state, action) {
 				case 'checkDoor': // No state change.
 					break
 				case 'unlockDoor':
-					state.dutchtDoorUnlocked = true
+					state.dutchDoorUnlocked = true
 					location = 'Dutch'
 					break
 				default:

@@ -4,7 +4,7 @@ import { LanguageHint, DutchInterface } from 'assets'
 import { cases } from '../../util'
 import { Line } from '../../components'
 
-// import { Interface } from './Interface'
+import { Interface } from './Interface'
 
 export function Action(props) {
 	const { state, location, action, numActionVisits, isCurrentAction, nextAction } = props
@@ -52,11 +52,10 @@ export function Action(props) {
 						<p>Je bekijkt de vreemde tekens op het scherm. Heb je die al ergens anders gezien?</p>
 					</>,
 					<p>Je vraagt je af wat de vreemde figuren betekenen. Misschien kun je het op de een of andere manier ontcijferen?</p>,
-					<p>Inmiddels heb je een aardig idee van wat de vreemde figuren betekenen. Maar hoe weet je wat de juiste code is? Door welke cijfers moet een getal deelbaar zijn? En hoe veel keer kun je ze dan door die getallen delen?</p>,
+					<p>Inmiddels heb je een aardig idee van wat de vreemde figuren betekenen. Maar hoe weet je wat de juiste code is? Door welke cijfers moet een getal deelbaar zijn? En hoeveel keer kun je ze dan door die getallen delen?</p>,
 					<p>Je probeert wanhopig de symbolen te veranderen naar een nieuwe combinatie, maar er gebeurt nog steeds weinig.</p>,
 				])}
-				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <p>Dit raadsel is nog in ontwikkeling.</p> : null}
-				{/* {isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null} */}
+				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 			</Line>
 
 		case 'unlockDoor':

@@ -129,6 +129,11 @@ export function updateState(location, state, action) {
 				case 'checkDesk': // No state change.
 					break
 				case 'checkBox': // No state change.
+					if (!state.dutchDoor) {
+						state.dutchDoor = {
+							seed: getRandomPermutation(10),
+						}
+					}
 					break
 				case 'checkDoor': // No state change.
 					break

@@ -75,14 +75,15 @@ export function Action(props) {
 					</Line>
 				case 'Music':
 					return <Line text="Je loopt naar de deur naar het muzieklokaal">
-						{cases(numActionVisits, [0, 2, 3, Infinity], [
+						{cases(numActionVisits, [0, 1, 2, 3, Infinity], [
 							<>
 								<p>Je hebt nooit echt op deze tussendeur gelet. Hopelijk is hij open? Je grijpt de deurklink en trekt hem omlaag, maar de deur gaat geen kant op.</p>
 								<Image src={MathsDoor2} />
 								<p>Boven de deur hangen drie lampen, die je nu pas voor het eerst opmerkt, en ook is er weer zo&apos;n elektronisch kastje. Het scherm toont verschillende combinaties van cijfers, waarbij sommigen ook oranje of groene lampjes ernaast hebben. Wat betekent het?</p>
 							</>,
 							<p>De getallencodes op het scherm staren je nog steeds aan. Welke code moet je invoeren zodat de deur open gaat?</p>,
-							<p>Je kijkt nog eens goed naar de lampjes naast de cijfers. Is dat een soort feedback? Dat slechts een deel van de code klopt? Maar welke code zou dan drie groene lampjes geven?</p>,
+							<p>Je kijkt nog eens goed naar de lampjes naast de cijfers. Is dat een soort feedback? Dat slechts een deel van de code klopt? Wat zou een oranje lampje kunnen betekenen? En welke code zou dan drie groene lampjes geven?</p>,
+							<p>Je vraagt je nog steeds af wat de lampjes precies betekenen. Wat voor een <em>mastermind</em> heeft dit bedacht?</p>,
 							<p>De vijf foute codes op het scherm staren je nog steeds aan. Wat is de juiste code?</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface2 {...props} /> : null}

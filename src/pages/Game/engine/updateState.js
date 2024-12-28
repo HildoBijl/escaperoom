@@ -126,6 +126,8 @@ export function updateState(location, state, action) {
 
 		case 'Dutch':
 			switch (action.type) {
+				case 'checkDesk': // No state change.
+					break
 				case 'checkBox': // No state change.
 					break
 				case 'checkDoor': // No state change.

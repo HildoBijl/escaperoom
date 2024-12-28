@@ -31,3 +31,8 @@ export { default as KeyPainting } from './KeyPainting.png'
 export { default as HistoryRoom } from './HistoryRoom.jpg'
 export { default as HistoryDoor } from './HistoryDoor.jpg'
 export { default as FractionHint2 } from './FractionHint2.png'
+
+// Dutch
+export { default as DutchRoom } from './DutchRoom.jpg'
+export { default as DutchInterface } from './DutchInterface.jpg'
+export { default as LanguageHint } from './LanguageHint.png'

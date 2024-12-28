@@ -15,7 +15,7 @@ export function Location({ numVisits, clearHistory }) {
 				<p>Terwijl de docent terug gaat naar het klaslokaal, ga je zitten in de stoel achter het grote bureau en duik je in de ingewikkelde figuren. Gefascineerd in de patronen vergeet je totaal de tijd. Als je uiteindelijk uit het boek ontwaakt merk je dat het rumoer van het klaslokaal opgehouden is. Een kille stilte lijkt door het gebouw getrokken te zijn. Hoe lang was je wel niet aan het lezen?</p>
 			</>,
 			<p>Je bent weer terug in het kantoor. Er is niets veranderd sinds de laatste keer dat je er was.</p>,
-			<p>Je keert alweer terug naar het kantoor. Er is hier werkelijk niets te vinden, maar om onbekende reden vind je het gewoon prettig om te doen alsof jij nu zelf de wiskundedocent bent, en dus blijf je hier terugkeren.</p>,
+			<p>Je keert alweer terug naar het kantoor. Er is hier nog steeds niet veranderd, maar om onbekende reden vind je het gewoon prettig om te doen alsof jij nu zelf de wiskundedocent bent, en dus blijf je hier terugkeren.</p>,
 		])}
 	</Line>
 }

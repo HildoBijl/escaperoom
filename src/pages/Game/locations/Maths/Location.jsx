@@ -28,7 +28,7 @@ export function Location({ numVisits = 0 }) {
 			</>,
 			<p>Het wiskundelokaal is nog steeds hetzelfde als voorheen. Net zo verlaten als de rest van de school.</p>,
 			<p>Het wiskundelokaal ziet er hetzelfde uit, maar het begint op je in te werken. De posters op de muren lijken dichterbij te komen.</p>,
-			<p>Je denkt, &quot;niet weer het wiskundelokaal...&quot; Je blijft hier maar terugkomen. Is het de centrale spil in deze hele situatie?</p>,
+			<p>Je denkt, &quot;Niet weer het wiskundelokaal...&quot; Je blijft hier maar terugkomen. Is het de centrale spil in deze hele situatie?</p>,
 		])}
 	</Line>
 }

@@ -36,3 +36,7 @@ export { default as FractionHint2 } from './FractionHint2.png'
 export { default as DutchRoom } from './DutchRoom.jpg'
 export { default as DutchInterface } from './DutchInterface.jpg'
 export { default as LanguageHint } from './LanguageHint.png'
+
+// Hall
+export { default as HallDoor } from './HallDoor.jpg'
+export { default as HallWithChair } from './HallWithChair.jpg'

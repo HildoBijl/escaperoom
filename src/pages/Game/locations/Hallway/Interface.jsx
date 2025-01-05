@@ -60,7 +60,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		if (!isPositionDown(currPositions[index]))
 			return setActivePoint(index)
 	}
-	const activePosition = activePoint && positions[activePoint]
+	const activePosition = activePoint === undefined ? undefined : currPositions[activePoint]
 
 	// Set up a handler to implement movement.
 	const move = (pointIndex, dir) => {
@@ -108,26 +108,6 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		setPositions(positions => [positions[0]])
 	}
 
-	// // Set up handlers to change the value.
-	// const increment = (index) => {
-	// 	if (!active)
-	// 		return
-	// 	setValue(value => {
-	// 		value = [...value]
-	// 		value[index] = mod(value[index] + 1, 10)
-	// 		return value
-	// 	})
-	// }
-	// const decrement = (index) => {
-	// 	if (!active)
-	// 		return
-	// 	setValue(value => {
-	// 		value = [...value]
-	// 		value[index] = mod(value[index] - 1, 10)
-	// 		return value
-	// 	})
-	// }
-
 	// // Do the grading of the outcome.
 	// const isCorrect = solution.every((solutionValue, index) => seed2[solutionValue] === value[index])
 	// useEffect(() => {
@@ -146,15 +126,15 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 				{currPositions.map((position, index) => <g key={index} transform={`translate(${position[0] * (squareSize + squareGap) + squareSize / 2}, ${position[1] * (squareSize + squareGap) + squareSize / 2})`}>
 					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => index === activePoint
 						? deactivatePoint() : activatePoint(index)} isDown={isPositionDown(position)} />
-
-					{/* Arrows when active. */}
-					{activePoint === index && active ? <g>
-						<StyledPath transform={`translate(${0} ${-squareSize / 2}) rotate(180) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => move(index, 0)} />
-						<StyledPath transform={`translate(${squareSize / 2} ${0}) rotate(270) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => move(index, 1)} />
-						<StyledPath transform={`translate(${0} ${squareSize / 2}) rotate(0) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => move(index, 2)} />
-						<StyledPath transform={`translate(${-squareSize / 2} ${0}) rotate(90) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => move(index, 3)} />
-					</g> : null}
 				</g>)}
+
+				{/* Arrows when active. */}
+				{activePosition && active ? <g transform={`translate(${activePosition[0] * (squareSize + squareGap) + squareSize / 2}, ${activePosition[1] * (squareSize + squareGap) + squareSize / 2})`}>
+					<StyledPath transform={`translate(${0} ${-squareSize / 2}) rotate(180) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={activePoint === 0} onClick={() => move(activePoint, 0)} />
+					<StyledPath transform={`translate(${squareSize / 2} ${0}) rotate(270) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={activePoint === 0} onClick={() => move(activePoint, 1)} />
+					<StyledPath transform={`translate(${0} ${squareSize / 2}) rotate(0) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={activePoint === 0} onClick={() => move(activePoint, 2)} />
+					<StyledPath transform={`translate(${-squareSize / 2} ${0}) rotate(90) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={activePoint === 0} onClick={() => move(activePoint, 3)} />
+				</g> : null}
 			</g>
 		</Svg>
 

@@ -1,4 +1,4 @@
-import { isAdmin, isTester } from '../../util'
+import { isAdmin } from '../../util'
 import { ChoiceButtons } from '../../components'
 
 export function Choice(props) {
@@ -6,9 +6,6 @@ export function Choice(props) {
 }
 
 function getOptions({ state, lastAction }) {
-	if (!isAdmin() && !isTester())
-		return null
-
 	return [
 		// Posters.
 		lastAction?.type === 'checkPosters' ? undefined : { text: 'Bestudeer de posters aan de muur', action: 'checkPosters' },

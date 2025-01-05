@@ -1,23 +1,10 @@
-import Alert from '@mui/material/Alert'
-
 import { Image } from 'components'
 import { MathsRoom } from 'assets'
 
-import { cases, isAdmin, isTester } from '../../util'
+import { cases } from '../../util'
 import { Line } from '../../components'
 
 export function Location({ numVisits = 0 }) {
-	// If we're not in admin mode or a tester, then we're at the end of the teaser.
-	if (!isAdmin() && !isTester()) {
-		return <>
-			<Alert severity="info" sx={{ my: 2 }}>
-				Gefeliciteerd! Je bent ontsnapt uit het kantoor! Maar dit was slechts de teaser...<br />
-				De volledige Escape Room is nog in ontwikkeling en komt op <strong>6 januari 2025</strong> online. Vanaf dan kun je ook proberen om uit &quot;De Verlaten School&quot; te ontsnappen. Kom vooral terug!
-			</Alert>
-		</>
-	}
-
-	// We're in the regular operation of the Escape Room.
 	return <Line text={numVisits === 0 ? 'Je lost het magische raam op' : 'Je gaat terug naar het wiskundelokaal'}>
 		{cases(numVisits, [0, 3, 6, Infinity], [
 			<>

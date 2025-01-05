@@ -1,7 +1,7 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useTheme, lighten, styled } from '@mui/material/styles'
 
-import { getRandomInteger, mod } from 'util'
+import { getRandomInteger, mod, useEventListener } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -39,7 +39,19 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const theme = useTheme()
 	const svgRef = useRef()
 	const variant = (state.hallRiddlesSolved || 0)
-	const [positions, setPositions] = useRiddleStorage(`hallRiddle${variant}`, getInitialValue(variant))
+	let [positions, setPositions] = useRiddleStorage(`hallRiddle${variant}`, getInitialValue(variant))
+	const [activePoint, setActivePoint] = useState(undefined)
+
+	if (!state.chairsGathered)
+		positions = [positions[0]]
+
+	// On a click not on a circle, deactivate any point.
+	const deactivatePoint = (event) => {
+		if (event.target.tagName !== 'circle')
+			setActivePoint()
+	}
+	useEventListener(active ? ['mousedown', 'touchstart'] : [], deactivatePoint, svgRef)
+
 
 	// // Set up handlers to change the value.
 	// const increment = (index) => {
@@ -75,8 +87,9 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 				{/* Grid. */}
 				{indices.map(col => indices.map(row => <rect key={`${col}:${row}`} x={col * (squareSize + squareGap)} y={row * (squareSize + squareGap)} width={squareSize} height={squareSize} rx={squareRadius} ry={squareRadius} fill={theme.palette[isCenter([col, row]) ? 'success' : 'primary'].main} style={{ opacity: 0.3 }} />))}
 
+				{/* Points. */}
 				{positions.map((position, index) => <g key={index} transform={`translate(${position[0] * (squareSize + squareGap) + squareSize / 2}, ${position[1] * (squareSize + squareGap) + squareSize / 2})`}>
-					<circle cx={0} cy={0} r={pointRadius} fill={theme.palette[index === 0 ? 'success' : 'primary'].main} style={{ cursor: 'pointer' }} />
+					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => setActivePoint(index)} />
 				</g>)}
 			</g>
 
@@ -94,6 +107,19 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 function isCenter(point) {
 	return point[0] === center[0] && point[1] === center[1]
 }
+
+const StyledCircle = styled('circle')(({ theme, isMain, active, isActive }) => {
+	const color = theme.palette[isMain ? 'success' : 'primary'].main
+	return {
+		fill: isActive ? lighten(color, 0.4) : color,
+		userSelect: 'none',
+		cursor: active ? 'pointer' : undefined,
+		WebkitTapHighlightColor: 'transparent',
+		'&:hover': {
+			fill: active && !isActive ? lighten(color, 0.2) : undefined,
+		},
+	}
+})
 
 const StyledPath = styled('path')(({ theme, active }) => ({
 	fill: theme.palette.primary.main,

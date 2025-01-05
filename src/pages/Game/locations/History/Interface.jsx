@@ -151,9 +151,13 @@ export function Interface({ submitAction, isCurrentAction }) {
 					solutions[solIndex][newIndex] = currNumbers
 					return solutions
 				})
+				setLocations(locations => { // Put the three glyps used for the solution back in storage.
+					locations = locations.map(location => (location >= solIndex * solutionCols && location < (solIndex + 1) * solutionCols) ? undefined : location)
+					return locations
+				})
 			}
 		})
-	}, [locations, solutions, setSolutions])
+	}, [locations, setLocations, solutions, setSolutions])
 
 	// Check if all lights are green.
 	useEffect(() => {

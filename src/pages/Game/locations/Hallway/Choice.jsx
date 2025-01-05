@@ -6,6 +6,18 @@ export function Choice(props) {
 }
 
 function getOptions({ state, lastAction }) {
+	// On all done.
+	if (state.allDone)
+		return []
+
+	// On all solved but not done.
+	if (state.hallRiddlesSolved === 3)
+		return [
+			state.hallRiddlesSolved === 3 && lastAction?.type !== 'pushChair' ? { text: 'Geef de bureaustoel een zet', action: 'pushChair' } : undefined,
+			state.hallRiddlesSolved === 3 ? { text: 'Praat met de wiskundedocent', action: 'talk' } : undefined,
+		]
+
+	// On regular visit.
 	return [
 		// Desk.
 		lastAction?.type === 'checkDoor' ? undefined : { text: 'Bekijk de deur naar buiten', action: 'checkDoor' },
@@ -16,10 +28,6 @@ function getOptions({ state, lastAction }) {
 
 		// Get doors.
 		state.chairsGathered ? undefined : { text: 'Haal meer bureaustoelen', action: 'gatherChairs' },
-
-		// Talk with the teacher.
-		state.hallRiddlesSolved === 3 && lastAction?.type !== 'pushChair' ? { text: 'Geef de bureaustoel een zet', action: 'pushChair' } : undefined,
-		state.hallRiddlesSolved === 3 ? { text: 'Praat met de wiskundedocent', action: 'talk' } : undefined,
 
 		// History.
 		{ text: 'Ga terug naar het wiskundelokaal', action: { type: 'move', to: 'Maths' } },

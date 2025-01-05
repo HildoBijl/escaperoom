@@ -8,6 +8,10 @@ export function ChoiceButtons({ options, submitAction }) {
 		options = [options]
 	options = options.filter(option => !!option)
 
+	// On empty options, render nothing.
+	if (options.length === 0)
+		return null
+
 	// Render the buttons.
 	return <Box sx={{ display: 'flex', flexFlow: 'row wrap', justifyContent: 'space-between', alignItems: 'stretch', gap: '0.6rem', mt: 1.5, mb: 3 }}>
 		{options.map(({ text, action }) => <ChoiceButton key={text} text={text} onClick={() => submitAction(action)} />)}

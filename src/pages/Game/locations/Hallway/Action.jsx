@@ -62,8 +62,10 @@ export function Action(props) {
 			</Line>
 
 		case 'talk':
-			return <Line text="Je geeft de bureaustoel een harde zet">
-				<p>ToDo: write final story.</p>
+			return <Line text="Je vraagt wat er aan de hand is">
+				<p>&quot;Wat er aan de hand is?&quot; herhaalt de docent. &quot;Ooh, niet veel meer dan een nieuw soort test. De standaard vorm van toetsen is immers ook maar zo saai. Dus kwam ik met dit nieuwe plan.&quot;</p>
+				<p>&quot;Dus dit was allemaal een test?&quot; vraag je met een opgetrokken wenkbrauw.</p>
+				<p>&quot;Zie het als een uitdaging,&quot; lacht de docent. &quot;Je gaf aan dat je wel wat meer uitdagendere en vooral andere wiskunde wilde als dat standaard op school gegeven wordt. Er is een plek waar veel van dit soort wiskunde gedaan wordt: de Vierkant voor Wiskunde zomerkampen! Maar om extra te checken of je daar wel goed bij past, heb ik een serie raadsels in elkaar gezet. Je bent er met vlag en wimpel doorheen gegaan! Vandaar dat ik denk dat zo&apos;n zomerkamp zeker wat voor jou kan zijn.&quot;</p>
 			</Line>
 
 		case 'unlockDoor':

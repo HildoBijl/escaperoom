@@ -16,8 +16,6 @@ export function Game() {
 	const finalState = getState(history)
 	const data = { history, setHistory, clearHistory, submitAction, finalState }
 
-	// ToDo: run a check to see if the history is still valid. If not, clear it.
-
 	// Render the Game.
 	return <Subpage>
 		<Alert severity="info" sx={{ my: 2 }}>De Escape Room is nog in ontwikkeling. Op het moment staat alleen de eerste kamer online als teaser. De volledige Escape Room is beschikbaar vanaf <strong>6 januari 2025</strong>.</Alert>
@@ -30,6 +28,7 @@ export function Game() {
 			const state = getState(history, locationIndex)
 			return <Location key={locationIndex} {...{ ...data, location, locationIndex, isCurrentLocation, actions, state }} />
 		})}
+		{getState(history).allDone ? <EndingScreen /> : null}
 	</Subpage>
 }
 
@@ -52,7 +51,6 @@ function Location(props) {
 			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits, previousAction, nextAction }} />
 		})}
 		{isCurrentLocation ? <ChoiceSelection {...props} /> : null}
-		{getState(history).allDone ? <EndingScreen /> : null}
 	</>
 }
 
@@ -76,5 +74,24 @@ function ChoiceSelection(props) {
 }
 
 function EndingScreen() {
-	return <p>ToDo: create ending screen.</p>
+	return <>
+		<Alert severity="info" sx={{ my: 2 }}>
+			Gefeliciteerd! Je hebt de Escape Room opgelost! Je kunt nu één van twee dingen doen (of beiden).
+			<ul style={{ marginTop: 6, marginBottom: 6 }}>
+				<li>Voldoe je aan de criteria? Dan kun je je gegevens achterlaten om mee te doen voor de prijzen. Deze gegevens worden niet getoond: we gebruiken ze alleen voor de prijsuitreiking.</li>
+				<li>Voor iedereen: je kunt je naam toevoegen aan het Leaderboard. Deze gegevens zijn voor iedereen zichtbaar, maar je bent niet verplicht je volledige naam in te vullen.</li>
+			</ul>
+		</Alert>
+		<Alert severity="warning" sx={{ my: 2 }}>De formulieren voor de registratie van oplossers zijn helaas nog in ontwikkeling. Ze komen er uiterlijk 12 januari aan! Kom tegen die tijd terug om alsnog je gegevens achter te laten. Je hoeft de Escape Room niet opnieuw op te lossen (tenzij je hem reset).</Alert>
+		<WinnerRegistration />
+		<LeaderboardRegistration />
+	</>
+}
+
+function WinnerRegistration() {
+	return null
+}
+
+function LeaderboardRegistration() {
+	return null
 }

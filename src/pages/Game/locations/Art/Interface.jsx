@@ -71,6 +71,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [positions, setPositions] = useRiddleStorage('mathsDoor2Positions', initialPositions)
 	const [solved, setSolved] = useRiddleStorage('mathsDoor2Solved', solutionShapes.map(() => false))
 	const [selected, setSelected] = useState(false)
@@ -163,8 +164,10 @@ export function Interface({ submitAction, isCurrentAction }) {
 
 	// Check for three green lights.
 	useEffect(() => {
-		if (solved.every(v => v) && isCurrentAction)
+		if (solved.every(v => v) && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, solved, isCurrentAction, submitAction])
 
 

@@ -37,6 +37,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [value, setValue] = useRiddleStorage('dutchDoor', initialValue)
 	const { seed } = state.dutchDoor
 
@@ -63,8 +64,10 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	// Do the grading of the outcome.
 	const isCorrect = solution.every((solutionValue, index) => solutionValue === seed[value[index]])
 	useEffect(() => {
-		if (isCorrect && isCurrentAction)
+		if (isCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, isCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

@@ -31,6 +31,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const seed = state.officeDoor.seed
 	const [numbers, setNumbers] = useRiddleStorage('officeDoor', initialNumbers)
 
@@ -77,8 +78,10 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	]
 	const allCorrect = correct.every(value => value)
 	useEffect(() => {
-		if (allCorrect && isCurrentAction)
+		if (allCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Set up a handler to render a block.

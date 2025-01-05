@@ -77,6 +77,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [locations, setLocations] = useRiddleStorage('historyDoorLocations', initialLocations)
 	const [solutions, setSolutions] = useRiddleStorage('historyDoorSolutions', initialSolutions)
 
@@ -162,8 +163,10 @@ export function Interface({ submitAction, isCurrentAction }) {
 	// Check if all lights are green.
 	useEffect(() => {
 		const allCorrect = solutions.every(row => row.every(light => !isUndefined(light)))
-		if (allCorrect && isCurrentAction)
+		if (allCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+		}
 	})
 
 	// Set up a handler to render a block.

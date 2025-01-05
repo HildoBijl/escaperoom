@@ -42,6 +42,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const variant = (state.hallRiddlesSolved || 0)
 	const [positions, setPositions] = useRiddleStorage(`hallRiddle${variant}`, [getInitialValue(variant)])
 	const [activePoint, setActivePoint] = useState(undefined)
@@ -111,8 +112,10 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	// Do the grading of the outcome.
 	const isCorrect = isCenter(currPositions[0])
 	useEffect(() => {
-		if (isCorrect && isCurrentAction)
+		if (isCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction({ type: 'solveRiddle' }), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, isCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

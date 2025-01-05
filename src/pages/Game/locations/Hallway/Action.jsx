@@ -58,7 +58,7 @@ export function Action(props) {
 
 		case 'pushChair':
 			return <Line text="Je geeft de bureaustoel een harde zet">
-				<p>&quot;Hé, wacht!&quot; roept je docent voordat de stoel soepel rollend in de verte verdwijnt. Met een luid gekletter stort de stoel van de tafels af, maar net op tijd weet de docent eraf te springen. &quot;Dat was niet cool. Maar vooruit, misschien heb ik het verdiend.&quot;</p>
+				<p>&quot;Hé, wacht!&quot; roept je docent voordat de stoel met de docent erin soepel rollend in de verte verdwijnt. Met een luid gekletter stort de stoel van de tafels af, maar net op tijd weet de docent eraf te springen. &quot;Dat was niet cool. Maar vooruit, misschien heb ik het verdiend.&quot;</p>
 			</Line>
 
 		case 'talk':

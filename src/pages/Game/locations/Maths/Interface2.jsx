@@ -43,6 +43,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [value, setValue] = useRiddleStorage('mathsDoor2Digits', initialValue)
 	const { seed1, seed2 } = state.musicDoor
 
@@ -69,8 +70,10 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	// Do the grading of the outcome.
 	const isCorrect = solution.every((solutionValue, index) => seed2[solutionValue] === value[index])
 	useEffect(() => {
-		if (isCorrect && isCurrentAction)
+		if (isCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'Music' }), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, isCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

@@ -23,6 +23,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const active = isCurrentAction
 	const theme = useTheme()
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [numbers, setNumbers] = useRiddleStorage('mathsDoor1', initialNumbers)
 
 	// Set up handlers to adjust the state.
@@ -38,8 +39,10 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const correct = groups.map(group => areNumbersCorrect(numbers.slice(group[0], group[1] + 1), group[0] + offset))
 	const allCorrect = correct.every(value => value)
 	useEffect(() => {
-		if (allCorrect && isCurrentAction)
+		if (allCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'History' }), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

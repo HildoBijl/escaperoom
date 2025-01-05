@@ -26,6 +26,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const theme = useTheme()
 	const active = isCurrentAction
 	const svgRef = useRef()
+	const unlockSent = useRef(false)
 	const [numbers, setNumbers] = useRiddleStorage('musicDoor', getInitialNumbers())
 
 	// Set up handlers to adjust the state.
@@ -42,8 +43,10 @@ export function Interface({ submitAction, isCurrentAction }) {
 	// Check the value of the input.
 	const allCorrect = areNumbersCorrect(numbers)
 	useEffect(() => {
-		if (allCorrect && isCurrentAction)
+		if (allCorrect && isCurrentAction && !unlockSent.current) {
+			unlockSent.current = true
 			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'Art' }), 2 * theme.transitions.duration.standard)
+		}
 	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.

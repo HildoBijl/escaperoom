@@ -67,6 +67,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		deactivatePoint()
 		setPositions(positions => {
 			let currPositions = lastOf(positions)
+			console.log(currPositions)
 			const pointPosition = currPositions[pointIndex]
 
 			// Determine where the point will end up without blocked movement.
@@ -78,14 +79,15 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 			if (state.chairsGathered) {
 				currPositions.forEach(position => {
 					if (horizontal) {
-						if (pointPosition[1] === position[1] && (positive ? (pointPosition[0] < position[0]) : (pointPosition[0] > position[0])))
+						if (pointPosition[1] === position[1] && (positive ? (pointPosition[0] < position[0] && position[0] < endCoord) : (pointPosition[0] > position[0] && position[0] > endCoord)))
 							endCoord = position[0] + (positive ? -1 : 1)
 					} else {
-						if (pointPosition[0] === position[0] && (positive ? (pointPosition[1] < position[1]) : (pointPosition[1] > position[1])))
+						if (pointPosition[0] === position[0] && (positive ? (pointPosition[1] < position[1] && position[1] < endCoord) : (pointPosition[1] > position[1] && position[1] > endCoord)))
 							endCoord = position[1] + (positive ? -1 : 1)
 					}
 				})
 			}
+			console.log(endCoord)
 
 			// Determine the new position. On no change, do not add to the history.
 			const newPosition = (horizontal ? [endCoord, pointPosition[1]] : [pointPosition[0], endCoord])
@@ -123,10 +125,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 				{indices.map(col => indices.map(row => <rect key={`${col}:${row}`} x={col * (squareSize + squareGap)} y={row * (squareSize + squareGap)} width={squareSize} height={squareSize} rx={squareRadius} ry={squareRadius} fill={theme.palette[isCenter([col, row]) ? 'success' : 'primary'].main} style={{ opacity: 0.3 }} />))}
 
 				{/* Points. */}
-				{currPositions.map((position, index) => <g key={index} transform={`translate(${position[0] * (squareSize + squareGap) + squareSize / 2}, ${position[1] * (squareSize + squareGap) + squareSize / 2})`}>
-					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => index === activePoint
-						? deactivatePoint() : activatePoint(index)} isDown={isPositionDown(position)} />
-				</g>)}
+				{currPositions.map((position, index) => <Point key={index} index={index} position={position} isActive={index === activePoint} {...{ active, activatePoint, deactivatePoint }} />)}
 
 				{/* Arrows when active. */}
 				{activePosition && active ? <g transform={`translate(${activePosition[0] * (squareSize + squareGap) + squareSize / 2}, ${activePosition[1] * (squareSize + squareGap) + squareSize / 2})`}>
@@ -148,6 +147,15 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 			</Fab>
 		</div> : null}
 	</>
+}
+
+function Point({ index, position, isActive, active, activatePoint, deactivatePoint }) {
+	const x = position[0] * (squareSize + squareGap) + squareSize / 2
+	const y = position[1] * (squareSize + squareGap) + squareSize / 2
+	return <g transform={`translate(${x}, ${y})`}>
+		<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={isActive} onClick={() => isActive
+			? deactivatePoint() : activatePoint(index)} isDown={isPositionDown(position)} />
+	</g>
 }
 
 function isCenter(point) {

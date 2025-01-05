@@ -4,7 +4,7 @@ import { HallDoor } from 'assets'
 import { cases } from '../../util'
 import { Line } from '../../components'
 
-// import { Interface } from './Interface'
+import { Interface } from './Interface'
 
 export function Action(props) {
 	const { state, location, action, numActionVisits, isCurrentAction, nextAction } = props
@@ -38,7 +38,7 @@ export function Action(props) {
 					<p>Je klautert alweer op de tafels en blijft staan op de grote groene tafel in het midden. Waarvoor is hij? Kun je de groene stoel hier krijgen? Maar hoe dan? Is het mogelijk om een andere stoel neer te zetten zodat de groene stoel niet doorschiet?</p>,
 					<p>Je blijft maar met de stoelen schuiven. Is er misschien toch een manier om de groene stoel in het midden te krijgen?</p>,
 				])}
-				{/* {isCurrentAction || nextAction?.type === 'solveRiddle' ? <Interface {...props} /> : null} */}
+				{isCurrentAction || nextAction?.type === 'solveRiddle' ? <Interface {...props} /> : null}
 			</Line>
 
 		case 'gatherChairs':
@@ -53,7 +53,7 @@ export function Action(props) {
 					<p>Er is nog een luide klik hoorbaar. Wederom vliegen alle stoelen uit zichzelf naar een nieuwe plek op het grote levende speelbord. Je blijft bezig zo. Dit moet toch wel de laatste zijn?</p>,
 					<p>Er is wederom een luide klik te horen, en tot je verbazing zinkt de groene tafel met de bureaustoel in de vloer van de aula, als een grote lift. Even later komt alles weer naar boven, met het enige verschil dat je wiskundeleraar nu in de stoel zit. Dus daar is dat stuk ongebeuren!</p>,
 				])}
-				{/* {(isCurrentAction || nextAction?.type === 'solveRiddle') && state.hallRiddlesSolved < 3 ? <Interface {...props} /> : null} */}
+				{(isCurrentAction || nextAction?.type === 'solveRiddle') && state.hallRiddlesSolved < 3 ? <Interface {...props} /> : null}
 			</Line>
 
 		case 'pushChair':

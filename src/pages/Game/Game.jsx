@@ -52,6 +52,7 @@ function Location(props) {
 			return <Action key={actionIndex} {...{ ...props, ...actionData, actionIndex, isCurrentAction, numActionVisits, previousAction, nextAction }} />
 		})}
 		{isCurrentLocation ? <ChoiceSelection {...props} /> : null}
+		{getState(history).allDone ? <EndingScreen /> : null}
 	</>
 }
 
@@ -72,4 +73,8 @@ function ChoiceSelection(props) {
 	// Render the Choice component of the location.
 	const { Choice } = locationComponents
 	return <Choice {...{ ...props, lastAction, state }} />
+}
+
+function EndingScreen() {
+	return <p>ToDo: create ending screen.</p>
 }

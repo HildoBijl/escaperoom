@@ -3,7 +3,7 @@ import { useTheme, darken, lighten, styled } from '@mui/material/styles'
 import { Undo as UndoIcon, Replay as ResetIcon } from '@mui/icons-material'
 import Fab from '@mui/material/Fab'
 
-import { lastOf, useEventListener } from 'util'
+import { lastOf, useEventListener, useTransitionedValue } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -87,7 +87,6 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 					}
 				})
 			}
-			console.log(endCoord)
 
 			// Determine the new position. On no change, do not add to the history.
 			const newPosition = (horizontal ? [endCoord, pointPosition[1]] : [pointPosition[0], endCoord])
@@ -150,9 +149,17 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 }
 
 function Point({ index, position, isActive, active, activatePoint, deactivatePoint }) {
-	const x = position[0] * (squareSize + squareGap) + squareSize / 2
-	const y = position[1] * (squareSize + squareGap) + squareSize / 2
-	return <g transform={`translate(${x}, ${y})`}>
+	const theme = useTheme()
+	const svgCoords = {
+		x: position[0] * (squareSize + squareGap) + squareSize / 2,
+		y: position[1] * (squareSize + squareGap) + squareSize / 2,
+	}
+	const transitionedCoords = {
+		x: useTransitionedValue(svgCoords.x, theme.transitions.duration.standard),
+		y: useTransitionedValue(svgCoords.y, theme.transitions.duration.standard),
+	}
+
+	return <g transform={`translate(${transitionedCoords.x}, ${transitionedCoords.y})`}>
 		<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={isActive} onClick={() => isActive
 			? deactivatePoint() : activatePoint(index)} isDown={isPositionDown(position)} />
 	</g>
@@ -169,6 +176,7 @@ const StyledCircle = styled('circle')(({ theme, isMain, active, isActive, isDown
 		userSelect: 'none',
 		cursor: active && !isDown ? 'pointer' : undefined,
 		WebkitTapHighlightColor: 'transparent',
+		transition: `fill ${theme.transitions.duration.standard}ms`,
 		'&:hover': {
 			fill: active && !isDown ? lighten(color, 0.2) : undefined,
 		},

@@ -164,8 +164,8 @@ export function Interface({ submitAction, isCurrentAction }) {
 	// Check for three green lights.
 	useEffect(() => {
 		if (solved.every(v => v) && isCurrentAction)
-			submitAction('unlockDoor')
-	}, [solved, isCurrentAction, submitAction])
+			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+	}, [theme, solved, isCurrentAction, submitAction])
 
 
 	// Render the interface.

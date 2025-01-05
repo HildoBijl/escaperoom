@@ -39,8 +39,8 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const allCorrect = correct.every(value => value)
 	useEffect(() => {
 		if (allCorrect && isCurrentAction)
-			submitAction({ type: 'unlockDoor', to: 'History' })
-	}, [allCorrect, isCurrentAction, submitAction])
+			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'History' }), 2 * theme.transitions.duration.standard)
+	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.
 	const getContainerColor = correct => correct ? darken(theme.palette.success.main, 0) : darken(theme.palette.primary.main, 1)

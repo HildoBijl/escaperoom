@@ -70,8 +70,8 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const isCorrect = solution.every((solutionValue, index) => seed2[solutionValue] === value[index])
 	useEffect(() => {
 		if (isCorrect && isCurrentAction)
-			submitAction({ type: 'unlockDoor', to: 'Music' })
-	}, [isCorrect, isCurrentAction, submitAction])
+			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'Music' }), 2 * theme.transitions.duration.standard)
+	}, [theme, isCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.
 	return <>

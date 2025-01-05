@@ -163,7 +163,7 @@ export function Interface({ submitAction, isCurrentAction }) {
 	useEffect(() => {
 		const allCorrect = solutions.every(row => row.every(light => !isUndefined(light)))
 		if (allCorrect && isCurrentAction)
-			submitAction('unlockDoor')
+			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
 	})
 
 	// Set up a handler to render a block.

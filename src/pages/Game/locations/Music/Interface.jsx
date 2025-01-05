@@ -23,6 +23,7 @@ const height = 4 * size + 2 * margin + 3 * gap + verticalRadius
 const width = 2 * dialRadius + 2 * buttonGap + 2 * size / Math.sqrt(2) + 2 * margin
 
 export function Interface({ submitAction, isCurrentAction }) {
+	const theme = useTheme()
 	const active = isCurrentAction
 	const svgRef = useRef()
 	const [numbers, setNumbers] = useRiddleStorage('musicDoor', getInitialNumbers())
@@ -42,8 +43,8 @@ export function Interface({ submitAction, isCurrentAction }) {
 	const allCorrect = areNumbersCorrect(numbers)
 	useEffect(() => {
 		if (allCorrect && isCurrentAction)
-			submitAction({ type: 'unlockDoor', to: 'Art' })
-	}, [allCorrect, isCurrentAction, submitAction])
+			setTimeout(() => submitAction({ type: 'unlockDoor', to: 'Art' }), 2 * theme.transitions.duration.standard)
+	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.
 	return <Svg ref={svgRef} size={[width, height]} style={{ borderRadius: '1rem', overflow: 'visible', maxWidth: width }}>

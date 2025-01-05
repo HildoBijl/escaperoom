@@ -78,8 +78,8 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 	const allCorrect = correct.every(value => value)
 	useEffect(() => {
 		if (allCorrect && isCurrentAction)
-			submitAction('unlockDoor')
-	}, [allCorrect, isCurrentAction, submitAction])
+			setTimeout(() => submitAction('unlockDoor'), 2 * theme.transitions.duration.standard)
+	}, [theme, allCorrect, isCurrentAction, submitAction])
 
 	// Set up a handler to render a block.
 	const renderBlock = (pos) => {

@@ -22,8 +22,7 @@ const height = 2 * margin + squareSize + 2 * arrowHeight + 2 * arrowGap
 const width = 2 * margin + 4 * squareSize + 3 * squareGap
 
 // Define the shapes and their initial positions.
-const solution = [0, 5, 0, 5]
-
+const solution = [0, 0, 2, 4]
 
 // Set up the initial value. Make sure all digits are different, so it can never be correct.
 const getInitialValue = () => {

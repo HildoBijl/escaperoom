@@ -47,9 +47,9 @@ export function Action(props) {
 			return <Line text="Je bekijkt het elektronische kastje">
 				{cases(numActionVisits, [0, 2, 3, Infinity], [
 					<>
-						<p>Je opent het kleine kastje met de kabels die eruit lopen. Deze keer zit er geen fancy touchscreen in, maar slechts een klein schermpje met vier vreemde tekens. Boven en onder het display staan knopjes.</p>
+						<p>Je opent het kleine kastje met de kabels die eruit lopen.</p>
 						<Image src={DutchInterface} />
-						<p>Je bekijkt de vreemde tekens op het scherm. Heb je die al ergens anders gezien?</p>
+						<p>Deze keer zit er geen fancy touchscreen in, maar slechts een klein schermpje met vier vreemde tekens. Boven en onder het display staan knopjes. Je bekijkt de vreemde tekens op het scherm. Heb je die al ergens anders gezien?</p>
 					</>,
 					<p>Je vraagt je af wat de vreemde figuren betekenen. Misschien kun je het op de een of andere manier ontcijferen?</p>,
 					<p>Inmiddels heb je een aardig idee van wat de vreemde figuren betekenen. Maar hoe weet je wat de juiste code is? Door welke cijfers moet een getal deelbaar zijn? En hoeveel keer kun je ze dan door die getallen delen?</p>,

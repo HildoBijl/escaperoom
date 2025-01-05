@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from 'react'
-import { useTheme, lighten, styled } from '@mui/material/styles'
+import { useTheme, darken, lighten, styled } from '@mui/material/styles'
+import { Undo as UndoIcon, Replay as ResetIcon } from '@mui/icons-material'
+import Fab from '@mui/material/Fab'
 
-import { lastOf, getRandomInteger, mod, useEventListener } from 'util'
+import { lastOf, useEventListener } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -10,7 +12,7 @@ const f = Math.sqrt(2) / 2
 
 // Set up settings for the Interface.
 const gridSize = 7
-const margin = 50 // Around the lock.
+const margin = 56 // Around the lock.
 const squareSize = 50 // Size of a dial square.
 const pointRadius = 20 // Radius of a point.
 const squareGap = 2 // Between squares.
@@ -54,9 +56,13 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 			setActivePoint()
 	}
 	useEventListener(active ? ['mousedown', 'touchstart'] : [], deactivatePoint, svgRef)
+	const activatePoint = index => {
+		if (!isPositionDown(currPositions[index]))
+			return setActivePoint(index)
+	}
 	const activePosition = activePoint && positions[activePoint]
 
-	// Set up handlers to implement movement.
+	// Set up a handler to implement movement.
 	const move = (pointIndex, dir) => {
 		deactivatePoint()
 		setPositions(positions => {
@@ -92,6 +98,14 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 			positions = [...positions, currPositions]
 			return positions
 		})
+	}
+
+	// Set up undo/reset handlers.
+	const undo = () => {
+		setPositions(positions => positions.length === 1 ? positions : positions.slice(0, -1))
+	}
+	const reset = () => {
+		setPositions(positions => [positions[0]])
 	}
 
 	// // Set up handlers to change the value.
@@ -131,7 +145,7 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 				{/* Points. */}
 				{currPositions.map((position, index) => <g key={index} transform={`translate(${position[0] * (squareSize + squareGap) + squareSize / 2}, ${position[1] * (squareSize + squareGap) + squareSize / 2})`}>
 					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => index === activePoint
-						? deactivatePoint() : setActivePoint(index)} />
+						? deactivatePoint() : activatePoint(index)} isDown={isPositionDown(position)} />
 
 					{/* Arrows when active. */}
 					{activePoint === index && active ? <g>
@@ -143,6 +157,16 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 				</g>)}
 			</g>
 		</Svg>
+
+		{/* Undo/reset buttons. */}
+		{active ? <div style={{ display: 'flex', flexFlow: 'row nowrap', justifyContent: 'center', gap: '1rem', }}>
+			<Fab color="primary" disabled={positions.length === 1} onClick={() => undo()}>
+				<UndoIcon />
+			</Fab>
+			<Fab color="primary" disabled={positions.length === 1} onClick={() => reset()}>
+				<ResetIcon />
+			</Fab>
+		</div> : null}
 	</>
 }
 
@@ -150,15 +174,15 @@ function isCenter(point) {
 	return point[0] === center[0] && point[1] === center[1]
 }
 
-const StyledCircle = styled('circle')(({ theme, isMain, active, isActive }) => {
+const StyledCircle = styled('circle')(({ theme, isMain, active, isActive, isDown }) => {
 	const color = theme.palette[isMain ? 'success' : 'primary'].main
 	return {
-		fill: isActive ? lighten(color, 0.4) : color,
+		fill: isDown ? darken(color, 0.6) : (isActive ? lighten(color, 0.4) : color),
 		userSelect: 'none',
-		cursor: active ? 'pointer' : undefined,
+		cursor: active && !isDown ? 'pointer' : undefined,
 		WebkitTapHighlightColor: 'transparent',
 		'&:hover': {
-			fill: active ? lighten(color, 0.2) : undefined,
+			fill: active && !isDown ? lighten(color, 0.2) : undefined,
 		},
 	}
 })
@@ -175,3 +199,7 @@ const StyledPath = styled('path')(({ theme, isMain }) => {
 		},
 	}
 })
+
+const isPositionDown = position => {
+	return position[0] === -1 || position[1] === -1 || position[0] === gridSize || position[1] === gridSize
+}

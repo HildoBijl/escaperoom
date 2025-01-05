@@ -49,7 +49,7 @@ export function Action(props) {
 		case 'solveRiddle':
 			return <Line text="Je brengt de groene stoel naar het midden">
 				{cases(state.hallRiddlesSolved, [1, 2, Infinity], [
-					<p>Je hoort een luide klik. Er moet iets gebeurd of veranderd zijn, maar wat? Na enige seconden bewegen alle stoelen, als uit zichzelf, naar een heel andere tafel. Wat krijgen we nou? Moet je nog een keer?</p>,
+					<p>Je hoort een luide klik. Er moet iets gebeurd of veranderd zijn, maar wat? Na enige seconden bewegen alle stoelen, als uit zichzelf, naar een heel andere tafel. Wat krijgen we nou? Moet je het nog een keer oplossen?</p>,
 					<p>Er is nog een luide klik hoorbaar. Wederom vliegen alle stoelen uit zichzelf naar een nieuwe plek op het grote levende speelbord. Je blijft bezig zo. Dit moet toch wel de laatste zijn?</p>,
 					<p>Er is wederom een luide klik te horen, en tot je verbazing zinkt de groene tafel met de bureaustoel in de vloer van de aula, als een grote lift. Even later komt alles weer naar boven, met het enige verschil dat je wiskundeleraar nu in de stoel zit. Dus daar is dat stuk ongebeuren!</p>,
 				])}

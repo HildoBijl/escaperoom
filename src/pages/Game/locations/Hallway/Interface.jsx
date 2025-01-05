@@ -67,7 +67,6 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		deactivatePoint()
 		setPositions(positions => {
 			let currPositions = lastOf(positions)
-			console.log(currPositions)
 			const pointPosition = currPositions[pointIndex]
 
 			// Determine where the point will end up without blocked movement.
@@ -77,15 +76,17 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 
 			// Find another point that might block movement.
 			if (state.chairsGathered) {
+				console.log(currPositions, pointPosition)
 				currPositions.forEach(position => {
 					if (horizontal) {
-						if (pointPosition[1] === position[1] && (positive ? (pointPosition[0] < position[0] && position[0] < endCoord) : (pointPosition[0] > position[0] && position[0] > endCoord)))
+						if (pointPosition[1] === position[1] && (positive ? (pointPosition[0] < position[0] && position[0] <= endCoord) : (pointPosition[0] > position[0] && position[0] >= endCoord)))
 							endCoord = position[0] + (positive ? -1 : 1)
 					} else {
-						if (pointPosition[0] === position[0] && (positive ? (pointPosition[1] < position[1] && position[1] < endCoord) : (pointPosition[1] > position[1] && position[1] > endCoord)))
+						if (pointPosition[0] === position[0] && (positive ? (pointPosition[1] < position[1] && position[1] <= endCoord) : (pointPosition[1] > position[1] && position[1] >= endCoord)))
 							endCoord = position[1] + (positive ? -1 : 1)
 					}
 				})
+				console.log(endCoord)
 			}
 
 			// Determine the new position. On no change, do not add to the history.
@@ -109,12 +110,12 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 		setPositions(positions => [positions[0]])
 	}
 
-	// // Do the grading of the outcome.
-	// const isCorrect = solution.every((solutionValue, index) => seed2[solutionValue] === value[index])
-	// useEffect(() => {
-	// 	if (isCorrect && isCurrentAction)
-	// 		submitAction({ type: 'unlockDoor', to: 'Music' })
-	// }, [isCorrect, isCurrentAction, submitAction])
+	// Do the grading of the outcome.
+	const isCorrect = isCenter(currPositions[0])
+	useEffect(() => {
+		if (isCorrect && isCurrentAction)
+			setTimeout(() => submitAction({ type: 'solveRiddle' }), 2 * theme.transitions.duration.standard)
+	}, [theme, isCorrect, isCurrentAction, submitAction])
 
 	// Render the interface.
 	return <>

@@ -6,6 +6,8 @@ import { getRandomInteger, mod, useEventListener } from 'util'
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
 
+const f = Math.sqrt(2) / 2
+
 // Set up settings for the Interface.
 const gridSize = 7
 const margin = 50 // Around the lock.
@@ -47,11 +49,11 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 
 	// On a click not on a circle, deactivate any point.
 	const deactivatePoint = (event) => {
-		if (event.target.tagName !== 'circle')
+		if (!event || event.target.tagName !== 'circle')
 			setActivePoint()
 	}
 	useEventListener(active ? ['mousedown', 'touchstart'] : [], deactivatePoint, svgRef)
-
+	const activePosition = activePoint && positions[activePoint]
 
 	// // Set up handlers to change the value.
 	// const increment = (index) => {
@@ -89,17 +91,18 @@ export function Interface({ state, submitAction, isCurrentAction }) {
 
 				{/* Points. */}
 				{positions.map((position, index) => <g key={index} transform={`translate(${position[0] * (squareSize + squareGap) + squareSize / 2}, ${position[1] * (squareSize + squareGap) + squareSize / 2})`}>
-					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => setActivePoint(index)} />
+					<StyledCircle cx={0} cy={0} r={pointRadius} active={active} isMain={index === 0} isActive={index === activePoint} onClick={() => index === activePoint
+						? deactivatePoint() : setActivePoint(index)} />
+
+					{/* Arrows when active. */}
+					{activePoint === index && active ? <g>
+						<StyledPath transform={`translate(${0} ${-squareSize / 2}) rotate(180) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => console.log('ToDo: implement moving')} />
+						<StyledPath transform={`translate(${squareSize / 2} ${0}) rotate(270) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => console.log('ToDo: implement moving')} />
+						<StyledPath transform={`translate(${0} ${squareSize / 2}) rotate(0) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => console.log('ToDo: implement moving')} />
+						<StyledPath transform={`translate(${-squareSize / 2} ${0}) rotate(90) scale(1, ${arrowScale})`} d={`M0 0 h${-pointRadius + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${pointRadius - squareRadius} ${pointRadius - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${pointRadius - squareRadius} ${-(pointRadius - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-pointRadius + squareRadius}`} isMain={index === 0} onClick={() => console.log('ToDo: implement moving')} />
+					</g> : null}
 				</g>)}
 			</g>
-
-			{/* Arrows. */}
-			{/* <g transform={`translate(${0}, ${arrowHeight}) scale(1, ${-arrowScale})`}>
-					{value.map((_, index) => <StyledPath key={index} transform={`translate(${(squareSize + squareGap) * index} 0)`} active={active} d={`M${squareSize / 2} 0 h${-squareSize / 2 + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${squareSize / 2 - squareRadius} ${squareSize / 2 - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${squareSize / 2 - squareRadius} ${-(squareSize / 2 - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-squareSize / 2 + squareRadius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => increment(index)} />)}
-				</g>
-				<g transform={`translate(${0}, ${arrowHeight + 2 * arrowGap + squareSize}) scale(1, ${arrowScale})`}>
-					{value.map((_, index) => <StyledPath key={index} transform={`translate(${(squareSize + squareGap) * index} 0)`} active={active} d={`M${squareSize / 2} 0 h${-squareSize / 2 + squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${squareRadius * (1 + f)} l${squareSize / 2 - squareRadius} ${squareSize / 2 - squareRadius} a${squareRadius} ${squareRadius} 0 0 0 ${squareRadius * 2 * f} 0 l${squareSize / 2 - squareRadius} ${-(squareSize / 2 - squareRadius)} a${squareRadius} ${squareRadius} 0 0 0 ${-squareRadius * f} ${-squareRadius * (1 + f)} h${-squareSize / 2 + squareRadius}`} style={{ cursor: active ? 'pointer' : 'default' }} onClick={() => decrement(index)} />)}
-				</g> */}
 		</Svg>
 	</>
 }
@@ -116,16 +119,20 @@ const StyledCircle = styled('circle')(({ theme, isMain, active, isActive }) => {
 		cursor: active ? 'pointer' : undefined,
 		WebkitTapHighlightColor: 'transparent',
 		'&:hover': {
-			fill: active && !isActive ? lighten(color, 0.2) : undefined,
+			fill: active ? lighten(color, 0.2) : undefined,
 		},
 	}
 })
 
-const StyledPath = styled('path')(({ theme, active }) => ({
-	fill: theme.palette.primary.main,
-	userSelect: 'none',
-	WebkitTapHighlightColor: 'transparent',
-	'&:hover': {
-		fill: active ? lighten(theme.palette.primary.main, 0.2) : undefined,
-	},
-}))
+const StyledPath = styled('path')(({ theme, isMain }) => {
+	const color = theme.palette[isMain ? 'success' : 'primary'].main
+	return {
+		fill: lighten(color, 0.4),
+		userSelect: 'none',
+		cursor: 'pointer',
+		WebkitTapHighlightColor: 'transparent',
+		'&:hover': {
+			fill: lighten(color, 0.2),
+		},
+	}
+})

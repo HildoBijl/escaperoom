@@ -3,6 +3,8 @@ import { increment } from 'firebase/firestore'
 import { getRandomInteger, getRandomPermutation } from 'util'
 import { updateDocument } from 'fb'
 
+import { isAdmin } from '../util'
+
 /* The updateState function is the game engine. It works as a reducer. It takes three parameters:
  * - location (string): where the user is. For instance "Office".
  * - state (object): the current state of the game. It has all data about the progress, like which doors have been unlocked.
@@ -40,7 +42,8 @@ export function updateState(location, state, action) {
 				case 'unlockDoor':
 					state.officeDoor = { ...state.officeDoor, unlocked: true }
 					location = 'Maths'
-					updateDocument('statistics', 'solves', { r1: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { r1: increment(1) })
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
@@ -66,12 +69,14 @@ export function updateState(location, state, action) {
 						case 'Music':
 							state.musicDoorUnlocked = true
 							location = 'Music'
-							updateDocument('statistics', 'solves', { r2a: increment(1) })
+							if (!isAdmin())
+								updateDocument('statistics', 'solves', { r2a: increment(1) })
 							break
 						case 'History':
 							state.historyDoorUnlocked = true
 							location = 'History'
-							updateDocument('statistics', 'solves', { r3a: increment(1) })
+							if (!isAdmin())
+								updateDocument('statistics', 'solves', { r3a: increment(1) })
 							break
 						default:
 							throw new Error(`Invalid action to parameter: received action type "${action.type}" in room "${location}" but could not determine to unlock the door to what. The parameter value was "${action.to}"`)
@@ -93,7 +98,8 @@ export function updateState(location, state, action) {
 				case 'unlockDoor':
 					state.artDoorUnlocked = true
 					location = 'Art'
-					updateDocument('statistics', 'solves', { r2b: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { r2b: increment(1) })
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
@@ -110,7 +116,8 @@ export function updateState(location, state, action) {
 					break
 				case 'unlockDoor':
 					state.hall1Unlocked = true
-					updateDocument('statistics', 'solves', { r2c: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { r2c: increment(1) })
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
@@ -126,7 +133,8 @@ export function updateState(location, state, action) {
 				case 'unlockDoor':
 					state.dutchDoorUnlocked = true
 					location = 'Dutch'
-					updateDocument('statistics', 'solves', { r3b: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { r3b: increment(1) })
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
@@ -148,7 +156,8 @@ export function updateState(location, state, action) {
 					break
 				case 'unlockDoor':
 					state.hall2Unlocked = true
-					updateDocument('statistics', 'solves', { r3c: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { r3c: increment(1) })
 					break
 				default:
 					throw new Error(`Invalid action type: received action type "${action.type}" but this is not a possible action in the room "${location}".`)
@@ -166,7 +175,8 @@ export function updateState(location, state, action) {
 					break
 				case 'solveRiddle':
 					state.hallRiddlesSolved = (state.hallRiddlesSolved || 0) + 1
-					updateDocument('statistics', 'solves', { [`r4${'abcdefghijklmnopqrstuvwxyz'[state.hallRiddlesSolved - 1]}`]: increment(1) })
+					if (!isAdmin())
+						updateDocument('statistics', 'solves', { [`r4${'abcdefghijklmnopqrstuvwxyz'[state.hallRiddlesSolved - 1]}`]: increment(1) })
 					break
 				case 'talk':
 					state.allDone = true

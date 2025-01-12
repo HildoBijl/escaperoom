@@ -7,7 +7,6 @@ import { Subpage } from 'components'
 
 export function Leaderboard() {
 	const leaderboard = useCollection('leaderboard', true)
-	console.log(leaderboard)
 	if (!leaderboard)
 		return <Subpage /> // Empty page.
 	return <LeaderboardWithData {...{ leaderboard }} />
@@ -25,8 +24,8 @@ function LeaderboardWithData({ leaderboard }) {
 	}, [leaderboard])
 
 	return <Subpage>
-		<p style={{ marginTop: '1rem', marginBottom: '1rem' }}>Als je de Escape Room oplost, dan kun je je naam toevoegen aan de onderstaande lijst. Je hoeft hiervoor niet per se aan de actievoorwaarden voor de prijsvraag te voldoen.</p>
-		<Box sx={{ display: 'grid', gridTemplateColumns: '3fr 3fr 1fr 2fr', gap: '3px' }}>
+		<p>Als je de Escape Room oplost, dan kun je je naam toevoegen aan de onderstaande lijst. Je hoeft hiervoor niet per se aan de actievoorwaarden voor de prijsvraag te voldoen.</p>
+		<Box sx={{ my: 2, display: 'grid', gridTemplateColumns: '3fr 3fr 1fr 2fr', gap: '3px' }}>
 			<Box sx={{ ...headStyle }}><strong>Naam</strong></Box>
 			<Box sx={{ ...headStyle }}><strong>Plaats</strong></Box>
 			<Box sx={{ ...headStyle, textAlign: 'center' }}><strong>Leeftijd</strong></Box>

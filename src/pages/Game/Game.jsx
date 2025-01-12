@@ -1,5 +1,12 @@
 import { useCallback, useEffect } from 'react'
 import Alert from '@mui/material/Alert'
+import Accordion from '@mui/material/Accordion'
+import AccordionActions from '@mui/material/AccordionActions'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
+import Typography from '@mui/material/Typography'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import Button from '@mui/material/Button'
 
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
@@ -76,21 +83,34 @@ function EndingScreen() {
 	return <>
 		<Alert severity="info" sx={{ my: 2 }}>
 			Gefeliciteerd! Je hebt de Escape Room opgelost! Je kunt nu één van twee dingen doen (of beiden).
-			<ul style={{ marginTop: 6, marginBottom: 6 }}>
-				<li>Voldoe je aan de criteria? Dan kun je je gegevens achterlaten om mee te doen voor de prijzen. Deze gegevens worden niet getoond: we gebruiken ze alleen voor de prijsuitreiking.</li>
-				<li>Voor iedereen: je kunt je naam toevoegen aan het Leaderboard. Deze gegevens zijn voor iedereen zichtbaar, maar je bent niet verplicht je volledige naam in te vullen.</li>
-			</ul>
 		</Alert>
-		<Alert severity="warning" sx={{ my: 2 }}>De formulieren voor de registratie van oplossers zijn helaas nog in ontwikkeling. Ze komen er uiterlijk 12 januari aan! Kom tegen die tijd terug om alsnog je gegevens achter te laten. Je hoeft de Escape Room niet opnieuw op te lossen (tenzij je hem reset).</Alert>
-		<WinnerRegistration />
-		<LeaderboardRegistration />
+
+		<div style={{ marginBottom: '1.5rem' }}>
+			<Accordion>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Doe mee voor de prijzen</strong></AccordionSummary>
+				<AccordionDetails>
+					<WinnerRegistration />
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Voeg je naam toe aan het leaderboard</strong></AccordionSummary>
+				<AccordionDetails>
+					<LeaderboardRegistration />
+				</AccordionDetails>
+			</Accordion>
+		</div>
 	</>
 }
 
 function WinnerRegistration() {
-	return null
+	return <>
+		<p>Laat je gegevens hier achter om mee te doen voor de prijzen. Deze gegevens worden niet gepubliceerd, we gebruiken ze alleen voor de prijsuitreiking.</p>
+	</>
 }
 
 function LeaderboardRegistration() {
-	return null
+	return <>
+		<p>Iedereen die de Escape Room oplost mag de naam aan het Leaderboard toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.</p>
+		<Alert severity="warning">Het Leaderboard is nog in ontwikkeling. Deze komt er waarschijnlijk tegen 19 januari aan. Kom tegen die tijd terug om alsnog je gegevens achter te laten. Je hoeft de Escape Room niet opnieuw op te lossen (tenzij je hem reset).</Alert>
+	</>
 }

@@ -118,7 +118,7 @@ function FormPart({ children }) {
 
 function WinnerRegistration() {
 	const [submitted, setSubmitted] = useRiddleStorage('dataSubmitted', false)
-	const [data, setData] = useState({ klas123: '', ooitMeeBijVierkant: '', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, schoolNaam: '', schoolPlaats: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
+	const [data, setData] = useState({ klas123: '', ooitMeeBijVierkant: '', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, straatEnHuisnummer: '', postcode: '', plaats: '', schoolNaam: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
 	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
 
 	// Set up checks for the input.
@@ -127,8 +127,10 @@ function WinnerRegistration() {
 		achternaam: 'Achternaam',
 		geslacht: 'Geslacht',
 		geboortedatum: 'Geboortedatum',
+		straatEnHuisnummer: 'Straat en huisnummer',
+		postcode: 'Postcode',
+		plaats: 'Plaats (stad/gemeente)',
 		schoolNaam: 'Naam school',
-		schoolPlaats: 'Plaats school',
 		klas: 'Klas',
 		email: 'Emailadres',
 		telefoon: 'Telefoonnummer',
@@ -204,10 +206,16 @@ function WinnerRegistration() {
 					<DatePicker fullWidth variant="outlined" id="geboortedatum" label="Geboortedatum" value={data.geboortedatum} onChange={value => setParam('geboortedatum', value)} slotProps={{ textField: { fullWidth: true } }} />
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth variant="outlined" id="schoolNaam" label="Naam school" value={data.schoolNaam} onChange={event => setParam('schoolNaam', event.target.value)} />
+					<TextField fullWidth variant="outlined" id="straatEnHuisnummer" label="Straat en huisnummer" value={data.straatEnHuisnummer} onChange={event => setParam('straatEnHuisnummer', event.target.value)} />
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth variant="outlined" id="schoolPlaats" label="Plaats school (stad/gemeente)" value={data.schoolPlaats} onChange={event => setParam('schoolPlaats', event.target.value)} />
+					<TextField fullWidth variant="outlined" id="postcode" label="Postcode" value={data.postcode} onChange={event => setParam('postcode', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="plaats" label="Plaats (stad/gemeente)" value={data.plaats} onChange={event => setParam('plaats', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="schoolNaam" label="Naam school" value={data.schoolNaam} onChange={event => setParam('schoolNaam', event.target.value)} />
 				</FormPart>
 				<FormPart>
 					<FormControl fullWidth>

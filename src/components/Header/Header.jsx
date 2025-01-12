@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@mui/material/styles'
 import AppBar from '@mui/material/AppBar'
+import useMediaQuery from '@mui/material/useMediaQuery'
 import Box from '@mui/material/Box'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
@@ -11,6 +13,9 @@ import { Container } from '../Container'
 const tabStyle = { outline: 'none !important', minHeight: '56px' }
 
 export function Header() {
+	const theme = useTheme()
+	const smallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+
 	// Determine the route and the corresponding tab index.
 	const route = useCurrentRoute()
 	const tabIndex = useTabIndex()
@@ -34,7 +39,7 @@ export function Header() {
 					textColor="inherit"
 					variant="fullWidth"
 				>
-					{tabs.map(tab => <Tab sx={tabStyle} key={tab.path} icon={tab.icon ? <tab.icon /> : null} label={tab.text} iconPosition="start" />)}
+					{tabs.map(tab => <Tab sx={tabStyle} key={tab.path} icon={tab.icon ? <tab.icon /> : null} label={smallScreen ? undefined : tab.text} iconPosition="start" />)}
 				</Tabs>
 			</Container>
 		</AppBar>

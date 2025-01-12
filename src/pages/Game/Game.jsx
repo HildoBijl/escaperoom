@@ -115,7 +115,7 @@ function FormPart({ children }) {
 }
 
 function WinnerRegistration() {
-	const [data, setData] = useState({ klas123: 'ja', nooitBijVierkant: 'nee', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null })
+	const [data, setData] = useState({ klas123: 'ja', nooitBijVierkant: 'nee', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, schoolNaam: '', schoolPlaats: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
 	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
 
 	const failsCriteria = <Alert severity="warning" sx={{ my: 1 }}>
@@ -154,7 +154,7 @@ function WinnerRegistration() {
 				<FormPart>
 					<FormControl fullWidth>
 						<InputLabel id="labelGeslacht">Geslacht</InputLabel>
-						<Select labelId="labelGeslacht" id="geslacht" value={data.geslacht} label="Geslacht" onChange={event => setParam('geslacht', event.target.value)}						>
+						<Select labelId="labelGeslacht" id="geslacht" value={data.geslacht} label="Geslacht" onChange={event => setParam('geslacht', event.target.value)}>
 							<MenuItem value="vrouw">Vrouw</MenuItem>
 							<MenuItem value="man">Man</MenuItem>
 							<MenuItem value="anders">Anders</MenuItem>
@@ -163,6 +163,42 @@ function WinnerRegistration() {
 				</FormPart>
 				<FormPart>
 					<DatePicker fullWidth variant="outlined" id="geboortedatum" label="Geboortedatum" value={data.geboortedatum} onChange={value => setParam('geboortedatum', value)} slotProps={{ textField: { fullWidth: true } }} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="schoolNaam" label="Naam school" value={data.schoolNaam} onChange={event => setParam('schoolNaam', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="schoolPlaats" label="Plaats school (stad/gemeente)" value={data.schoolPlaats} onChange={event => setParam('schoolPlaats', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<FormControl fullWidth>
+						<InputLabel id="labelKlas">Klas</InputLabel>
+						<Select labelId="labelKlas" id="klas" value={data.klas} label="Klas" onChange={event => setParam('klas', event.target.value)}>
+							<MenuItem value="1">1</MenuItem>
+							<MenuItem value="2">2</MenuItem>
+							<MenuItem value="3">3</MenuItem>
+							<MenuItem value="anders">Anders</MenuItem>
+						</Select>
+					</FormControl>
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="email" label="Emailadres" value={data.email} onChange={event => setParam('email', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="telefoon" label="Telefoonnummer" value={data.telefoon} onChange={event => setParam('telefoon', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<FormControl fullWidth>
+						<InputLabel id="labelVoorkeur">Voorkeur voor kamp</InputLabel>
+						<Select labelId="labelVoorkeur" id="voorkeur" value={data.voorkeur} label="Voorkeur voor kamp" onChange={event => setParam('voorkeur', event.target.value)}>
+							<MenuItem value="Bx">Kamp Bx: 21 t/m 25 juli 2025</MenuItem>
+							<MenuItem value="By">Kamp By: 11 t/m 15 augustus 2025</MenuItem>
+							<MenuItem value="geen">Geen voorkeur/Nog onbekend</MenuItem>
+						</Select>
+					</FormControl>
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om in geval van selectie rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
 				</FormPart>
 			</> : null}
 		</> : null}

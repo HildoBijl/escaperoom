@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { getFirestore } from 'firebase/firestore'
 import { collection, doc, addDoc, getDoc, getDocs, setDoc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { useDocumentData, useDocumentDataOnce, useCollection as useCollectionLive, useCollectionOnce } from 'react-firebase-hooks/firestore'
 
 import { app } from './firebase'
 
@@ -57,4 +59,35 @@ export async function deleteCollection(path) {
 	const collection = await getCollection(path)
 	const documentIds = Object.keys(collection)
 	return await Promise.all(documentIds.map(documentId => deleteDocument(path, documentId)))
+}
+
+// useCollection live-tracks a collection in the database.
+export function useCollection(path, once = false, includeId) {
+	// Get a snapshot of the collection.
+	const useCollectionLoader = once ? useCollectionOnce : useCollectionLive
+	const [snapshot, loading] = useCollectionLoader(collection(db, path))
+
+	// Turn the snapshot into an object.
+	return useMemo(() => {
+		if (loading)
+			return undefined
+		if (!snapshot)
+			return null // Error
+		return getDocuments(snapshot, includeId)
+	}, [includeId, snapshot, loading])
+}
+
+// useDocument live-tracks a document in the database.
+export function useDocument(path, id, once = false, includeId = true) {
+	const useDocumentDataLoader = once ? useDocumentDataOnce : useDocumentData
+	const [value, loading] = useDocumentDataLoader(doc(db, path, id))
+
+	// Assemble the data, depending on the loading status.
+	return useMemo(() => {
+		if (loading)
+			return undefined // Sign of loading.
+		if (value)
+			return includeId ? { id, ...value } : value
+		return null // Sign of an error.
+	}, [includeId, id, value, loading])
 }

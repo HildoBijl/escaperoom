@@ -129,7 +129,7 @@ function WinnerRegistration() {
 		geboortedatum: 'Geboortedatum',
 		straatEnHuisnummer: 'Straat en huisnummer',
 		postcode: 'Postcode',
-		plaats: 'Plaats (stad/gemeente)',
+		plaats: 'Plaats',
 		schoolNaam: 'Naam school',
 		klas: 'Klas',
 		email: 'Emailadres',

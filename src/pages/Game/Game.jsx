@@ -14,6 +14,7 @@ import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
@@ -114,13 +115,13 @@ function FormPart({ children }) {
 }
 
 function WinnerRegistration() {
-	const [data, setData] = useState({ klas123: 'unknown', nooitBijVierkant: 'unknown' })
+	const [data, setData] = useState({ klas123: 'ja', nooitBijVierkant: 'nee', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null })
 	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
 
 	const failsCriteria = <Alert severity="warning" sx={{ my: 1 }}>
 		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan het leaderboard.
 	</Alert>
-
+	console.log(data)
 	return <>
 		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
 			Als eerste kijken we of je aan de criteria voldoet om mee te mogen doen.
@@ -128,21 +129,21 @@ function WinnerRegistration() {
 		<FormControl sx={{ my: 1 }}>
 			<FormLabel id="klas123">Zit jij op dit moment (studiejaar 2024-2025) in klas 1, 2 of 3 van de middelbare school?</FormLabel>
 			<RadioGroup name="klas123" value={data.klas123} onChange={(event) => setParam('klas123', event.target.value)}>
-				<FormControlLabel value="yes" control={<Radio />} label="Ja, ik zit in klas 1, 2 of 3 van de middelbare school." />
-				<FormControlLabel value="no" control={<Radio />} label="Nee, ik zit niet in klas 1, 2 of 3 van de middelbare school." />
+				<FormControlLabel value="ja" control={<Radio />} label="Ja, ik zit in klas 1, 2 of 3 van de middelbare school." />
+				<FormControlLabel value="nee" control={<Radio />} label="Nee, ik zit niet in klas 1, 2 of 3 van de middelbare school." />
 			</RadioGroup>
 		</FormControl>
-		{data.klas123 === 'no' ? failsCriteria : null}
-		{data.klas123 === 'yes' ? <>
+		{data.klas123 === 'nee' ? failsCriteria : null}
+		{data.klas123 === 'ja' ? <>
 			<FormControl sx={{ my: 1 }}>
 				<FormLabel id="nooitBijVierkant">Ben je al eens eerder meegeweest op een zomerkamp van de stichting Vierkant voor Wiskunde?</FormLabel>
 				<RadioGroup name="nooitBijVierkant" value={data.nooitBijVierkant} onChange={(event) => setParam('nooitBijVierkant', event.target.value)}>
-					<FormControlLabel value="yes" control={<Radio />} label="Ja, ik ben al eens met een Vierkant zomerkamp meegeweest." />
-					<FormControlLabel value="no" control={<Radio />} label="Nee, ik ben nog nooit meegeweest met een Vierkant zomerkamp." />
+					<FormControlLabel value="ja" control={<Radio />} label="Ja, ik ben al eens met een Vierkant zomerkamp meegeweest." />
+					<FormControlLabel value="nee" control={<Radio />} label="Nee, ik ben nog nooit meegeweest met een Vierkant zomerkamp." />
 				</RadioGroup>
 			</FormControl>
-			{data.nooitBijVierkant === 'yes' ? failsCriteria : null}
-			{data.nooitBijVierkant === 'no' ? <>
+			{data.nooitBijVierkant === 'ja' ? failsCriteria : null}
+			{data.nooitBijVierkant === 'nee' ? <>
 				<p style={{ marginBottom: '1.5rem' }}>Je voldoet aan de criteria! Laat je gegevens achter om meegenomen te worden in de loting voor de prijzen. Deze gegevens worden niet gepubliceerd: ze zijn alleen voor de prijsuitreiking.</p>
 				<FormPart>
 					<TextField fullWidth variant="outlined" id="voornaam" label="Voornaam" value={data.voornaam} onChange={event => setParam('voornaam', event.target.value)} />
@@ -153,12 +154,15 @@ function WinnerRegistration() {
 				<FormPart>
 					<FormControl fullWidth>
 						<InputLabel id="labelGeslacht">Geslacht</InputLabel>
-						<Select labelId="labelGeslacht" id="geslacht" value={data.geslacht || ''} label="Geslacht" onChange={event => setParam('geslacht', event.target.value)}						>
+						<Select labelId="labelGeslacht" id="geslacht" value={data.geslacht} label="Geslacht" onChange={event => setParam('geslacht', event.target.value)}						>
 							<MenuItem value="vrouw">Vrouw</MenuItem>
 							<MenuItem value="man">Man</MenuItem>
 							<MenuItem value="anders">Anders</MenuItem>
 						</Select>
 					</FormControl>
+				</FormPart>
+				<FormPart>
+					<DatePicker fullWidth variant="outlined" id="geboortedatum" label="Geboortedatum" value={data.geboortedatum} onChange={value => setParam('geboortedatum', value)} slotProps={{ textField: { fullWidth: true } }} />
 				</FormPart>
 			</> : null}
 		</> : null}

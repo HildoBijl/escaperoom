@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
@@ -17,9 +18,10 @@ import Select from '@mui/material/Select'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 
 import { lastOf, useLocalStorageState } from 'util'
+import { addDocument } from 'fb'
 import { Subpage } from 'components'
 
-import { isAdmin, isTester } from './util'
+import { isAdmin, isTester, useRiddleStorage } from './util'
 import * as locations from './locations'
 import { initialHistory, localStorageKey, updateHistory, getState, getNumVisits, getNumActionVisits, getPreviousAction, getNextAction } from './engine'
 
@@ -115,7 +117,8 @@ function FormPart({ children }) {
 }
 
 function WinnerRegistration() {
-	const [data, setData] = useState({ klas123: 'ja', nooitBijVierkant: 'nee', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, schoolNaam: '', schoolPlaats: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
+	const [submitted, setSubmitted] = useRiddleStorage('dataSubmitted', false)
+	const [data, setData] = useState({ klas123: '', ooitMeeBijVierkant: '', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, schoolNaam: '', schoolPlaats: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
 	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
 
 	// Set up checks for the input.
@@ -141,6 +144,23 @@ function WinnerRegistration() {
 		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan het leaderboard.
 	</Alert>
 
+	// Define a handler to submit the data.
+	const submitData = () => {
+		if (!checksPassed)
+			return
+		addDocument('winners', { ...data, geboortedatum: data.geboortedatum.format('DD-MM-YYYY') })
+		setSubmitted(true)
+	}
+
+	// If the deadline has passed, note this.
+	if (new Date() > new Date('2025-06-14 00:00:00'))
+		return <Alert severity="warning">De deadline voor het meedoen voor de prijsuitreiking is voorbij. Je kunt helaas niet meer meedoen.</Alert>
+
+	// On a submission, show a success message.
+	if (submitted)
+		return <Alert severity="success">Je gegevens zijn succesvol ingezonden! In juni zal de loting plaatsvinden.</Alert>
+
+	// Show the form.
 	return <>
 		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
 			Als eerste kijken we of je aan de criteria voldoet om mee te mogen doen.
@@ -155,14 +175,14 @@ function WinnerRegistration() {
 		{data.klas123 === 'nee' ? failsCriteria : null}
 		{data.klas123 === 'ja' ? <>
 			<FormControl sx={{ my: 1 }}>
-				<FormLabel id="nooitBijVierkant">Ben je al eens eerder meegeweest op een zomerkamp van de stichting Vierkant voor Wiskunde?</FormLabel>
-				<RadioGroup name="nooitBijVierkant" value={data.nooitBijVierkant} onChange={(event) => setParam('nooitBijVierkant', event.target.value)}>
+				<FormLabel id="ooitMeeBijVierkant">Ben je al eens eerder meegeweest op een zomerkamp van de stichting Vierkant voor Wiskunde?</FormLabel>
+				<RadioGroup name="ooitMeeBijVierkant" value={data.ooitMeeBijVierkant} onChange={(event) => setParam('ooitMeeBijVierkant', event.target.value)}>
 					<FormControlLabel value="ja" control={<Radio />} label="Ja, ik ben al eens met een Vierkant zomerkamp meegeweest." />
 					<FormControlLabel value="nee" control={<Radio />} label="Nee, ik ben nog nooit meegeweest met een Vierkant zomerkamp." />
 				</RadioGroup>
 			</FormControl>
-			{data.nooitBijVierkant === 'ja' ? failsCriteria : null}
-			{data.nooitBijVierkant === 'nee' ? <>
+			{data.ooitMeeBijVierkant === 'ja' ? failsCriteria : null}
+			{data.ooitMeeBijVierkant === 'nee' ? <>
 				<p style={{ marginBottom: '1.5rem' }}>Je voldoet aan de criteria! Laat je gegevens achter om meegenomen te worden in de loting voor de prijzen. Deze gegevens worden niet gepubliceerd: ze zijn alleen voor de prijsuitreiking.</p>
 				<FormPart>
 					<TextField fullWidth variant="outlined" id="voornaam" label="Voornaam" value={data.voornaam} onChange={event => setParam('voornaam', event.target.value)} />
@@ -220,6 +240,7 @@ function WinnerRegistration() {
 					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om voor ons in geval van winnen rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
 				</FormPart>
 				{checksPassed ? null : <Alert severity="warning" sx={{ my: 2 }}>Je hebt nog niet alles ingevuld. {missingFields.length === 1 ? <>Het veld {missingFieldsString} is nog leeg.</> : <>De velden {missingFieldsString} zijn nog leeg.</>}</Alert>}
+				<Button variant="contained" disabled={!checksPassed} onClick={submitData}>Gegevens insturen</Button>
 			</> : null}
 		</> : null}
 	</>

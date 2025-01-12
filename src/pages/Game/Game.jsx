@@ -245,7 +245,7 @@ function WinnerRegistration() {
 					</FormControl>
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om voor ons in geval van winnen rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
+					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om in geval van winnen rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
 				</FormPart>
 				{checksPassed ? null : <Alert severity="warning" sx={{ my: 2 }}>Je hebt nog niet alles ingevuld. {missingFields.length === 1 ? <>Het veld {missingFieldsString} is nog leeg.</> : <>De velden {missingFieldsString} zijn nog leeg.</>}</Alert>}
 				<Button variant="contained" disabled={!checksPassed} onClick={submitData}>Gegevens insturen</Button>
@@ -255,8 +255,57 @@ function WinnerRegistration() {
 }
 
 function LeaderboardRegistration() {
+	const [submitted, setSubmitted] = useRiddleStorage('leaderboardSubmitted', false)
+	const [data, setData] = useState({ naam: '', plaats: '', leeftijd: '' })
+	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
+
+	// Set up checks for the input.
+	const checks = {
+		naam: 'Voornaam',
+		plaats: 'Plaats',
+		leeftijd: 'leeftijd',
+	}
+	const missingFields = Object.keys(checks).filter(key => !data[key])
+	const missingFieldsLabels = missingFields.map(key => checks[key])
+	const missingFieldsString = missingFields.length === 1 ? missingFieldsLabels[0] : missingFieldsLabels.slice(0, -1).join(', ') + ' en ' + missingFieldsLabels[missingFields.length - 1]
+	const checksPassed = missingFields.length === 0
+
+	// Define a handler to submit the data.
+	const submitData = () => {
+		if (!checksPassed)
+			return
+		addDocument('leaderboard', { ...data, date: new Date() })
+		setSubmitted(true)
+	}
+
+	// On a submission, show a success message.
+	if (submitted)
+		return <Alert severity="success">Je bent toegevoegd aan het leaderboard!</Alert>
+
+	// Show the form.
+	const min = 5
+	const max = 80
 	return <>
-		<p>Iedereen die de Escape Room oplost mag de naam aan het Leaderboard toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.</p>
-		<Alert severity="warning">Het Leaderboard is nog in ontwikkeling. Deze komt er waarschijnlijk tegen 19 januari aan. Kom tegen die tijd terug om alsnog je gegevens achter te laten. Je hoeft de Escape Room niet opnieuw op te lossen (tenzij je hem reset).</Alert>
+		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
+			Iedereen die de Escape Room oplost mag de naam aan het Leaderboard toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.
+		</p>
+		<FormPart>
+			<TextField fullWidth variant="outlined" id="naam" label="Voornaam" value={data.naam} onChange={event => setParam('naam', event.target.value)} />
+		</FormPart>
+		<FormPart>
+			<TextField fullWidth variant="outlined" id="plaats" label="Plaats (stad/gemeente)" value={data.plaats} onChange={event => setParam('plaats', event.target.value)} />
+		</FormPart>
+		<FormPart>
+			<FormControl fullWidth>
+				<InputLabel id="labelLeeftijd">Leeftijd</InputLabel>
+				<Select labelId="labelLeeftijd" id="leeftijd" value={data.leeftijd} label="Leeftijd" onChange={event => setParam('leeftijd', event.target.value)}>
+					<MenuItem value={min}>{min} (en onder)</MenuItem>
+					{new Array(max - min - 1).fill(0).map((_, index) => <MenuItem key={index + min + 1} value={index + min + 1}>{index + min + 1}</MenuItem>)}
+					<MenuItem value={max}>{max} (en boven)</MenuItem>
+				</Select>
+			</FormControl>
+		</FormPart>
+		{checksPassed ? null : <Alert severity="warning" sx={{ my: 2 }}>Je hebt nog niet alles ingevuld. {missingFields.length === 1 ? <>Het veld {missingFieldsString} is nog leeg.</> : <>De velden {missingFieldsString} zijn nog leeg.</>}</Alert>}
+		<Button variant="contained" disabled={!checksPassed} onClick={submitData}>Gegevens insturen</Button>
 	</>
 }

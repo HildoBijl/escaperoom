@@ -118,10 +118,29 @@ function WinnerRegistration() {
 	const [data, setData] = useState({ klas123: 'ja', nooitBijVierkant: 'nee', voornaam: '', achternaam: '', geslacht: '', geboortedatum: null, schoolNaam: '', schoolPlaats: '', klas: '', email: '', telefoon: '', voorkeur: '', opmerkingen: '' })
 	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
 
+	// Set up checks for the input.
+	const checks = {
+		voornaam: 'Voornaam',
+		achternaam: 'Achternaam',
+		geslacht: 'Geslacht',
+		geboortedatum: 'Geboortedatum',
+		schoolNaam: 'Naam school',
+		schoolPlaats: 'Plaats school',
+		klas: 'Klas',
+		email: 'Emailadres',
+		telefoon: 'Telefoonnummer',
+		voorkeur: 'Voorkeur voor kamp',
+	}
+	const missingFields = Object.keys(checks).filter(key => !data[key])
+	const missingFieldsLabels = missingFields.map(key => checks[key])
+	const missingFieldsString = missingFields.length === 1 ? missingFieldsLabels[0] : missingFieldsLabels.slice(0, -1).join(', ') + ' en ' + missingFieldsLabels[missingFields.length - 1]
+	const checksPassed = missingFields.length === 0
+
+	// Define a message to show when the criteria aren't met.
 	const failsCriteria = <Alert severity="warning" sx={{ my: 1 }}>
 		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan het leaderboard.
 	</Alert>
-	console.log(data)
+
 	return <>
 		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
 			Als eerste kijken we of je aan de criteria voldoet om mee te mogen doen.
@@ -182,10 +201,10 @@ function WinnerRegistration() {
 					</FormControl>
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth variant="outlined" id="email" label="Emailadres" value={data.email} onChange={event => setParam('email', event.target.value)} />
+					<TextField fullWidth variant="outlined" id="email" label="Emailadres (om bij winst contact op te nemen)" value={data.email} onChange={event => setParam('email', event.target.value)} />
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth variant="outlined" id="telefoon" label="Telefoonnummer" value={data.telefoon} onChange={event => setParam('telefoon', event.target.value)} />
+					<TextField fullWidth variant="outlined" id="telefoon" label="Telefoonnummer (als back-up)" value={data.telefoon} onChange={event => setParam('telefoon', event.target.value)} />
 				</FormPart>
 				<FormPart>
 					<FormControl fullWidth>
@@ -198,8 +217,9 @@ function WinnerRegistration() {
 					</FormControl>
 				</FormPart>
 				<FormPart>
-					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om in geval van selectie rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
+					<TextField fullWidth multiline variant="outlined" id="opmerkingen" label="Opmerkingen (om voor ons in geval van winnen rekening mee te houden)" value={data.opmerkingen} onChange={event => setParam('opmerkingen', event.target.value)} />
 				</FormPart>
+				{checksPassed ? null : <Alert severity="warning" sx={{ my: 2 }}>Je hebt nog niet alles ingevuld. {missingFields.length === 1 ? <>Het veld {missingFieldsString} is nog leeg.</> : <>De velden {missingFieldsString} zijn nog leeg.</>}</Alert>}
 			</> : null}
 		</> : null}
 	</>

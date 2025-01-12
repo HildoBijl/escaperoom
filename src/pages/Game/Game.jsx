@@ -1,12 +1,19 @@
-import { useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import Box from '@mui/material/Box'
 import Alert from '@mui/material/Alert'
 import Accordion from '@mui/material/Accordion'
-import AccordionActions from '@mui/material/AccordionActions'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
-import Typography from '@mui/material/Typography'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import Button from '@mui/material/Button'
+import Radio from '@mui/material/Radio'
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormControl from '@mui/material/FormControl'
+import FormLabel from '@mui/material/FormLabel'
+import TextField from '@mui/material/TextField'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 
 import { lastOf, useLocalStorageState } from 'util'
 import { Subpage } from 'components'
@@ -102,9 +109,59 @@ function EndingScreen() {
 	</>
 }
 
+function FormPart({ children }) {
+	return <Box sx={{ my: 2 }}>{children}</Box>
+}
+
 function WinnerRegistration() {
+	const [data, setData] = useState({ klas123: 'unknown', nooitBijVierkant: 'unknown' })
+	const setParam = (key, value) => setData(data => ({ ...data, [key]: value }))
+
+	const failsCriteria = <Alert severity="warning" sx={{ my: 1 }}>
+		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan het leaderboard.
+	</Alert>
+
 	return <>
-		<p>Laat je gegevens hier achter om mee te doen voor de prijzen. Deze gegevens worden niet gepubliceerd, we gebruiken ze alleen voor de prijsuitreiking.</p>
+		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
+			Als eerste kijken we of je aan de criteria voldoet om mee te mogen doen.
+		</p>
+		<FormControl sx={{ my: 1 }}>
+			<FormLabel id="klas123">Zit jij op dit moment (studiejaar 2024-2025) in klas 1, 2 of 3 van de middelbare school?</FormLabel>
+			<RadioGroup name="klas123" value={data.klas123} onChange={(event) => setParam('klas123', event.target.value)}>
+				<FormControlLabel value="yes" control={<Radio />} label="Ja, ik zit in klas 1, 2 of 3 van de middelbare school." />
+				<FormControlLabel value="no" control={<Radio />} label="Nee, ik zit niet in klas 1, 2 of 3 van de middelbare school." />
+			</RadioGroup>
+		</FormControl>
+		{data.klas123 === 'no' ? failsCriteria : null}
+		{data.klas123 === 'yes' ? <>
+			<FormControl sx={{ my: 1 }}>
+				<FormLabel id="nooitBijVierkant">Ben je al eens eerder meegeweest op een zomerkamp van de stichting Vierkant voor Wiskunde?</FormLabel>
+				<RadioGroup name="nooitBijVierkant" value={data.nooitBijVierkant} onChange={(event) => setParam('nooitBijVierkant', event.target.value)}>
+					<FormControlLabel value="yes" control={<Radio />} label="Ja, ik ben al eens met een Vierkant zomerkamp meegeweest." />
+					<FormControlLabel value="no" control={<Radio />} label="Nee, ik ben nog nooit meegeweest met een Vierkant zomerkamp." />
+				</RadioGroup>
+			</FormControl>
+			{data.nooitBijVierkant === 'yes' ? failsCriteria : null}
+			{data.nooitBijVierkant === 'no' ? <>
+				<p style={{ marginBottom: '1.5rem' }}>Je voldoet aan de criteria! Laat je gegevens achter om meegenomen te worden in de loting voor de prijzen. Deze gegevens worden niet gepubliceerd: ze zijn alleen voor de prijsuitreiking.</p>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="voornaam" label="Voornaam" value={data.voornaam} onChange={event => setParam('voornaam', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<TextField fullWidth variant="outlined" id="achternaam" label="Achternaam" value={data.achternaam} onChange={event => setParam('achternaam', event.target.value)} />
+				</FormPart>
+				<FormPart>
+					<FormControl fullWidth>
+						<InputLabel id="labelGeslacht">Geslacht</InputLabel>
+						<Select labelId="labelGeslacht" id="geslacht" value={data.geslacht || ''} label="Geslacht" onChange={event => setParam('geslacht', event.target.value)}						>
+							<MenuItem value="vrouw">Vrouw</MenuItem>
+							<MenuItem value="man">Man</MenuItem>
+							<MenuItem value="anders">Anders</MenuItem>
+						</Select>
+					</FormControl>
+				</FormPart>
+			</> : null}
+		</> : null}
 	</>
 }
 

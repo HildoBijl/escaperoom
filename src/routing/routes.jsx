@@ -1,5 +1,5 @@
 import { Page } from 'components'
-import { ErrorPage, Home, About, Game } from 'pages'
+import { ErrorPage, Home, About, Game, Leaderboard } from 'pages'
 
 export const routes = [
 	{
@@ -21,6 +21,11 @@ export const routes = [
 				path: '/info',
 				element: <About />,
 				tabIndex: 2,
+			},
+			{
+				path: '/leaderboard',
+				element: <Leaderboard />,
+				tabIndex: 3,
 			},
 			{
 				path: '*',

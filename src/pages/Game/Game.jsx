@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
@@ -103,7 +104,7 @@ function EndingScreen() {
 				</AccordionDetails>
 			</Accordion>
 			<Accordion>
-				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Voeg je naam toe aan het leaderboard</strong></AccordionSummary>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Voeg je naam toe aan de lijst van oplossers</strong></AccordionSummary>
 				<AccordionDetails>
 					<LeaderboardRegistration />
 				</AccordionDetails>
@@ -143,7 +144,7 @@ function WinnerRegistration() {
 
 	// Define a message to show when the criteria aren't met.
 	const failsCriteria = <Alert severity="warning" sx={{ my: 1 }}>
-		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan het leaderboard.
+		Helaas, je voldoet niet aan de criteria om mee te doen voor de prijzen. Je kunt eventueel wel je naam toevoegen aan de <Link to="/leaderboard">lijst van oplossers</Link>.
 	</Alert>
 
 	// Define a handler to submit the data.
@@ -280,14 +281,14 @@ function LeaderboardRegistration() {
 
 	// On a submission, show a success message.
 	if (submitted)
-		return <Alert severity="success">Je bent toegevoegd aan het leaderboard!</Alert>
+		return <Alert severity="success">Je bent toegevoegd aan de <Link to="/leaderboard">lijst van oplossers</Link>!</Alert>
 
 	// Show the form.
 	const min = 5
 	const max = 80
 	return <>
 		<p style={{ marginTop: '-8px', marginBottom: '12px' }}>
-			Iedereen die de Escape Room oplost mag de naam aan het Leaderboard toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.
+			Iedereen die de Escape Room oplost mag de naam aan de <Link to="/leaderboard">lijst van oplossers</Link> toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.
 		</p>
 		<FormPart>
 			<TextField fullWidth variant="outlined" id="naam" label="Voornaam" value={data.naam} onChange={event => setParam('naam', event.target.value)} />

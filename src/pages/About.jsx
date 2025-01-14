@@ -50,5 +50,6 @@ export function About() {
 			<li onClick={() => adminHandler()}>Programmering: Hildo Bijl</li>
 		</ul>
 		<p>Afbeeldingen zijn gegenereerd via <Link to="https://deepai.org/">DeepAI</Link>.</p>
+		<p>In geval van bugs kun je deze melden via <a href="mailto:info@hildobijl.com">info@hildobijl.com</a>.</p>
 	</Subpage>
 }

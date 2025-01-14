@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme, darken, lighten } from '@mui/material/styles'
 
-import { getFactorization, useRefWithEventListeners } from 'util'
+import { getFactorization, useRefWithEventListeners, lastOf } from 'util'
 
 import { useRiddleStorage } from '../../util'
 import { Svg } from '../../components'
@@ -100,6 +100,11 @@ function hasTwoPrimeFactors(num) {
 	return getNumPrimeFactors(num) === 2
 }
 
+function isNthPowerOfPrime(num, n) {
+	const factors = getFactorization(num)
+	return factors.slice(0, -1).every(value => value === 0) && lastOf(factors) === n
+}
+
 function areNumbersCorrect(numbers, offset) {
-	return numbers.every((activated, index) => activated === hasTwoPrimeFactors(index + offset))
+	return numbers.every((activated, index) => activated === ((hasTwoPrimeFactors(index + offset) && !isNthPowerOfPrime(index+offset, 2)) || isNthPowerOfPrime(index + offset, 3)))
 }

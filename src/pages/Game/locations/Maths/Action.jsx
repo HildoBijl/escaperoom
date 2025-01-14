@@ -62,7 +62,7 @@ export function Action(props) {
 					</Line>
 				case 'History':
 					return <Line text="Je loopt naar de deur naar het geschiedenislokaal">
-						{cases(numActionVisits, [0, 2, Infinity], [
+						{cases(numActionVisits, [0, 1, 2, 3, 4, Infinity], [
 							<>
 								<p>Je kan je niet herinneren dat iemand deze tussendeur ooit gebruikt heeft. Maar is hij open? Je probeert de deurklink. Helaas, hij zit op slot.</p>
 								<Image src={MathsDoor1} />
@@ -70,6 +70,9 @@ export function Action(props) {
 							</>,
 							<p>De deur is nog steeds op slot. Je moet blijkbaar de juiste getallen activeren. Maar welke zijn de juiste? Misschien is er in het lokaal meer over te vinden.</p>,
 							<p>Het patroon van getallen zwemt inmiddels voor je ogen. In gedachten delen de getallen zich voor je op. Maar welke getallen kunnen slechts op één manier opgesplitst worden? Je probeert wat uit, vooral bij de kleine getallen, hopend op een reactie van het apparaat.</p>,
+							<p>Je kijkt weer naar het rooster van getallen. Er staat je iets bij van priemfactoren. Kun je de priemfactoren van een getal vinden? En wat moet ervoor gelden?</p>,
+							<p>Je duikt weer het getalrooster in. Deze keer vraag je je af hoe het werkt met kwadraten en driemachten van priemgetallen. Werkt het daar hetzelfde? Of toch net anders? Hoe zit dat met 2, 4 en 8? Of 3, 9 en 27?</p>,
+							<p>Je blijft maar proberen getallen aan te vinken in het getallenrooster. Uiteindelijk moet er toch iets gebeuren?</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface1 {...props} /> : null}
 					</Line>

@@ -47,7 +47,7 @@ export function Action(props) {
 					</Line>
 				case 'Dutch':
 					return <Line text="Je bekijkt de deur naar het taalkundelokaal">
-						{cases(numActionVisits, [0, 2, 3, Infinity], [
+						{cases(numActionVisits, [0, 1, 2, 3, 4, 5, Infinity], [
 							<>
 								<p>Net als alle andere deuren heeft de deur naar het taalkundelokaal een klein elektronisch kastje.</p>
 								<Image src={HistoryDoor} />
@@ -55,7 +55,10 @@ export function Action(props) {
 							</>,
 							<p>De hyrogliefen staan nog steeds netjes in het patroon. Ook staan de plussen en de is-tekens mooi afgewisseld tussen de lege velden. Zijn dit sommen om op te lossen?</p>,
 							<p>Je vraagt je nog steeds af wat de hyrogliefen precies inhouden. Misschien moet je toch wat oud-Egyptische wiskunde leren. Is er niet ergens een voorbeeld van wat het allemaal zou kunnen betekenen?</p>,
-							<p>De rode lampjes op het scherm staren je nog steeds aan. Er is blijkbaar nog meer te doen.</p>,
+							<p>Na goed rondgekeken te hebben, kun je eindelijk een beetje Egyptische wiskunde lezen. Nu moet je nog de juiste code vinden. Hoe zou dat makkelijk kunnen? Kun je de breuken ook anders opschrijven?</p>,
+							<p>Je blijft naar de Egyptische breuken staren. De Egyptenaren hadden slechts één notatie voor hun breuken. Je weet dat wij meerdere notaties hebben voor breuken. Je kunt ze als breuk en ook als kommagetal schrijven. Kan dat helpen?</p>,
+							<p>Je hebt inmiddels op een rijtje gezet welke kommagetallen je tot je beschikking hebt. Welke kun je samenvoegen tot je op het juiste getal (niet erover en niet eronder) uitkomt?</p>,
+							<p>De rode lampjes op het scherm staren je nog steeds aan. Er is blijkbaar nog meer te doen. Je blijft verschillende breukencombinaties uitproberen.</p>,
 						])}
 						{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 					</Line>

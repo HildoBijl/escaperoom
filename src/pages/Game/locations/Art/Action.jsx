@@ -44,14 +44,16 @@ export function Action(props) {
 
 		case 'checkBox':
 			return <Line text="Je bekijkt het elektronische kastje">
-				{cases(numActionVisits, [0, 2, 3, Infinity], [
+				{cases(numActionVisits, [0, 1, 2, 3, 4, Infinity], [
 					<>
 						<p>Het kleine kastje is weinig meer dan een simpele touchscreen. Verschillende ingewikkelde geometrische figuren dansen erop rond.</p>
 						<Image src={ArtInterface} />
 						<p>Zodra je het touchscreen aanraakt, komen alle dansende figuren samen in een groot vierkant. Blijkbaar moet je iets ermee doen.</p>
 					</>,
-					<p>De figuren op het touchscreen staan er nog onveranderd bij.</p>,
-					<p>Was er maar ergens een sleutel om dit kastje te ontgrendelen. En wat betekenen die drie lampjes bovenin het scherm? Heb je drie sleutels nodig?</p>,
+					<p>De figuren op het touchscreen staan er nog onveranderd bij. Was er maar ergens een sleutel om dit kastje te ontgrendelen.</p>,
+					<p>Je kijkt wederom naar de figuren. Wat betekenen die drie lampjes bovenin het scherm? Heb je drie sleutels nodig?</p>,
+					<p>Inmiddels ben je erachter dat er meerdere sleutels nodig zijn. Maar waar kun je die vinden? Die sneaky wiskundedocent van je zit hier vast achter. Had hij maar ergens een hint achtergelaten...</p>,
+					<p>Na twee sleutels gevonden te hebben, ben je in de war over de derde. Misschien heeft iemand die ergens getekend ofzo?</p>,
 					<p>Het elektronische kastje heeft nog steeds rode lampjes. Je lijkt nog niet klaar te zijn.</p>,
 				])}
 				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}

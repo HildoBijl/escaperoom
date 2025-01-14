@@ -45,15 +45,19 @@ export function Action(props) {
 
 		case 'checkBox':
 			return <Line text="Je bekijkt het elektronische kastje">
-				{cases(numActionVisits, [0, 2, 3, Infinity], [
+				{cases(numActionVisits, [0, 1, 2, 3, 4, 5, 6, Infinity], [
 					<>
 						<p>Je opent het kleine kastje met de kabels die eruit lopen.</p>
 						<Image src={DutchInterface} />
 						<p>Deze keer zit er geen fancy touchscreen in, maar slechts een klein schermpje met vier vreemde tekens. Boven en onder het display staan knopjes. Je bekijkt de vreemde tekens op het scherm. Heb je die al ergens anders gezien?</p>
 					</>,
+					<p>Je kijkt nog eens naar de vreemde tekens op het scherm. Heb je die tekens al niet ergens anders gezien?</p>,
 					<p>Je vraagt je af wat de vreemde figuren betekenen. Misschien kun je het op de een of andere manier ontcijferen?</p>,
-					<p>Inmiddels heb je een aardig idee van wat de vreemde figuren betekenen. Maar hoe weet je wat de juiste code is? Door welke cijfers moet een getal deelbaar zijn? En hoeveel keer kun je ze dan door die getallen delen?</p>,
-					<p>Je probeert wanhopig de symbolen te veranderen naar een nieuwe combinatie, maar er gebeurt nog steeds weinig.</p>,
+					<p>Inmiddels heb je een aardig idee van wat de vreemde figuren betekenen en heb je de geheime boodschap ontcijferd. Maar waarom is de vraag zo dringend? En moet voor een dringende vraag dat uitroepteken niet na het vraagteken?!</p>,
+					<p>Inmiddels ben je erachter wat de vraag precies is. Maar hoe werkt dat met die nullen? Door welke cijfers moet een getal deelbaar zijn om op een nul te eindigen? En hoeveel keer kun je het betreffende getal dan door die factoren delen?</p>,
+					<p>Langzaam ben je erachter dat de factor 5 het belangrijkste is. Hoe vaak ben je die tot en met de 100 tegengekomen?</p>,
+					<p>Nog steeds krijg je niet de juiste code. Het begint je inmiddels tot hier te komen. Tot je bedenkt, heeft 25 niet twee factoren vijf? En hoe zit dat met vijftig?</p>,
+					<p>Je blijft wanhopig proberen de symbolen te veranderen naar een nieuwe combinatie, maar er gebeurt nog steeds weinig.</p>,
 				])}
 				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}
 			</Line>

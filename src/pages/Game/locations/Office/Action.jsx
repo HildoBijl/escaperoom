@@ -45,9 +45,13 @@ export function Action(props) {
 			</Line>
 		case 'checkBox':
 			return <Line text="Je bekijkt het scherm naast de deur">
-				{cases(numActionVisits, [0, 2, Infinity], [
+				{cases(numActionVisits, [0, 1, 2, 3, 4, 5, Infinity], [
 					<p>Je ziet op het scherm een vierkant patroon van vakjes. Elk van de vakjes heeft een getal erin, als een soort code. Toch lijkt de code nog niet correct te zijn.</p>,
-					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar.</p>,
+					<p>Hetzelfde patroon van getallen is nog steeds zichtbaar. Maar wat betekent dat getal in het midden?</p>,
+					<p>Je weet dat je wiskundedocent een vreselijk geheugen heeft. Dit zijn echt te veel cijfers om te onthouden. Er moet toch iets van een code of hint hierover te vinden zijn?</p>,
+					<p>Inmiddels krijg je een aardig idee van wat de bedoeling is. Maar hoe krijg je het voor elkaar? Je aandacht gaat uit naar de hoekgetallen, die in twee blokken staan. Kun je daar wat mee?</p>,
+					<p>Je blijft naar de cijfers kijken. De getallen beginnen voor je ogen te duizelen en je begint ze maar op te tellen. Wat is de som van alle twaalf getallen? En wat is de som van de vier blokken? Moet dat niet hetzelfde zijn? Of wacht ... je hebt de hoeken dan dubbel geteld. Wat betekent dat?</p>,
+					<p>Je blijft klooien met de getallen. Inmiddels weet je wat de som van de hoeken moet zijn. Maar welke getallen moeten er dan staan? Je probeert een combinatie, maar het lijkt niet te werken. Misschien dan toch een andere combinatie proberen?</p>,
 					<p>De getallen zijn er nog steeds. Ze lijken je voor de gek te houden. Zul je ooit hun betekenis snappen?</p>,
 				])}
 				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}

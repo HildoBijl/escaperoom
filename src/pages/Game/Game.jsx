@@ -264,7 +264,7 @@ function LeaderboardRegistration() {
 	const checks = {
 		naam: 'Voornaam',
 		plaats: 'Plaats',
-		leeftijd: 'leeftijd',
+		leeftijd: 'Leeftijd',
 	}
 	const missingFields = Object.keys(checks).filter(key => !data[key])
 	const missingFieldsLabels = missingFields.map(key => checks[key])

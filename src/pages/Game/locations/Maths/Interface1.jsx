@@ -106,5 +106,5 @@ function isNthPowerOfPrime(num, n) {
 }
 
 function areNumbersCorrect(numbers, offset) {
-	return numbers.every((activated, index) => activated === ((hasTwoPrimeFactors(index + offset) && !isNthPowerOfPrime(index+offset, 2)) || isNthPowerOfPrime(index + offset, 3)))
+	return numbers.every((activated, index) => activated === (hasTwoPrimeFactors(index + offset) || isNthPowerOfPrime(index + offset, 3)))
 }

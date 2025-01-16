@@ -29,7 +29,7 @@ export function Action(props) {
 						<Image src={FractionHint2} />
 						<p>Maar modern is ook relatief. Dit whiteboard ziet er uit als dat het betere jaren heeft gehad. Aan de achtergebleven krabbels te zien was er zojuist een les over Egyptische hierogliefen. Helaas heb jij die module nog niet gehad. Je hebt geen idee waar het over gaat.</p>
 					</>,
-					<p>De hierogliefen staan nog steeds op het whiteboard. En nog steeds heb je geen idee hoe oud Egyptisch werkt.</p>,
+					<p>De hierogliefen staan nog steeds op het whiteboard. En nog steeds heb je geen idee hoe oud-Egyptisch werkt.</p>,
 					<p>Je bekijkt het schoolbord nog eens. Tot je verbazing merk je tussen de onbekende hierogliefen wel een plus en een is-teken op. Hoe kan dat? Deden de oude Egyptenaren ook aan wiskunde? Tja, het zal wel. Je wiskundedocent zegt immers de hele tijd dat wiskunde overal is.</p>,
 					<p>De oud-Egyptische sommen staren je nog steeds aan. Langzaam begin je het gevoel te krijgen dat je ze ook al ergens eerder gezien hebt. Of is dat simpelweg een deja-vu-gevoel dat je hebt omdat je te lang naar de sommen gekeken hebt?</p>,
 				])}

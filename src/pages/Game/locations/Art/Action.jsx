@@ -51,9 +51,9 @@ export function Action(props) {
 						<p>Zodra je het touchscreen aanraakt, komen alle dansende figuren samen in een groot vierkant. Blijkbaar moet je iets ermee doen.</p>
 					</>,
 					<p>De figuren op het touchscreen staan er nog onveranderd bij. Was er maar ergens een sleutel om dit kastje te ontgrendelen.</p>,
-					<p>Je kijkt wederom naar de figuren. Wat betekenen die drie lampjes bovenin het scherm? Heb je drie sleutels nodig?</p>,
-					<p>Inmiddels ben je erachter dat er meerdere sleutels nodig zijn. Maar waar kun je die vinden? Die sneaky wiskundedocent van je zit hier vast achter. Had hij maar ergens een hint achtergelaten...</p>,
-					<p>Na twee sleutels gevonden te hebben, ben je in de war over de derde. Misschien heeft iemand die ergens getekend ofzo?</p>,
+					<p>Je kijkt wederom naar de figuren. Wat betekenen die drie lampjes bovenin het scherm? Heb je drie sleutels nodig? Of andere vormen?</p>,
+					<p>Inmiddels ben je erachter dat er meerdere vormen nodig zijn. Maar waar kun je die vinden? Die sneaky wiskundedocent van je zit hier vast achter. Had hij maar ergens een hint achtergelaten... Misschien in zijn kantoor?</p>,
+					<p>Na twee sleutels gevonden te hebben, ben je in de war over de derde. Misschien heeft iemand die ergens getekend ofzo? Je besluit nog eens goed rond te kijken naar alle plekken waar je geweest bent.</p>,
 					<p>Het elektronische kastje heeft nog steeds rode lampjes. Je lijkt nog niet klaar te zijn.</p>,
 				])}
 				{isCurrentAction || nextAction?.type === 'unlockDoor' ? <Interface {...props} /> : null}

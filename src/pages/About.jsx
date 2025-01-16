@@ -32,7 +32,7 @@ export function About() {
 		<p>Zin om mee te gaan op kamp? Om kennis te maken met onze kampen geven we twintig gratis kampplaatsen ter waarde van €355 weg. Doe mee aan deze Escape Room en loot mee voor één van de twintig gratis plaatsen! Kun jij alle raadsels oplossen en uit de Escape Room ontsnappen? Dan is een Vierkant-zomerkamp zeker wat voor jou!</p>
 		<p>Meer informatie over de zomerkampen vind je op de website van Vierkant voor Wiskunde:<br /><Link to="https://www.vierkantvoorwiskunde.nl/kampen/">https://www.vierkantvoorwiskunde.nl/kampen/</Link></p>
 		<h2 onClick={() => testerHandler()}>Actievoorwaarden en tijdslijn</h2>
-		<p>De Escape Room is gericht op scholieren uit de onderbouw van de middelbare school. Voor hen zijn er in 2025 twee kampen (kampen Bx en By) met elk maximaal zestig plaatsen. Er worden in totaal twintig gratis plaatsen verloot onder de oplossers van de Escape Room.</p>
+		<p>De Escape Room is gericht op enthousiaste scholieren uit de onderbouw van de middelbare school. Voor hen zijn er in 2025 twee kampen (kampen Bx en By) met elk maximaal zestig plaatsen. Er worden in totaal twintig gratis plaatsen verloot onder de oplossers van de Escape Room.</p>
 		<p>Om in aanmerking te komen voor één van de twintig gratis plaatsen, moet je voldoen aan de volgende voorwaarden.</p>
 		<ul>
 			<li>Je zit in schooljaar 2024/2025 in klas 1, 2 of 3 van het voortgezet onderwijs.</li>

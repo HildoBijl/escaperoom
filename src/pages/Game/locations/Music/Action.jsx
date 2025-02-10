@@ -28,7 +28,7 @@ export function Action(props) {
 						<p>Het schoolbord is volgeklad met allemaal muziektermen. Blijkbaar ging het over de basistoonladders: de bekende Do Re Mi. Je hebt dat ooit ook eens geleerd ergens.</p>
 						<Image src={MusicHint} />
 					</>,
-					<p>Er is niets verandert met het schoolbord. Dezelfde vreemde scribbles staan er nog steeds op.</p>,
+					<p>Er is niets veranderd met het schoolbord. Dezelfde vreemde scribbles staan er nog steeds op.</p>,
 					<p>De kleine toevoeging rechtsonder op het schoolbord valt je op. Iets met ongelijkheid? Alle letters moeten ongelijk aan elkaar zijn? Wat zou het betekenen?</p>,
 					<>
 						<p>De chaos op het schoolbord begint je te frustreren. Je pakt de wisser en veegt het bord grondig schoon. Zo, allemaal leeg. Dit is veel netter.</p>

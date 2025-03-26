@@ -93,7 +93,7 @@ function ChoiceSelection(props) {
 function EndingScreen() {
 	return <>
 		<Alert severity="info" sx={{ my: 2 }}>
-			Gefeliciteerd! Je hebt de Escape Room opgelost! Je kunt nu één van twee dingen doen (of beiden).
+			Gefeliciteerd! Je hebt de Escape Room opgelost! Je kunt nu één of meerdere van de volgende dingen doen.
 		</Alert>
 
 		<div style={{ marginBottom: '1.5rem' }}>

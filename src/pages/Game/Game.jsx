@@ -98,9 +98,16 @@ function EndingScreen() {
 
 		<div style={{ marginBottom: '1.5rem' }}>
 			<Accordion>
-				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Doe mee voor de prijzen</strong></AccordionSummary>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Doe mee voor de hoofdprijs: één van de twintig gratis plekken op een zomerkamp</strong></AccordionSummary>
 				<AccordionDetails>
 					<WinnerRegistration />
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary expandIcon={<ExpandMoreIcon />}><strong>Claim de extra prijs: tickets voor wiskundefestival Mathfest</strong></AccordionSummary>
+				<AccordionDetails>
+					<p>Iedereen die de Escape Room oplost (jij dus ook) kan een individueel kaartje claimen voor het <a href="https://platformwiskunde.nl/mathfest/" target="_blank">wiskundefestival Mathfest</a> op zondag 11 mei in Utrecht! Dat kaartje is inclusief drankjes, versnaperingen gedurende de middag, en avondeten van de foodtrucks in de avond. Er zijn in totaal ook 25 familiekaartjes beschikbaar. Die gelden voor 3-4 mensen, eveneens inclusief drankjes, versnaperingen gedurende de middag, en avondeten van de foodtrucks in de avond.</p>
+					<p>Wil je (alleen of als familie) naar Mathfest? Stuur dan een mailtje naar <a href="mailto:pr@platformwiskunde.nl">pr@platformwiskunde.nl</a>, vermeld codewoord <strong>ontsnapt</strong>, en claim je gewonnen ticket(s). (Zolang de voorraad strekt.)</p>
 				</AccordionDetails>
 			</Accordion>
 			<Accordion>

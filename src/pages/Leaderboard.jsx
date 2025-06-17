@@ -26,7 +26,7 @@ function LeaderboardWithData({ leaderboard }) {
 	}, [leaderboard])
 
 	return <Subpage>
-		<p>Als je de Escape Room oplost, dan kun je je naam toevoegen aan de onderstaande lijst.</p>
+		<p>Als je de Escape Room oplost, dan kun je je naam toevoegen aan de onderstaande lijst. Je hoeft hiervoor niet per se aan de actievoorwaarden voor de prijsvraag te voldoen.</p>
 		<Box sx={{ my: 2, display: 'grid', gridTemplateColumns: '3fr 3fr 1fr 2fr', gap: '3px' }}>
 			<Box sx={{ ...headStyle }}><strong>Naam</strong></Box>
 			<Box sx={{ ...headStyle }}><strong>Plaats</strong></Box>

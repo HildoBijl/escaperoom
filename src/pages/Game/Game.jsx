@@ -163,7 +163,7 @@ function WinnerRegistration() {
 	}
 
 	// If the deadline has passed, note this.
-	if (new Date() > new Date('2025-06-15 00:00:00'))
+	if (new Date() > new Date('2025-07-05 00:00:00'))
 		return <Alert severity="warning">De deadline voor het meedoen voor de prijsuitreiking is voorbij. Je kunt helaas niet meer meedoen.</Alert>
 
 	// On a submission, show a success message.

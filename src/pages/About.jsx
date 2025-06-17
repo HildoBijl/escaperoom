@@ -40,8 +40,8 @@ export function About() {
 			<li>Je bent beschikbaar om aan één van de kampen (Bx: 21 t/m 25 juli 2025, By: 11 t/m 15 augustus 2025) deel te nemen.</li>
 		</ul>
 		<p>Voldoe je niet aan deze voorwaarden? Dan mag je uiteraard nog steeds de Escape Room oplossen, maar je komt niet in aanmerking voor de prijzen.</p>
-		<p>Om een prijs te winnen moet je uiterlijk <strong>13 juni 2025</strong> de Escape Room opgelost hebben en je gegevens achterlaten. Na deze datum trekt Vierkant voor Wiskunde uit de lijst van oplossers (na een controle op geldigheid/dubbelen) willekeurig twintig winnaars. Deze winnaars worden dan uitgenodigd voor een gratis plek op het zomerkamp.</p>
-		<p>Zit je bij de winnaars? Dan ontvang je uiterlijk 20 juni 2025 bericht. Over de loting kan niet gecorrespondeerd worden.</p>
+		<p>Om een prijs te winnen moet je uiterlijk <strong>3 juli 2025</strong> de Escape Room opgelost hebben en je gegevens achterlaten. Na deze datum trekt Vierkant voor Wiskunde uit de lijst van oplossers (na een controle op geldigheid/dubbelen) willekeurig twintig winnaars. Deze winnaars worden dan uitgenodigd voor een gratis plek op het zomerkamp.</p>
+		<p>Zit je bij de winnaars? Dan ontvang je uiterlijk 8 juli 2025 bericht. Over de loting kan niet gecorrespondeerd worden.</p>
 		<h2>Makers</h2>
 		<p>Deze Escape Room is gemaakt door:</p>
 		<ul>

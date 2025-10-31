@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 
-export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/2024/' : '/',
+export default defineConfig(() => ({
   server: {
     port: 5173,
     proxy: {

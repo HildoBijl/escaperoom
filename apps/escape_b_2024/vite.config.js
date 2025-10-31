@@ -30,6 +30,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5174,
     fs: {
       allow: [
         // this app itself

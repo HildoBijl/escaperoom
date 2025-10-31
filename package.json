@@ -4,8 +4,11 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:2025\" \"npm run dev:2024\"",
     "dev:2024": "npm run dev --prefix apps/escape_b_2024",
-    "build:2024": "npm run build --prefix apps/escape_b_2024",
-    "dev:2025": "npm run dev --prefix apps/escape_a_2025"
+    "dev:2025": "npm run dev --prefix apps/escape_a_2025",
+
+    "build": "npm run build:2025 && npm run build:2024 && node scripts/merge-builds.cjs",
+    "build:2025": "npm run build --prefix apps/escape_a_2025",
+    "build:2024": "npm run build --prefix apps/escape_b_2024"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

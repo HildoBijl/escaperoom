@@ -2,8 +2,12 @@
   "name": "escape-root",
   "private": true,
   "scripts": {
+    "dev": "concurrently \"npm run dev:2025\" \"npm run dev:2024\"",
     "dev:2024": "npm run dev --prefix apps/escape_b_2024",
     "build:2024": "npm run build --prefix apps/escape_b_2024",
     "dev:2025": "npm run dev --prefix apps/escape_a_2025"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }

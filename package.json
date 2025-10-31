@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev:2024": "npm run dev --prefix apps/escape_b_2024",
-    "build:2024": "npm run build --prefix apps/escape_b_2024"
+    "build:2024": "npm run build --prefix apps/escape_b_2024",
+    "dev:2025": "npm run dev --prefix apps/escape_a_2025"
   }
 }

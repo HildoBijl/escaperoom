@@ -12,6 +12,10 @@
     ],
     "rewrites": [
       {
+        "source": "/kamp-b/**",
+        "destination": "/kamp-b/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

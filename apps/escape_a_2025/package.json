@@ -1,0 +1,21 @@
+{
+  "name": "vierkant-escape-room",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:mobile": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "canvas": "^3.2.0",
+    "inkjs": "^2.3.2",
+    "phaser": "^3.90.0"
+  }
+}

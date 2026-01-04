@@ -5,7 +5,7 @@ const path = require('path');
 const rootDist = path.resolve(__dirname, '..', 'dist');
 const newDist = path.resolve(__dirname, '..', 'apps', 'escape_a_2025', 'dist');
 const oldDist = path.resolve(__dirname, '..', 'apps', 'escape_b_2024', 'dist');
-const oldTarget = path.join(rootDist, '2024');
+const oldTarget = path.join(rootDist, 'kamp-b');
 
 function copyDir(src, dest) {
   if (!fs.existsSync(src)) {

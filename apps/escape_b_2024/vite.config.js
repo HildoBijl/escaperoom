@@ -14,7 +14,7 @@ const repoRoot = path.resolve(__dirname, '..', '..')
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/2024/',
+  base: '/kamp-b/',
   resolve: {
     alias: {
       // you *can* keep these, but better to make them absolute from THIS folder:

@@ -5,7 +5,7 @@ export default defineConfig(() => ({
   server: {
     port: 5173,
     proxy: {
-      '/2024': {
+      '/kamp-b': {
         target: 'http://localhost:5174',
         changeOrigin: true,
       },

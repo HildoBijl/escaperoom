@@ -4,8 +4,8 @@ Deze repository bevat alle gemaakte escape rooms en host ze samen op één site.
 Met de huidige configuratie heb je:
 - https://vierkantescaperoom.nl/
  → de nieuwe escape room (Kamp A 2025)
-- https://vierkantescaperoom.nl/2024/
- → de escape room van Kamp B (2024)
+- https://vierkantescaperoom.nl/kamp-b/
+ → de escape room van Kamp B
 
 ## 🗂️ Projectstructuur
 ```
@@ -68,10 +68,10 @@ Daarna kun je testen via:
 - http://localhost:5000/
  → nieuwe escape room
 
-- http://localhost:5000/2024/
+- http://localhost:5000/kamp-b/
  → oude escape room
 
-> Gebruik altijd de emulator (en niet `npx serve`), omdat de 2024-app Firebase-endpoints `(/__/firebase/...)` verwacht.
+> Gebruik altijd de emulator (en niet `npx serve`), omdat de kamp-b-app Firebase-endpoints `(/__/firebase/...)` verwacht.
 
 ## 🧩 Nieuwe escape room toevoegen
 
@@ -106,6 +106,6 @@ Dat betekent dat:
 - de map `/dist/` wordt gedeployed
 - firebase.json zorgt dat:
   - / naar de nieuwe escape room gaat
-  - /2024/** naar de oude escape room wordt herschreven
+  - /kamp-b/** naar de oude escape room wordt herschreven
 
 Geen extra stappen nodig voor deploy 🎉

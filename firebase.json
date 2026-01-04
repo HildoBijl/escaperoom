@@ -12,8 +12,8 @@
     ],
     "rewrites": [
       {
-        "source": "/2024/**",
-        "destination": "/2024/index.html"
+        "source": "/kamp-b/**",
+        "destination": "/kamp-b/index.html"
       },
       {
         "source": "**",

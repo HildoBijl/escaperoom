@@ -38,6 +38,7 @@ export default class PreloadScene extends Phaser.Scene {
     // ---------------------------
     // Lander / spaceship (e.g., from Kenney or itch.io packs)
     this.load.image("ship", "/assets/decor/ship.png");
+    this.load.image("letter", "/assets/decor/letter.png");
 
     // Small spark/smoke particle (8x8-ish white dot or smoke puff)
     // this.load.image("spark", "/assets/particles/spark.png");
@@ -54,6 +55,10 @@ export default class PreloadScene extends Phaser.Scene {
     this.load.image("player_normal_3", "/assets/player/3.png");
     this.load.image("player_normal_4", "/assets/player/4.png");
     this.load.image("player_normal_5", "/assets/player/5.png");
+
+    // Characters - LOD (Level of Detail) approach
+    this.load.image("quadratus_small", "/assets/quadratus_small.webp"); // 200x336 for gameplay
+    this.load.image("quadratus_large", "/assets/quadratus_large.webp"); // 729x1224 for close-ups
   }
 
   create() {

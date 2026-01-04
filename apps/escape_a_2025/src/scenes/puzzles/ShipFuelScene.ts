@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { TwinklingStars } from "../../utils/TwinklingStars";
+import { DEBUG } from "../../main";
 
 type Cell = { x: number; y: number };
 type Pair = { color: number; a: Cell; b: Cell };
@@ -7,6 +9,7 @@ export default class ShipFuelScene extends Phaser.Scene {
   private lines: string[] = [];
   private i = 0;
   private dialogText!: Phaser.GameObjects.Text;
+  private twinklingStars?: TwinklingStars;
 
   // --- gating dialog while puzzle is active
   private blockAdvance = false;
@@ -19,27 +22,33 @@ export default class ShipFuelScene extends Phaser.Scene {
   private gridGfx?: Phaser.GameObjects.Graphics;
   private pathGfx?: Phaser.GameObjects.Graphics;
   private dotGfx?: Phaser.GameObjects.Graphics;
+  private flowGfx?: Phaser.GameObjects.Graphics;
   private pairs: Pair[] = [];
-  private paths = new Map<number, Cell[]>(); // color -> path cells
-  private lockedColors = new Set<number>();   // finished pairs
+  private paths = new Map<number, Cell[]>();
+  private lockedColors = new Set<number>();
   private drawingColor?: number;
   private advanceHint!: Phaser.GameObjects.Text;
   private restartBtn?: Phaser.GameObjects.Text;
+  private flowOffset = 0;
+  private pulseTime = 0;
+  private isShortCircuiting = false;
+  private shortCircuitingColors = new Set<number>();
 
   constructor() {
     super("ShipFuelScene");
   }
 
   create() {
+    // Reset state when scene restarts
+    this.i = 0;
+    this.blockAdvance = false;
+    this.puzzleActive = false;
+
     const { width, height } = this.scale;
 
-    // Background & stars
+    // Background & twinkling stars
     this.add.rectangle(0, 0, width, height, 0x0f1630).setOrigin(0);
-    const stars = this.add.graphics();
-    for (let i = 0; i < 140; i++) {
-      stars.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.2, 0.9));
-      stars.fillRect(Phaser.Math.Between(0, width), Phaser.Math.Between(0, height), 2, 2);
-    }
+    this.twinklingStars = new TwinklingStars(this, 150, width, height);
 
     // Dialog UI
     const box = this.add.rectangle(width / 2, height - 88, width - 80, 120, 0x1b2748, 0.85)
@@ -55,23 +64,40 @@ export default class ShipFuelScene extends Phaser.Scene {
         wordWrap: { width: box.width - 40, useAdvancedWrap: true },
       }
     ).setOrigin(0, 0);
-    
+
     this.advanceHint = this.add.text(width - 30, height - 18, "Click / Space →",
       { fontFamily: "sans-serif", fontSize: "14px", color: "#b6d5ff" })
       .setOrigin(1, 1).setAlpha(0.85);
 
-    // Lines to click through
-    this.lines = [
-      "Impact detected. Hull stable. Navigation nominal.",
-      "Fuel’s low, but we’ll figure it out planetside.",
-      "Let’s get moving…",
-      "DOOO PUZZLE HERE!!!"
-    ];
-    this.show(this.lines[this.i]);
+    // Start puzzle immediately
+    this.startPuzzle();
 
     // Input for dialog advance (disabled while puzzle is active)
     this.input.on("pointerdown", () => this.advance());
     this.input.keyboard?.on("keydown-SPACE", () => this.advance());
+
+    //terug met escape (rondlopen)
+    this.input.keyboard?.on("keydown-ESC", () => {
+      this.scene.stop(this.scene.key);
+      this.scene.start("CockpitScene");
+    });
+  }
+
+  update(_time: number, delta: number) {
+    this.twinklingStars?.update(delta);
+
+    // Animate terminal pulsing
+    if (this.puzzleActive) {
+      this.pulseTime += delta * 0.003;
+      this.drawDots(); // redraw terminals for pulsing effect
+
+      // Animate short-circuit flow
+      if (this.shortCircuitingColors.size > 0) {
+        this.flowOffset += delta * 0.01;
+        this.flowGfx?.clear();
+        this.drawShortCircuitFlow();
+      }
+    }
   }
 
   private show(text: string) {
@@ -96,8 +122,10 @@ export default class ShipFuelScene extends Phaser.Scene {
   }
 
   private toNext() {
+    // Set flag that electricity puzzle is solved, then go back to cockpit
+    this.registry.set("electricitySolved", true);
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
-      if (p === 1) this.scene.start("MoreToComeScene");
+      if (p === 1) this.scene.start("CockpitScene");
     });
   }
 
@@ -108,15 +136,16 @@ export default class ShipFuelScene extends Phaser.Scene {
     this.blockAdvance = true;
     this.puzzleActive = true;
 
+    // Define 3 pairs (5x5)
+    // 5×5, one pair per row → guaranteed full coverage without overlaps
+    // Just change this to change the whole puzzle. Very easy :D
+    this.gridSize = 6;
+    this.cell = 54; // smaller cells to fit better
+
     // Layout: a centered square grid
     const { width, height } = this.scale;
     this.gridOrigin.x = Math.floor((width - this.gridSize * this.cell) / 2);
-    this.gridOrigin.y = Math.floor((height - this.gridSize * this.cell) / 2) - 20;
-
-    // Define 3 pairs (5x5)
-    // 5×5, one pair per row → guaranteed full coverage without overlaps
-    // Just change this to change the whole puzzle. Very easy :D 
-    this.gridSize = 6;
+    this.gridOrigin.y = Math.floor((height - this.gridSize * this.cell) / 2) - 50;
 
     this.pairs = [
       { color: 0x9b59b6, a: { x: 0, y: 0 }, b: { x: 0, y: 4 } }, // Purple
@@ -142,17 +171,28 @@ export default class ShipFuelScene extends Phaser.Scene {
     this.restartBtn.on("pointerdown", () => this.resetPuzzle());
     this.tweens.add({ targets: this.restartBtn, alpha: 1, duration: 220 });
 
+    // DEBUG: Skip button (gold) at top-left of grid
+    if (DEBUG) {
+      const skipBtn = this.add.text(this.gridOrigin.x - 40, this.gridOrigin.y + 20, "⚡", {
+        fontFamily: "sans-serif",
+        fontSize: "28px",
+        color: "#ffd700"
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      skipBtn.on("pointerdown", () => this.solvePuzzle());
+    }
+
     // Graphics
     this.gridGfx = this.add.graphics().setAlpha(0);
     this.pathGfx = this.add.graphics().setAlpha(0);
+    this.flowGfx = this.add.graphics().setAlpha(0);
     this.dotGfx = this.add.graphics().setAlpha(0);
     this.drawGrid();
     this.drawDots();
     this.redrawPaths();
 
     // Fade in the puzzle and message
-    this.show("Connect matching fuel nodes. Drag to draw paths. Paths can’t overlap—and fill every square!");
-    this.tweens.add({ targets: [this.gridGfx, this.pathGfx, this.dotGfx], alpha: 1, duration: 220 });
+    this.show("Verbind de elektriciteitskabels! Trek kabels tussen gekleurde terminals. Kabels mogen niet overlappen—vul elk vakje!");
+    this.tweens.add({ targets: [this.gridGfx, this.pathGfx, this.flowGfx, this.dotGfx], alpha: 1, duration: 220 });
 
     // Remove advance hint
     this.advanceHint.setVisible(false);
@@ -171,9 +211,9 @@ export default class ShipFuelScene extends Phaser.Scene {
     this.input.off("pointerup", this.onPointerUp, this);
 
     this.tweens.add({
-      targets: [this.gridGfx, this.pathGfx, this.dotGfx],
+      targets: [this.gridGfx, this.pathGfx, this.flowGfx, this.dotGfx],
       alpha: 0, duration: 200, onComplete: () => {
-        this.gridGfx?.destroy(); this.pathGfx?.destroy(); this.dotGfx?.destroy();
+        this.gridGfx?.destroy(); this.pathGfx?.destroy(); this.flowGfx?.destroy(); this.dotGfx?.destroy();
       }
     });
 
@@ -225,10 +265,34 @@ export default class ShipFuelScene extends Phaser.Scene {
     const g = this.dotGfx!;
     g.clear();
     for (const p of this.pairs) {
-      g.fillStyle(p.color, 1);
+      const isLocked = this.lockedColors.has(p.color);
+
       for (const c of [p.a, p.b]) {
         const v = this.toWorld(c);
-        g.fillCircle(v.x, v.y, this.cell * 0.28);
+        const size = this.cell * 0.35;
+
+        // If locked/powered, add pulsing glow
+        if (isLocked) {
+          const pulse = Math.sin(this.pulseTime) * 0.3 + 0.7; // pulsing effect
+          g.fillStyle(p.color, 0.3 * pulse);
+          g.fillRoundedRect(v.x - size/2 - 6, v.y - size/2 - 6, size + 12, size + 12, 6);
+        }
+
+        // Draw as electrical terminals (rounded squares)
+        // Outer border (darker)
+        g.fillStyle(0x000000, 0.4);
+        g.fillRoundedRect(v.x - size/2 - 2, v.y - size/2 - 2, size + 4, size + 4, 4);
+
+        // Main terminal - duller when not connected
+        const colorAlpha = isLocked ? 1 : 0.8;
+        g.fillStyle(p.color, colorAlpha);
+        g.fillRoundedRect(v.x - size/2, v.y - size/2, size, size, 3);
+
+        // Inner highlight - only show when powered/locked
+        if (isLocked) {
+          g.fillStyle(0xffffff, 0.6);
+          g.fillRoundedRect(v.x - size/2 + 2, v.y - size/2 + 2, size * 0.5, size * 0.3, 2);
+        }
       }
     }
   }
@@ -238,8 +302,34 @@ export default class ShipFuelScene extends Phaser.Scene {
     g.clear();
     for (const [color, cells] of this.paths) {
       if (cells.length < 1) continue;
-      g.lineStyle(this.cell * 0.52, color, 0.95);
+      const lineWidth = this.cell * 0.15; // 3x smaller (was 0.45)
       const start = this.toWorld(cells[0]);
+      const isLocked = this.lockedColors.has(color);
+      const cableAlpha = isLocked ? 1 : 0.8; // duller when not connected
+
+      // Draw cables with outline (gives them depth like real cables)
+      // Outer black outline
+      g.lineStyle(lineWidth + 2, 0x000000, 0.4 * cableAlpha);
+      g.beginPath();
+      g.moveTo(start.x, start.y);
+      for (let i = 1; i < cells.length; i++) {
+        const v = this.toWorld(cells[i]);
+        g.lineTo(v.x, v.y);
+      }
+      g.strokePath();
+
+      // Main cable color
+      g.lineStyle(lineWidth, color, cableAlpha);
+      g.beginPath();
+      g.moveTo(start.x, start.y);
+      for (let i = 1; i < cells.length; i++) {
+        const v = this.toWorld(cells[i]);
+        g.lineTo(v.x, v.y);
+      }
+      g.strokePath();
+
+      // Inner highlight line (makes cables look 3D/shiny)
+      g.lineStyle(lineWidth * 0.3, 0xffffff, 0.4 * cableAlpha);
       g.beginPath();
       g.moveTo(start.x, start.y);
       for (let i = 1; i < cells.length; i++) {
@@ -248,7 +338,7 @@ export default class ShipFuelScene extends Phaser.Scene {
       }
       g.strokePath();
     }
-    this.drawDots(); // keep dots on top
+    this.drawDots(); // keep terminals on top
   }
 
   private cellOccupied(target: Cell): number | null {
@@ -309,7 +399,7 @@ export default class ShipFuelScene extends Phaser.Scene {
   }
 
   private onPointerMove(pointer: Phaser.Input.Pointer) {
-    if (!this.puzzleActive || this.drawingColor == null) return;
+    if (!this.puzzleActive || this.drawingColor == null || this.isShortCircuiting) return;
     if (this.lockedColors.has(this.drawingColor)) return;
     const next = this.fromWorld(pointer.x, pointer.y);
     if (!next) return;
@@ -329,13 +419,22 @@ export default class ShipFuelScene extends Phaser.Scene {
       return;
     }
 
+    // SHORT CIRCUIT if trying to connect to wrong terminal! (check FIRST before blocking)
+    const ep = this.isEndpoint(next);
+    if (ep && ep.color !== this.drawingColor) {
+      // Allow the path to visually reach the wrong terminal before exploding
+      path.push(next);
+      this.paths.set(this.drawingColor, path);
+      this.redrawPaths();
+
+      const worldPos = this.toWorld(next);
+      this.triggerShortCircuit(worldPos.x, worldPos.y);
+      return;
+    }
+
     // Block if another color already occupies the cell
     const occ = this.cellOccupied(next);
     if (occ !== null && occ !== this.drawingColor) return;
-
-    // Don't step onto another color's endpoint
-    const ep = this.isEndpoint(next);
-    if (ep && ep.color !== this.drawingColor) return;
 
     // If our own path already has this cell (loop), trim back to it
     const existingIdx = path.findIndex(c => this.equal(c, next));
@@ -369,8 +468,7 @@ export default class ShipFuelScene extends Phaser.Scene {
 
     // Win only when all colors are connected AND every cell is covered
     if (this.lockedColors.size === this.pairs.length && this.isAllCovered()) {
-      this.cameras.main.flash(160, 30, 200, 120);
-      this.time.delayedCall(300, () => this.endPuzzle());
+      this.triggerVictory();
     }
   }
 
@@ -400,6 +498,37 @@ export default class ShipFuelScene extends Phaser.Scene {
     this.redrawPaths();
   }
 
+  // DEBUG: Instantly solve the puzzle
+  private solvePuzzle() {
+    // Hardcoded solution for the 6x6 puzzle
+    this.paths.set(0x9b59b6, [ // Purple
+      {x:0,y:0},{x:0,y:1},{x:0,y:2},{x:0,y:3},{x:0,y:4}
+    ]);
+    this.paths.set(0xf0c419, [ // Yellow
+      {x:2,y:0},{x:1,y:0},{x:1,y:1},{x:1,y:2},{x:1,y:3},{x:1,y:4},{x:1,y:5},{x:0,y:5}
+    ]);
+    this.paths.set(0xe74c3c, [ // Red
+      {x:3,y:0},{x:3,y:1},{x:3,y:2},{x:4,y:2},{x:5,y:2}
+    ]);
+    this.paths.set(0x29abe2, [ // Blue
+      {x:4,y:1},{x:5,y:1},{x:5,y:0},{x:4,y:0},{x:3,y:0},{x:2,y:0},{x:2,y:1},{x:2,y:2},{x:2,y:3},{x:3,y:3},{x:4,y:3}
+    ]);
+    this.paths.set(0x2ecc71, [ // Green
+      {x:5,y:3},{x:5,y:4},{x:5,y:5}
+    ]);
+    this.paths.set(0xe67e22, [ // Orange
+      {x:4,y:2},{x:4,y:3},{x:4,y:4},{x:4,y:5},{x:3,y:5},{x:2,y:5},{x:2,y:4},{x:3,y:4}
+    ]);
+
+    // Lock all colors
+    for (const p of this.pairs) {
+      this.lockedColors.add(p.color);
+    }
+
+    this.redrawPaths();
+    this.triggerVictory();
+  }
+
   private getColorAtCell(c: Cell): number | null {
     for (const [color, cells] of this.paths) {
       if (cells.some(p => this.equal(p, c))) return color;
@@ -414,5 +543,235 @@ export default class ShipFuelScene extends Phaser.Scene {
     this.lockedColors.delete(color);
     if (this.drawingColor === color) this.drawingColor = undefined;
     this.redrawPaths();
+  }
+
+  private drawShortCircuitFlow() {
+    const g = this.flowGfx!;
+
+    // Draw wild flashing electricity on short-circuiting cables
+    for (const color of this.shortCircuitingColors) {
+      const cells = this.paths.get(color);
+      if (!cells || cells.length < 2) continue;
+
+      const lineWidth = this.cell * 0.2;
+
+      // Random flickering colors (red/orange/yellow/white)
+      const colors = [0xff0000, 0xff6600, 0xffff00, 0xffffff];
+      const flickerColor = Phaser.Utils.Array.GetRandom(colors);
+      const flickerAlpha = Phaser.Math.FloatBetween(0.5, 1.0);
+
+      // Draw bright glowing outline
+      g.lineStyle(lineWidth + 4, flickerColor, flickerAlpha * 0.4);
+      g.beginPath();
+      const start = this.toWorld(cells[0]);
+      g.moveTo(start.x, start.y);
+      for (let i = 1; i < cells.length; i++) {
+        const v = this.toWorld(cells[i]);
+        g.lineTo(v.x, v.y);
+      }
+      g.strokePath();
+
+      // Draw core lightning bolt effect with fast moving dashes
+      g.lineStyle(lineWidth * 0.6, 0xffffff, flickerAlpha);
+      for (let i = 0; i < cells.length - 1; i++) {
+        const segStart = this.toWorld(cells[i]);
+        const segEnd = this.toWorld(cells[i + 1]);
+
+        const dx = segEnd.x - segStart.x;
+        const dy = segEnd.y - segStart.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const steps = Math.ceil(dist / 8);
+
+        for (let j = 0; j < steps; j++) {
+          const t1 = (j / steps) + (this.flowOffset / 8); // faster flow
+          const t2 = ((j + 0.4) / steps) + (this.flowOffset / 8); // shorter dashes
+
+          // Randomize which dashes appear for chaotic effect
+          if ((Math.floor(t1 * 3) + Math.floor(this.flowOffset * 10)) % 2 === 0) {
+            const x1 = segStart.x + dx * (t1 % 1);
+            const y1 = segStart.y + dy * (t1 % 1);
+            const x2 = segStart.x + dx * (t2 % 1);
+            const y2 = segStart.y + dy * (t2 % 1);
+
+            g.beginPath();
+            g.moveTo(x1, y1);
+            g.lineTo(x2, y2);
+            g.strokePath();
+          }
+        }
+      }
+    }
+  }
+
+  private triggerShortCircuit(x: number, y: number) {
+    this.isShortCircuiting = true;
+    const faultyColor = this.drawingColor;
+    this.drawingColor = undefined;
+
+    // Start flashing electricity on the faulty cable immediately
+    if (faultyColor !== undefined) {
+      this.shortCircuitingColors.add(faultyColor);
+    }
+
+    // Camera shake (immediate)
+    this.cameras.main.shake(400, 0.015);
+
+    // Initial explosion at wrong terminal
+    this.createExplosion(x, y, 30);
+
+    // Track which colors we've already scheduled to avoid duplicates
+    const scheduledColors = new Set<number>();
+    if (faultyColor !== undefined) {
+      scheduledColors.add(faultyColor);
+    }
+
+    // Explosions at other terminals (250-450ms, random timing)
+    for (const p of this.pairs) {
+      for (const c of [p.a, p.b]) {
+        const v = this.toWorld(c);
+        // Skip if this is the current explosion point
+        if (Math.abs(v.x - x) < 5 && Math.abs(v.y - y) < 5) continue;
+
+        const delay = Phaser.Math.Between(250, 450);
+        this.time.delayedCall(delay, () => {
+          this.createExplosion(v.x, v.y, 20);
+
+          // Start flashing electricity on this cable when its terminals explode
+          if (!scheduledColors.has(p.color)) {
+            const path = this.paths.get(p.color);
+            if (path && path.length > 1) {
+              this.shortCircuitingColors.add(p.color);
+            }
+            scheduledColors.add(p.color);
+          }
+        });
+      }
+    }
+
+    // Extra explosion at the wrong terminal at 400ms
+    this.time.delayedCall(400, () => {
+      this.createExplosion(x, y, 25);
+    });
+
+    // Cables disappear at 450ms (but flashing continues)
+    this.time.delayedCall(450, () => {
+      this.pathGfx?.clear(); // cables disappear
+    });
+
+    // Red flash at 600ms
+    this.time.delayedCall(600, () => {
+      this.cameras.main.flash(800, 255, 50, 0); // red flash starts
+    });
+
+    // Flashing electricity stops at 800ms
+    this.time.delayedCall(800, () => {
+      this.shortCircuitingColors.clear();
+      this.flowGfx?.clear();
+    });
+
+    // Message
+    this.show("⚡ KORTSLUITING! De puzzel is gereset...");
+
+    // Reset puzzle logic at 1000ms
+    this.time.delayedCall(1000, () => {
+      this.resetPuzzle();
+      this.isShortCircuiting = false;
+      this.show("Verbind de elektriciteitskabels! Trek kabels tussen gekleurde terminals. Kabels mogen niet overlappen—vul elk vakje!");
+    });
+  }
+
+  private createExplosion(x: number, y: number, particleCount: number) {
+    const colors = [0xff0000, 0xff6600, 0xffff00, 0xffffff];
+    for (let i = 0; i < particleCount; i++) {
+      const angle = (Math.PI * 2 * i) / particleCount;
+      const speed = Phaser.Math.Between(100, 300);
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+
+      const particle = this.add.circle(x, y, Phaser.Math.Between(2, 5), Phaser.Utils.Array.GetRandom(colors));
+
+      this.tweens.add({
+        targets: particle,
+        x: x + vx * 0.5,
+        y: y + vy * 0.5,
+        alpha: 0,
+        duration: Phaser.Math.Between(300, 600),
+        ease: 'cubic.out',
+        onComplete: () => particle.destroy()
+      });
+    }
+  }
+
+  private triggerVictory() {
+    this.isShortCircuiting = true; // block input during celebration
+
+    // Green/gold flash
+    this.cameras.main.flash(300, 100, 255, 100);
+
+    // Confetti explosion from grid center
+    const { width } = this.scale;
+    const cx = width / 2;
+    const cy = this.gridOrigin.y + (this.gridSize * this.cell) / 2;
+
+    // Multiple waves of confetti
+    const confettiColors = [0xffd700, 0x00ff00, 0x00ffff, 0xff00ff, 0xffffff, 0xffff00];
+
+    // First big burst
+    for (let i = 0; i < 60; i++) {
+      const angle = (Math.PI * 2 * i) / 60 + Phaser.Math.FloatBetween(-0.1, 0.1);
+      const speed = Phaser.Math.Between(150, 400);
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed - 200; // bias upward
+
+      const particle = this.add.circle(
+        cx, cy,
+        Phaser.Math.Between(3, 7),
+        Phaser.Utils.Array.GetRandom(confettiColors)
+      );
+
+      this.tweens.add({
+        targets: particle,
+        x: cx + vx * 0.8,
+        y: cy + vy * 0.8,
+        alpha: 0,
+        angle: Phaser.Math.Between(0, 360),
+        duration: Phaser.Math.Between(800, 1200),
+        ease: 'cubic.out',
+        onComplete: () => particle.destroy()
+      });
+    }
+
+    // Second wave after 200ms
+    this.time.delayedCall(200, () => {
+      for (let i = 0; i < 40; i++) {
+        const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+        const speed = Phaser.Math.Between(100, 250);
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed - 150;
+
+        const particle = this.add.circle(
+          cx, cy,
+          Phaser.Math.Between(2, 5),
+          Phaser.Utils.Array.GetRandom(confettiColors)
+        );
+
+        this.tweens.add({
+          targets: particle,
+          x: cx + vx * 0.6,
+          y: cy + vy * 0.6,
+          alpha: 0,
+          angle: Phaser.Math.Between(0, 360),
+          duration: Phaser.Math.Between(600, 1000),
+          ease: 'cubic.out',
+          onComplete: () => particle.destroy()
+        });
+      }
+    });
+
+    // Success message
+    this.show("✨ GELUKT! De elektriciteit stroomt weer!");
+
+    // End puzzle after celebration
+    this.time.delayedCall(1200, () => this.endPuzzle());
   }
 }

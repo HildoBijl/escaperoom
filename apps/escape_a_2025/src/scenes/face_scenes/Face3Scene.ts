@@ -5,6 +5,15 @@ export default class Face3Scene extends FaceBase {
   private entry_from_puzzle: boolean = false;
   private doorDialogHandle?: { start: () => void };
 
+  // --- CONFIGURATION ---
+  private readonly doorScale = 0.2; 
+
+  // Grass Visuals
+  // 0.5 = Smaller blades (more detailed), 1.0 = Larger blades
+  private readonly grassZoom = 1;
+  // 0.2 = Subtle texture, 0.5 = High contrast
+  private readonly grassOpacity = 0.5;
+
   constructor() { super("Face3Scene"); }
 
   init(data?: any) {
@@ -12,9 +21,12 @@ export default class Face3Scene extends FaceBase {
     this.entry_from_puzzle = !!data?.entry_from_puzzle;
   }
 
+  preload() {
+    this.load.image("mazedoor", "assets/decor/mazedoor.png");
+  }
+
   create() {
     console.log("[ENTER]", this.scene.key);
-    this.ensureEnergyInitialized(0);
 
     const cfg = getFaceConfig("Face3Scene");
     const { radius, neighbors, visuals } = cfg;
@@ -31,29 +43,106 @@ export default class Face3Scene extends FaceBase {
       showLabel: visuals.showLabel ?? true,
     });
 
+    // 1. Add the Grass Pattern (Background)
+    this.addGrassPattern(radius);
+
+    // 2. Add the Door (Foreground)
     this.addDoorNpc();
+  }
+
+  /**
+   * Generates a simple grassy noise texture and masks it to the pentagon.
+   */
+  private addGrassPattern(radius: number) {
+    if (!this.faceLayers) return;
+
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const textureKey = "grass_pattern";
+
+    // A. Generate Grass Texture (if not already created)
+    if (!this.textures.exists(textureKey)) {
+        const graphics = this.make.graphics({ x: 0, y: 0 });
+        
+        // Base color (Darker green to blend with face color)
+        graphics.fillStyle(0x1f3b24); 
+        graphics.fillRect(0, 0, 64, 64);
+
+        // Draw random grass blades
+        graphics.lineStyle(2, 0x3d6e3d, 0.6); // Lighter green blades
+        
+        for (let i = 0; i < 40; i++) {
+            const x = Phaser.Math.Between(2, 62);
+            const y = Phaser.Math.Between(5, 62);
+            const bladeHeight = Phaser.Math.Between(4, 8);
+            
+            // Draw a small vertical-ish line
+            graphics.beginPath();
+            graphics.moveTo(x, y);
+            graphics.lineTo(x + Phaser.Math.Between(-2, 2), y - bladeHeight);
+            graphics.strokePath();
+        }
+
+        graphics.generateTexture(textureKey, 64, 64);
+        graphics.destroy();
+    }
+
+    // B. Create Tiling Sprite
+    const grassBg = this.add.tileSprite(width / 2, height / 2, width, height, textureKey);
+    grassBg.setAlpha(this.grassOpacity);
+    grassBg.setTileScale(this.grassZoom);
+
+    // C. Mask to Pentagon
+    const shape = this.make.graphics({ x: 0, y: 0 });
+    shape.fillStyle(0xffffff);
+    
+    const points: {x:number, y:number}[] = [];
+    for (let i = 0; i < 5; i++) {
+        const deg = -90 + i * 72;
+        const rad = Phaser.Math.DegToRad(deg);
+        points.push({
+            x: width / 2 + Math.cos(rad) * radius,
+            y: height / 2 + Math.sin(rad) * radius
+        });
+    }
+    
+    shape.beginPath();
+    shape.moveTo(points[0].x, points[0].y);
+    for(let i=1; i<points.length; i++) shape.lineTo(points[i].x, points[i].y);
+    shape.closePath();
+    shape.fillPath();
+
+    const mask = shape.createGeometryMask();
+    grassBg.setMask(mask);
+
+    // Add to 'ground' layer (behind the door)
+    this.faceLayers.ground.add(grassBg);
   }
 
   private addDoorNpc() {
     const { width, height } = this.scale;
     const layers = this.getFaceLayers();
 
-    const npcWidth = 22;
-    const npcHeight = 34;
-    const door = this.add.rectangle(width / 2 , height / 2+80, npcWidth, npcHeight, 0x88ff88).setStrokeStyle(2, 0x1f3a1f);
-    //positieve width is naar rechts, positive height is omlaag
+    // --- REPLACED RECTANGLE WITH IMAGE ---
+    const door = this.add.image(width / 2, height / 2 + 30, "mazedoor");
+    
+    // Set origin to bottom-center (0.5, 1) so it stands nicely on the Y coordinate
+    door.setOrigin(0.5, 1);
+    door.setScale(this.doorScale);
+
     layers.actors.add(door);
 
+    // Add interaction to the image
     const handle = this.createDialogInteraction(door, {
-      hitRadius: 30,
+      hitRadius: 100, 
       hintText: "Ga door het deurtje: E",
       buildLines: () => {
         const solved = !!this.registry.get("streak_maze_solved");
-        if (solved) return ["Het deurtje staat open. Je bent hier al geweest."];
+        if (solved) return [{ speaker: "", text: "Het deurtje staat open. Je bent hier al geweest." }];
         return [
-          "Je staat voor een klein deurtje in de hoge heg.",
-          "Het lijkt op slot… of misschien toch niet?",
-          "Je bent nieuwsgiereg en gaat naar binnen",
+          { speaker: "", text: "Je staat voor een klein deurtje in de hoge heg." },
+          { speaker: "", text: "Het lijkt op slot… of misschien toch niet?" },
+          { speaker: "", text: "Je bent nieuwsgierig en gaat naar binnen..." },
         ];
       },
       onComplete: () => {
@@ -64,7 +153,6 @@ export default class Face3Scene extends FaceBase {
 
     this.doorDialogHandle = handle;
 
-    //Debatable; restarts currently now when unfinished (although escape button doesn't work at all yet in the streakmaze)
     if (this.entry_from_puzzle && !this.registry.get("streak_maze_solved")) {
       this.time.delayedCall(50, () => this.doorDialogHandle?.start());
     }
@@ -72,4 +160,3 @@ export default class Face3Scene extends FaceBase {
 
   update(_time: number, delta: number) { this.baseFaceUpdate(delta); }
 }
-

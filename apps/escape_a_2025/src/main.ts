@@ -2,7 +2,8 @@ import Phaser from "phaser";
 import BootScene from "./scenes/BootScene";
 import PreloadScene from "./scenes/PreloadScene";
 import TitleScene from "./scenes/TitleScene";
-import IntroScene from "./scenes/IntroScene";
+import CockpitScene from "./scenes/CockpitScene";
+import EndCreditsScene from "./scenes/EndCreditsScene";
 import Face1Scene from "./scenes/face_scenes/Face1Scene";
 import Face2Scene from "./scenes/face_scenes/Face2Scene";
 import Face3Scene from "./scenes/face_scenes/Face3Scene";
@@ -16,6 +17,14 @@ import Face10Scene from "./scenes/face_scenes/Face10Scene";
 import Face11Scene from "./scenes/face_scenes/Face11Scene";
 import Face12Scene from "./scenes/face_scenes/Face12Scene";
 
+import KVQDriehoeken from "./scenes/puzzles/kist_van_quadratus/kvq_driehoeken";
+import KVQSom1 from "./scenes/puzzles/kist_van_quadratus/kvq_som_1";
+import KVQEieren from "./scenes/puzzles/kist_van_quadratus/kvq_eieren";
+import KVQOneven from "./scenes/puzzles/kist_van_quadratus/kvq_oneven";
+import KVQfruit from "./scenes/puzzles/kist_van_quadratus/kvq_fruit";
+import KVQVierkant from "./scenes/puzzles/kist_van_quadratus/kvq_vierkant";
+import KVQAntwoordenInvullen from "./scenes/puzzles/kist_van_quadratus/kvq_antwoorden_invullen";
+
 import TangramKikkerScene from "./scenes/puzzles/tangram/TangramKikkerScene";
 import TangramKrabScene from "./scenes/puzzles/tangram/TangramKrabScene";
 import TangramSchildpadScene from "./scenes/puzzles/tangram/TangramSchildpadScene";
@@ -23,44 +32,46 @@ import TangramSelectScene from "./scenes/puzzles/tangram/TangramSelectScene";
 
 // Puzzle scenes
 import ShipFuelScene from "./scenes/puzzles/ShipFuelScene";
-import MoreToComeScene from "./scenes/MoreToComeScene";
-import PuzzleLogicOneScene from "./scenes/puzzles/PuzzleLogicOneScene";
-import PuzzleLogicTwoScene from "./scenes/puzzles/PuzzleLogicTwoScene";
 import StreakMaze from "./scenes/puzzles/StreakMaze";
-import CockpitScene from "./scenes/CockpitScene";
-
-const GAME_WIDTH = 960;
-const GAME_HEIGHT = 540;
-
+import LogicTower from "./scenes/puzzles/LogicTower";
+import LogicTower_1 from "./scenes/puzzles/LogicTower_1";
+import LogicTower_2 from "./scenes/puzzles/LogicTower_2";
+import LogicTower_3 from "./scenes/puzzles/LogicTower_3";
+import LogicTower_4 from "./scenes/puzzles/LogicTower_4";
+import LogicTower_5 from "./scenes/puzzles/LogicTower_5";
+import PhoneBoxScene from "./scenes/puzzles/PhoneBoxScene";
+import SudokuScene from "./scenes/puzzles/SudokuScene";
+import DominoScene from "./scenes/puzzles/DominoScene";
+import SlotScene from "./scenes/puzzles/SlotScene";
 // Debug mode - set to false for release
 export const DEBUG = false;
+
+const GAME_WIDTH = 1280;
+const GAME_HEIGHT = 720;
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   backgroundColor: "#0b1020",
-  // Enable antialiasing for smooth sprite rendering
-  antialias: true,
-  antialiasGL: true,
-  pixelArt: false, // We want smooth scaling, not pixel-perfect
-  roundPixels: false, // Allow sub-pixel rendering
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,
     height: GAME_HEIGHT,
     parent: "game",
-    // resolution: window.devicePixelRatio, // TypeScript doesn't recognize this property
+  },
+  dom: {
+    createContainer: true,
   },
   physics: {
-  default: "arcade",
-  arcade: { gravity: { x: 0, y: 0 }, debug: false },
-},
+    default: "arcade",
+    arcade: { gravity: { x: 0, y: 0 }, debug: false },  
+  },
+  render: { pixelArt: true},
 
   scene: [
   PreloadScene,
-  TitleScene,
-  CockpitScene,
   ShipFuelScene,
+  EndCreditsScene,
   Face1Scene,
   Face2Scene,
   Face3Scene,
@@ -74,15 +85,30 @@ const config: Phaser.Types.Core.GameConfig = {
   Face11Scene,
   Face12Scene,
   BootScene,
-  IntroScene,
-  MoreToComeScene,
-  PuzzleLogicOneScene,
-  PuzzleLogicTwoScene,
+  TitleScene,
+  CockpitScene,
+  KVQDriehoeken,
+  KVQSom1,
+  KVQEieren,
+  KVQOneven,
+  KVQVierkant,
+  KVQfruit,
+  KVQAntwoordenInvullen,
   TangramKikkerScene,
   TangramKrabScene,
   TangramSchildpadScene,
   TangramSelectScene,
-  StreakMaze
+  StreakMaze,
+  LogicTower,
+  LogicTower_1,
+  LogicTower_2,
+  LogicTower_3,
+  LogicTower_4,
+  LogicTower_5,
+  PhoneBoxScene,
+  SudokuScene,
+  DominoScene,
+  SlotScene,
 ],
 };
 

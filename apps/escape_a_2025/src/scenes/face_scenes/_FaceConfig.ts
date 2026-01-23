@@ -33,6 +33,24 @@ const DODECAHEDRON_TOPOLOGY: Record<TopoFace, TopoFace[]> = {
   L: ["K", "G", "H", "I", "J"],
 };
 
+// Puzzle keys
+export enum PuzzleKey {
+  KistVanQuadratus = "kist_van_quadratus",
+  Tangram = "tangram",
+  ShipFuel = "ship_fuel",
+  LogicTower = "logic_tower",
+  Slot = "slot",
+}
+
+// Constant of puzzle key, reward, and reward obtained key
+export const PUZZLE_REWARDS: Record<PuzzleKey, { rewardEnergy: number; rewardObtainedRegistryKey: string; puzzleSolvedRegistryKey: string }> = {
+  [PuzzleKey.KistVanQuadratus]: { rewardEnergy: 20, rewardObtainedRegistryKey: "kvq_puzzle_solved_fuel_obtained", puzzleSolvedRegistryKey: "kvq_puzzle_solved" },
+  [PuzzleKey.Tangram]: { rewardEnergy: 10, rewardObtainedRegistryKey: "tangram_puzzle_solved_fuel_obtained" , puzzleSolvedRegistryKey: "tangram_puzzle_solved" },
+  [PuzzleKey.ShipFuel]: { rewardEnergy: 50, rewardObtainedRegistryKey: "ship_fuel_obtained", puzzleSolvedRegistryKey: "ship_fuel_solved" },
+  [PuzzleKey.LogicTower]: { rewardEnergy: 50, rewardObtainedRegistryKey: "tower_reward_obtained", puzzleSolvedRegistryKey: "tower_solved" },
+  [PuzzleKey.Slot]: { rewardEnergy: 10, rewardObtainedRegistryKey: "slot_reward_obtained", puzzleSolvedRegistryKey: "slot_solved" },
+};
+
 export type FaceKey =
   | "Face1Scene"
   | "Face2Scene"
@@ -102,7 +120,7 @@ export interface FaceConfig {
 const DEFAULT_VISUALS: Omit<FaceVisualConfig, "mainFill" | "neighborFill"> = {
   backgroundColor: "#0b1020",
   edgeTriggerScale: 0.4,
-  showLabel: false,
+  showLabel: true,
 };
 
 // --------------------
@@ -119,7 +137,7 @@ function getNeighborsForFace(faceKey: FaceKey): FaceNeighbors {
 export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
   Face1Scene: {
     key: "Face1Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face1Scene"),
     visuals: {
       mainFill: 0x1f4a2b,
@@ -128,7 +146,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face2Scene: {
     key: "Face2Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face2Scene"),
     visuals: {
       mainFill: 0x11315a, // dark blue
@@ -137,7 +155,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face3Scene: {
     key: "Face3Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face3Scene"),
     visuals: {
       mainFill: 0x1f3b24, // dark green
@@ -146,7 +164,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face4Scene: {
     key: "Face4Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face4Scene"),
     visuals: {
       mainFill: 0x5a1131, // dark magenta
@@ -155,7 +173,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face5Scene: {
     key: "Face5Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face5Scene"),
     visuals: {
       mainFill: 0x5a4b11, // olive / brownish
@@ -164,7 +182,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face6Scene: {
     key: "Face6Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face6Scene"),
     visuals: {
       mainFill: 0x11425a, // teal / cyan-ish
@@ -173,7 +191,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face7Scene: {
     key: "Face7Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face7Scene"),
     visuals: {
       mainFill: 0x3b115a, // violet
@@ -182,7 +200,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face8Scene: {
     key: "Face8Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face8Scene"),
     visuals: {
       mainFill: 0x1f2f5a, // indigo
@@ -191,7 +209,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face9Scene: {
     key: "Face9Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face9Scene"),
     visuals: {
       mainFill: 0x2f5a1f, // green variant
@@ -200,7 +218,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face10Scene: {
     key: "Face10Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face10Scene"),
     visuals: {
       mainFill: 0x5a2f1f, // reddish brown
@@ -209,7 +227,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face11Scene: {
     key: "Face11Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face11Scene"),
     visuals: {
       mainFill: 0x1f5a4b, // turquoise
@@ -218,7 +236,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face12Scene: {
     key: "Face12Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face12Scene"),
     visuals: {
       mainFill: 0x4b1f5a, // purple

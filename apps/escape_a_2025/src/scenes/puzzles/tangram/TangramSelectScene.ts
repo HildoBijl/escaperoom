@@ -1,5 +1,7 @@
 // TangramSelectScene.ts
 import Phaser from "phaser";
+import { createBackButton } from "../../../utils/BackButton";
+import { PUZZLE_REWARDS, PuzzleKey } from "../../face_scenes/_FaceConfig";
 
 interface TangramLevel {
   key: string;          // Scene key of the puzzle
@@ -34,6 +36,9 @@ export default class TangramSelectScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
+
+    // Back button
+    createBackButton(this, "Face2Scene", { entry_from_puzzle: true });
 
     // 🔧 IMPORTANT: reset the stored text objects when the scene (re)starts
     this.levelTextObjects = [];
@@ -105,7 +110,7 @@ export default class TangramSelectScene extends Phaser.Scene {
     );
 
     if (allSolved) {
-      this.registry.set("tangram_puzzle_solved", true);
+      this.registry.set(PUZZLE_REWARDS[PuzzleKey.Tangram].puzzleSolvedRegistryKey, true);
 
       this.time.delayedCall(400, () => {
         // 👇 pass the "came from puzzle" flag

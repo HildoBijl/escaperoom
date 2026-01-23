@@ -9,6 +9,7 @@ import {
 import { Hud } from "../../PlanetHud";
 import { getIsDesktop } from "../../ControlsMode";
 import { TwinklingStars } from "../../utils/TwinklingStars";
+import { PUZZLE_REWARDS, PuzzleKey } from "./_FaceConfig";
 
 export type Edge = { a: Phaser.Math.Vector2; b: Phaser.Math.Vector2 };
 
@@ -48,6 +49,11 @@ type TravelEdgeZone = {
   height: number;
 };
 
+type DialogLine = {
+  speaker: string;
+  text: string;
+};
+
 type StandardFaceConfig = {
   radius: number;
   faceTravelTargets: (string | null)[]; // for the 5 edges, null = no travel
@@ -59,8 +65,6 @@ type StandardFaceConfig = {
   edgeTriggerScale?: number;
   backgroundColor?: string;
   showLabel?: boolean;
-  disableEscape?: boolean; // Disable ESC key to title screen
-  disableTravel?: boolean; // Disable face-to-face travel (keeps visual colors)
 };
 
 export default abstract class FaceBase extends Phaser.Scene {
@@ -69,7 +73,6 @@ export default abstract class FaceBase extends Phaser.Scene {
 
   protected playerController!: PlayerController;
   protected hud!: Hud;
-  protected escapeHandler?: (() => void) | null;
 
   // Gameplay geometry
   protected poly!: Phaser.Geom.Polygon;
@@ -85,7 +88,7 @@ export default abstract class FaceBase extends Phaser.Scene {
   protected maxEnergy = 100;
 
   // ---- CAMERA & 3D preview fields ----
-  private camZ = 1800; // camera position on +Z
+  private camZ = 2200; // camera position on +Z
   private tilt = -DIHEDRAL; // rotate neighbors away from viewer (negative z)
 
   // drawing caches
@@ -106,10 +109,16 @@ export default abstract class FaceBase extends Phaser.Scene {
   // ---- Shared dialog system ----
   private dialogBox?: Phaser.GameObjects.Rectangle;
   private dialogText?: Phaser.GameObjects.Text;
-  private dialogLines: string[] = [];
+  private dialogLines: DialogLine[] = [];
   private dialogIndex = 0;
+  private dialogNameText?: Phaser.GameObjects.Text;
   private dialogActive = false;
   private dialogOnComplete?: () => void;
+  protected dialogSpeakerStyles: Record<string, string> = {
+    "Jij" : "#4bff72ff",
+    "Quadratus": "#ffb74cff",
+  };
+  protected defaultDialogSpeakerColor: string = "#ffffffff";
 
   // ------------------------------------
   // Lifecycle
@@ -132,18 +141,6 @@ export default abstract class FaceBase extends Phaser.Scene {
    * Ensure energy exists in the registry.
    * Call this in your face `create()` if you want this scene to use energy.
    */
-  protected ensureEnergyInitialized(initial: number = 0) {
-    const existing = this.registry.get(FaceBase.ENERGY_KEY);
-    if (typeof existing !== "number") {
-      const clamped = Phaser.Math.Clamp(initial, 0, this.maxEnergy);
-      this.registry.set(FaceBase.ENERGY_KEY, clamped);
-      this.events.emit("energyChanged", clamped);
-    } else {
-      // Emit event so HUD can sync to current value when entering this scene
-      this.events.emit("energyChanged", this.getEnergy());
-    }
-  }
-
   protected getEnergy(): number {
     let value = this.registry.get(FaceBase.ENERGY_KEY);
     if (typeof value !== "number") {
@@ -161,6 +158,18 @@ export default abstract class FaceBase extends Phaser.Scene {
 
   protected addEnergy(delta: number) {
     this.setEnergy(this.getEnergy() + delta);
+  }
+
+  protected addPuzzleRewardIfNotObtained(
+    puzzleKey: PuzzleKey
+  ) {
+    const rewardInfo = PUZZLE_REWARDS[puzzleKey];
+    if (!rewardInfo) return;
+    const obtainedKey = rewardInfo.rewardObtainedRegistryKey;
+    if (!this.registry.get(obtainedKey)) {
+      this.registry.set(obtainedKey, true);
+      this.addEnergy(rewardInfo.rewardEnergy);
+    }
   }
 
   // ---------------------------
@@ -216,7 +225,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     this.hud = new Hud(this, this.playerController, {
       getPlayer: () => this.player,
       isDesktop,
-      onEscape: this.escapeHandler ? () => this.escapeHandler!() : undefined,
+      onEscape: () => this.scene.start("TitleScene"),
       // Energy hooks for HUD (optional in subclasses)
       getEnergy: () => this.getEnergy(),
       maxEnergy: this.maxEnergy,
@@ -417,10 +426,9 @@ export default abstract class FaceBase extends Phaser.Scene {
       const style = center.neighborStyles?.[i];
       const f = style?.fill ?? defaultNeighFill;
       const s = style?.stroke ?? 0x4b7ad1;
-      const a = style?.alpha ?? 0.95;
+      const a = style?.alpha ?? 1;
       this.drawPolygon(this.gNeighbors, n, f, a, s);
     }
-    this.gNeighbors.setAlpha(1.0);
 
     // central face last
     this.drawPolygon(this.gMain, poly2D, mainFill, 1, 0x66a3ff);
@@ -497,7 +505,7 @@ export default abstract class FaceBase extends Phaser.Scene {
       hintText?: string;
       paddingX?: number;
       paddingY?: number;
-      buildLines: () => string[];      // called each time you start talking
+      buildLines: () => DialogLine[];      // called each time you start talking
       onComplete?: () => void;         // called after dialog finishes
     }
   ): { start: () => void } {
@@ -606,17 +614,29 @@ export default abstract class FaceBase extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.dialogBox?.destroy();
+    this.dialogNameText?.destroy();
     this.dialogText?.destroy();
 
     this.dialogBox = this.add
-      .rectangle(width / 2 + 100, height - 80, width - 100, 100, 0x1b2748, 0.9)
+      .rectangle(width / 2, height - 80, width - 100, 120, 0x1b2748, 0.9)
       .setStrokeStyle(2, 0x3c5a99)
-      .setDepth(999);
+      .setDepth(999)
+      .setScrollFactor(0);
+
+    const leftX = this.dialogBox.x - this.dialogBox.width / 2 + 20;
+    const topY = this.dialogBox.y - this.dialogBox.height / 2 + 14;
+
+    this.dialogNameText = this.add.text(leftX, topY, "", {
+      fontFamily: "sans-serif",
+      fontSize: "16px",
+      fontStyle: "bold",
+      color: "#ffffff",
+    }).setDepth(1000).setScrollFactor(0);
 
     this.dialogText = this.add
       .text(
-        this.dialogBox.x - this.dialogBox.width / 2 + 20,
-        this.dialogBox.y - 40,
+        leftX,
+        topY + 24,
         "",
         {
           fontFamily: "sans-serif",
@@ -628,13 +648,14 @@ export default abstract class FaceBase extends Phaser.Scene {
           },
         }
       )
-      .setDepth(1000);
+      .setDepth(1000).setScrollFactor(0);
 
     this.dialogBox.setVisible(false);
+    this.dialogNameText.setVisible(false);
     this.dialogText.setVisible(false);
   }
 
-  protected startDialog(lines: string[], onComplete?: () => void) {
+  protected startDialog(lines: DialogLine[], onComplete?: () => void) {
     if (!lines.length) return;
 
     this.ensureDialogUi();
@@ -665,8 +686,9 @@ export default abstract class FaceBase extends Phaser.Scene {
     this.dialogActive = false;
     this.playerController.setInputEnabled(true);
 
-    if (this.dialogBox) this.dialogBox.setVisible(false);
-    if (this.dialogText) this.dialogText.setVisible(false);
+    this.dialogBox?.setVisible(false);
+    this.dialogNameText?.setVisible(false);
+    this.dialogText?.setVisible(false);
 
     const cb = this.dialogOnComplete;
     this.dialogOnComplete = undefined;
@@ -674,11 +696,24 @@ export default abstract class FaceBase extends Phaser.Scene {
   }
 
   private showCurrentDialogLine() {
-    if (!this.dialogBox || !this.dialogText) return;
+    if (!this.dialogBox || !this.dialogText || !this.dialogNameText) return;
+
+    const line: DialogLine = this.dialogLines[this.dialogIndex];
+    if (!line) return;
+
+    const speakerColor =
+      this.dialogSpeakerStyles[line.speaker] ??
+      this.defaultDialogSpeakerColor;
+    
 
     this.dialogBox.setVisible(true);
+    
+    this.dialogNameText.setVisible(true);
+    this.dialogNameText.setText(line.speaker);
+    this.dialogNameText.setColor(speakerColor);
+
     this.dialogText.setVisible(true);
-    this.dialogText.setText(this.dialogLines[this.dialogIndex] ?? "");
+    this.dialogText.setText(line.text);
   }
 
 
@@ -690,7 +725,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     radius: number,
     color: number,
     alpha: number
-  ): Phaser.GameObjects.Graphics {
+  ) {
     const g = this.add.graphics();
     const b = 1; // blur-ish by layering circles
     for (let i = 0; i < 4; i++) {
@@ -710,7 +745,6 @@ export default abstract class FaceBase extends Phaser.Scene {
       g.setPosition(obj.x, obj.y + (obj.displayHeight ?? 0) * 0.35);
       g.setDepth((obj.depth ?? 0) - 1);
     });
-    return g;
   }
 
   /** Create standard bg/ground/deco/actors/fx/ui layer containers. */
@@ -738,11 +772,9 @@ export default abstract class FaceBase extends Phaser.Scene {
     if (!this.faceLayers) return;
 
     this.twinklingStars = new TwinklingStars(this, 220, width, height);
-    this.twinklingStars.graphics.setScrollFactor(0);
     this.faceLayers.bg.add(this.twinklingStars.graphics);
 
     const stars = this.add.graphics();
-    stars.setScrollFactor(0);
     for (let i = 0; i < 200; i++) {
       stars.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.15, 0.8));
       stars.fillRect(
@@ -824,17 +856,18 @@ export default abstract class FaceBase extends Phaser.Scene {
       this.faceLayers.fx.add(gfx);
 
       // DEV: Add label showing target scene name
-      // DISABLED: Labels turned off for cleaner visuals
-      /*
+      // Calculate offset direction from pentagon center to edge
       const center = this.getPolygonCenter(this.poly);
       const dx = e.mid.x - center.x;
       const dy = e.mid.y - center.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
+      // Push label outward from center, beyond the edge
       const pushDistance = 25;
       const labelX = e.mid.x + (dx / dist) * pushDistance;
       const labelY = e.mid.y + (dy / dist) * pushDistance;
 
+      // Remove "Scene" suffix from label
       const labelText = target.replace("Scene", "");
 
       const label = this.add.text(labelX, labelY, labelText, {
@@ -847,7 +880,6 @@ export default abstract class FaceBase extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(61);
       this.faceLayers.ui.add(label);
-      */
 
       this.travelEdgeZones.push({
         zone,
@@ -890,9 +922,6 @@ export default abstract class FaceBase extends Phaser.Scene {
   protected initStandardFace(config: StandardFaceConfig) {
     const { width, height } = this.scale;
 
-    // Set escape handler (null disables ESC key)
-    this.escapeHandler = config.disableEscape ? null : () => this.scene.start("TitleScene");
-
     const bgColor = config.backgroundColor ?? "#0b1020";
     this.cameras.main.setBackgroundColor(bgColor);
 
@@ -921,7 +950,7 @@ export default abstract class FaceBase extends Phaser.Scene {
         config.colorMap && config.colorMap[key] !== undefined
           ? config.colorMap[key]!
           : neighborFill;
-      return { fill: color, stroke: 0x4b7ad1, alpha: 1.0 };
+      return { fill: color, stroke: 0x4b7ad1, alpha: 1 };
     });
 
     this.renderFaceAndNeighbors({
@@ -963,10 +992,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     this.createPlayerAt(spawnX, spawnY);
 
     // Now register edge travel interaction (requires HUD to exist)
-    // Skip if disableTravel is set (e.g., in teaser mode)
-    if (!config.disableTravel) {
-      this.registerEdgeTravelInteraction();
-    }
+    this.registerEdgeTravelInteraction();
   }
 
   /**

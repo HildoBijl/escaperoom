@@ -11,14 +11,9 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      {
-        "source": "/kamp-b/**",
-        "destination": "/kamp-b/index.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+        { "source": "/kamp-b", "destination": "/kamp-b/index.html" },
+        { "source": "/kamp-b/**", "destination": "/kamp-b/index.html" },
+        { "source": "**", "destination": "/index.html" }
+    ]  
   }
 }

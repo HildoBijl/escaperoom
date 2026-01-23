@@ -116,6 +116,12 @@ export default class TitleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
+    this.add.text(width / 2, height * 0.45, "Dit is nog een voorproefje. Je kunt nog niet de hele escaperoom spelen. De echte versie komt in Februari!", {
+      fontFamily: "sans-serif",
+      fontSize: "18px",
+      color: "#b6d5ff",
+    }).setOrigin(0.5);
+
     // Button layout
     const btnX = width / 2;
     const firstBtnY = height * 0.62;
@@ -128,7 +134,7 @@ export default class TitleScene extends Phaser.Scene {
       y: firstBtnY,
       width: BTN_W,
       height: BTN_H,
-      label: "Klik hier om te starten",
+      label: "Klik hier om het voorproefje te proberen",
       onClick: () => this.handleStartClick(),
       lockWhenStarting: true,
     });

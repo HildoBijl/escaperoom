@@ -10,6 +10,7 @@ import { Hud } from "../../PlanetHud";
 import { getIsDesktop } from "../../ControlsMode";
 import { TwinklingStars } from "../../utils/TwinklingStars";
 import { PUZZLE_REWARDS, PuzzleKey } from "./_FaceConfig";
+import { DialogManager, DialogLine } from "../../ui/DialogManager";
 
 export type Edge = { a: Phaser.Math.Vector2; b: Phaser.Math.Vector2 };
 
@@ -47,11 +48,6 @@ type TravelEdgeZone = {
   gfx: Phaser.GameObjects.Graphics;
   width: number;
   height: number;
-};
-
-type DialogLine = {
-  speaker: string;
-  text: string;
 };
 
 type StandardFaceConfig = {
@@ -98,6 +94,13 @@ export default abstract class FaceBase extends Phaser.Scene {
   protected twinklingStars?: TwinklingStars;
   protected travelEdgeZones: TravelEdgeZone[] = [];
   protected activeTravelEdge: string | null = null;
+  // @ts-ignore - reserved for stripe pattern feature
+  private faceStripeOverlay?: Phaser.GameObjects.TileSprite;
+  // @ts-ignore - reserved for stripe pattern feature
+  private faceStripeMaskGfx?: Phaser.GameObjects.Graphics;
+
+  // ---- Debug hitbox visualization ----
+  private hitboxDebugGfx?: Phaser.GameObjects.Graphics;
 
   // ---- Interaction highlights ----
   private interactableHighlights: {
@@ -107,18 +110,7 @@ export default abstract class FaceBase extends Phaser.Scene {
   }[] = [];
 
   // ---- Shared dialog system ----
-  private dialogBox?: Phaser.GameObjects.Rectangle;
-  private dialogText?: Phaser.GameObjects.Text;
-  private dialogLines: DialogLine[] = [];
-  private dialogIndex = 0;
-  private dialogNameText?: Phaser.GameObjects.Text;
-  private dialogActive = false;
-  private dialogOnComplete?: () => void;
-  protected dialogSpeakerStyles: Record<string, string> = {
-    "Jij" : "#4bff72ff",
-    "Quadratus": "#ffb74cff",
-  };
-  protected defaultDialogSpeakerColor: string = "#ffffffff";
+  protected dialogManager?: DialogManager;
 
   // ------------------------------------
   // Lifecycle
@@ -151,7 +143,8 @@ export default abstract class FaceBase extends Phaser.Scene {
   }
 
   protected setEnergy(value: number) {
-    const clamped = Phaser.Math.Clamp(value, 0, this.maxEnergy);
+    // Allow values > maxEnergy (number can exceed 100, but bar fill is capped visually)
+    const clamped = Math.max(0, value);
     this.registry.set(FaceBase.ENERGY_KEY, clamped);
     this.events.emit("energyChanged", clamped);
   }
@@ -168,8 +161,68 @@ export default abstract class FaceBase extends Phaser.Scene {
     const obtainedKey = rewardInfo.rewardObtainedRegistryKey;
     if (!this.registry.get(obtainedKey)) {
       this.registry.set(obtainedKey, true);
-      this.addEnergy(rewardInfo.rewardEnergy);
+      // Don't add energy immediately - the animation will do it gradually
+      this.playEnergyRewardAnimation(rewardInfo.rewardEnergy);
     }
+  }
+
+  private playEnergyRewardAnimation(amount: number) {
+    // Get player screen position (center of screen since camera follows player)
+    const playerScreenX = this.scale.width / 2;
+    const playerScreenY = this.scale.height / 2;
+
+    // Energy bar position (left edge of bar)
+    const barX = this.scale.width - 180 - 16; // bar width + margin
+    const barY = 35 + 22; // bar top + half height
+
+    // Create floating text at player position
+    const text = this.add.text(playerScreenX, playerScreenY - 50, `+${amount}`, {
+      fontFamily: "sans-serif",
+      fontSize: "28px",
+      color: "#00ff00",
+      stroke: "#003300",
+      strokeThickness: 4,
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1000);
+
+    // Fly towards energy bar
+    this.tweens.add({
+      targets: text,
+      x: barX + 30,
+      y: barY,
+      scale: 0.7,
+      duration: 1600,
+      ease: "Power2",
+      onComplete: () => {
+        text.destroy();
+        // Start counting up the energy
+        this.countUpEnergy(amount);
+      },
+    });
+  }
+
+  private countUpEnergy(amount: number) {
+    let added = 0;
+    const interval = Math.max(30, 500 / amount); // Faster for larger amounts, min 30ms
+
+    const timer = this.time.addEvent({
+      delay: interval,
+      callback: () => {
+        added++;
+        this.addEnergy(1);
+        if (added >= amount) {
+          timer.destroy();
+        }
+      },
+      repeat: amount - 1,
+    });
+  }
+
+  // Debug method to test the reward animation from debug menu
+  public debugTestRewardAnimation(amount: number) {
+    this.playEnergyRewardAnimation(amount);
   }
 
   // ---------------------------
@@ -231,10 +284,26 @@ export default abstract class FaceBase extends Phaser.Scene {
       maxEnergy: this.maxEnergy,
     });
 
+    // Initialize dialog manager for face scenes (bottom position)
+    this.dialogManager = new DialogManager(this, {
+      position: "bottom",
+      showOverlay: false,
+      speakerStyles: {
+        Jij: "#4bff72ff",
+        Quadratus: "#ffb74cff",
+      },
+    });
+
     this.setCameraToPlayerBounds();
 
     this.events.on("update", () => {
       this.hud.update();
+    });
+
+    // Clean up HUD and DialogManager when scene shuts down
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.hud?.destroy();
+      this.dialogManager?.destroy();
     });
   }
 
@@ -439,7 +508,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     this.worldBounds = this.unionRects(rects);
   }
 
-  private getPolyBounds(poly: Phaser.Geom.Polygon): Phaser.Geom.Rectangle {
+  protected getPolyBounds(poly: Phaser.Geom.Polygon): Phaser.Geom.Rectangle {
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
@@ -510,7 +579,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     }
   ): { start: () => void } {
     const start = () => {
-      if (this.dialogActive) return; // already in a dialog, ignore
+      if (this.isDialogActive()) return; // already in a dialog, ignore
       const lines = config.buildLines();
       this.startDialog(lines, config.onComplete);
     };
@@ -521,7 +590,7 @@ export default abstract class FaceBase extends Phaser.Scene {
       paddingX: config.paddingX,
       paddingY: config.paddingY,
       onUse: () => {
-        if (this.dialogActive) {
+        if (this.isDialogActive()) {
           this.advanceDialog();
         } else {
           start();
@@ -603,117 +672,26 @@ export default abstract class FaceBase extends Phaser.Scene {
 
 
   protected isDialogActive(): boolean {
-    return this.dialogActive;
-  }
-
-  private ensureDialogUi() {
-    if (this.dialogText && this.dialogText.scene && this.dialogText.active) {
-      return;
-    }
-
-    const { width, height } = this.scale;
-
-    this.dialogBox?.destroy();
-    this.dialogNameText?.destroy();
-    this.dialogText?.destroy();
-
-    this.dialogBox = this.add
-      .rectangle(width / 2, height - 80, width - 100, 120, 0x1b2748, 0.9)
-      .setStrokeStyle(2, 0x3c5a99)
-      .setDepth(999)
-      .setScrollFactor(0);
-
-    const leftX = this.dialogBox.x - this.dialogBox.width / 2 + 20;
-    const topY = this.dialogBox.y - this.dialogBox.height / 2 + 14;
-
-    this.dialogNameText = this.add.text(leftX, topY, "", {
-      fontFamily: "sans-serif",
-      fontSize: "16px",
-      fontStyle: "bold",
-      color: "#ffffff",
-    }).setDepth(1000).setScrollFactor(0);
-
-    this.dialogText = this.add
-      .text(
-        leftX,
-        topY + 24,
-        "",
-        {
-          fontFamily: "sans-serif",
-          fontSize: "18px",
-          color: "#e7f3ff",
-          wordWrap: {
-            width: this.dialogBox.width - 40,
-            useAdvancedWrap: true,
-          },
-        }
-      )
-      .setDepth(1000).setScrollFactor(0);
-
-    this.dialogBox.setVisible(false);
-    this.dialogNameText.setVisible(false);
-    this.dialogText.setVisible(false);
+    return this.dialogManager?.isActive() ?? false;
   }
 
   protected startDialog(lines: DialogLine[], onComplete?: () => void) {
     if (!lines.length) return;
 
-    this.ensureDialogUi();
     this.playerController.setInputEnabled(false);
-
-    this.dialogLines = lines;
-    this.dialogIndex = 0;
-    this.dialogOnComplete = onComplete;
-    this.dialogActive = true;
-
-    this.showCurrentDialogLine();
+    this.dialogManager?.show(lines, () => {
+      this.playerController.setInputEnabled(true);
+      onComplete?.();
+    });
   }
 
   protected advanceDialog() {
-    if (!this.dialogActive) return;
-
-    this.dialogIndex++;
-    if (this.dialogIndex >= this.dialogLines.length) {
-      this.endDialog();
-    } else {
-      this.showCurrentDialogLine();
-    }
+    this.dialogManager?.advance();
   }
 
   protected endDialog() {
-    if (!this.dialogActive) return;
-
-    this.dialogActive = false;
+    this.dialogManager?.close();
     this.playerController.setInputEnabled(true);
-
-    this.dialogBox?.setVisible(false);
-    this.dialogNameText?.setVisible(false);
-    this.dialogText?.setVisible(false);
-
-    const cb = this.dialogOnComplete;
-    this.dialogOnComplete = undefined;
-    cb?.();
-  }
-
-  private showCurrentDialogLine() {
-    if (!this.dialogBox || !this.dialogText || !this.dialogNameText) return;
-
-    const line: DialogLine = this.dialogLines[this.dialogIndex];
-    if (!line) return;
-
-    const speakerColor =
-      this.dialogSpeakerStyles[line.speaker] ??
-      this.defaultDialogSpeakerColor;
-    
-
-    this.dialogBox.setVisible(true);
-    
-    this.dialogNameText.setVisible(true);
-    this.dialogNameText.setText(line.speaker);
-    this.dialogNameText.setColor(speakerColor);
-
-    this.dialogText.setVisible(true);
-    this.dialogText.setText(line.text);
   }
 
 
@@ -1057,8 +1035,137 @@ export default abstract class FaceBase extends Phaser.Scene {
       const inRange = dist < h.radius;
 
       // Simple on/off; you can add fancier effects later
-      h.highlight.setVisible(inRange && !this.dialogActive);
+      h.highlight.setVisible(inRange && !this.isDialogActive());
     }
+
+    // ----- Debug hitbox visualization -----
+    this.drawDebugHitboxes();
   }
 
+  protected addDiagonalStripesInFace(options?: {
+    textureKey?: string;
+    tileSize?: number;
+    stripeWidth?: number;
+    gap?: number;
+    stripeColor?: number;
+    stripeAlpha?: number;
+    overlayAlpha?: number;
+    angleDeg?: number;
+    depth?: number;
+  }) {
+    const {
+      textureKey = "__diag_stripes",
+      tileSize = 256,     // bigger tile = less chance you notice repetition
+      stripeWidth = 10,
+      gap = 22,
+      stripeColor = 0xffffff,
+      stripeAlpha = 0.12,
+      overlayAlpha = 0.18,
+      angleDeg = -18,
+      depth = 11,
+    } = options ?? {};
+
+    // 1) Build a seamless stripe tile (angle is baked in)
+    if (!this.textures.exists(textureKey)) {
+      const g = this.make.graphics({ x: 0, y: 0 });
+      g.clear();
+
+      const a = Phaser.Math.DegToRad(angleDeg);
+      const dir = new Phaser.Math.Vector2(Math.cos(a), Math.sin(a)); // stripe direction
+      const nrm = new Phaser.Math.Vector2(-dir.y, dir.x);            // perpendicular
+
+      g.lineStyle(stripeWidth, stripeColor, stripeAlpha);
+
+      const c = new Phaser.Math.Vector2(tileSize / 2, tileSize / 2);
+      const L = tileSize * 3; // long enough to cover tile at any angle
+
+      // Draw stripes by sliding along the perpendicular direction (nrm).
+      // This tiles cleanly because the pattern is periodic along nrm.
+      for (let t = -tileSize * 2; t <= tileSize * 2; t += gap) {
+        const p0 = c.clone().add(nrm.clone().scale(t)).subtract(dir.clone().scale(L));
+        const p1 = c.clone().add(nrm.clone().scale(t)).add(dir.clone().scale(L));
+
+        g.beginPath();
+        g.moveTo(p0.x, p0.y);
+        g.lineTo(p1.x, p1.y);
+        g.strokePath();
+      }
+
+      g.generateTexture(textureKey, tileSize, tileSize);
+      g.destroy();
+
+      // Optional: if you're doing pixel-art and want crisp sampling:
+      // this.textures.get(textureKey).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+
+    // 2) Big tiling overlay (NOT rotated)
+    const bounds = this.getPolyBounds(this.poly); // make getPolyBounds protected
+    const pad = 200;
+
+    const overlay = this.add
+      .tileSprite(
+        bounds.x - pad,
+        bounds.y - pad,
+        bounds.width + pad * 2,
+        bounds.height + pad * 2,
+        textureKey
+      )
+      .setOrigin(0, 0)
+      .setAlpha(overlayAlpha)
+      .setDepth(depth);
+
+    // 3) Mask to the pentagon
+    const maskGfx = this.make.graphics({ x: 0, y: 0 });
+    maskGfx.fillStyle(0xffffff, 1);
+    maskGfx.beginPath();
+    maskGfx.moveTo(this.poly.points[0].x, this.poly.points[0].y);
+    for (let i = 1; i < this.poly.points.length; i++) {
+      maskGfx.lineTo(this.poly.points[i].x, this.poly.points[i].y);
+    }
+    maskGfx.closePath();
+    maskGfx.fillPath();
+
+    overlay.setMask(maskGfx.createGeometryMask());
+
+    this.faceLayers?.ground.add(overlay);
+
+    return overlay;
+  }
+
+  /**
+   * Draw debug hitboxes for player and edge zones.
+   * Toggle via debug menu: "Show Hitboxes"
+   */
+  private drawDebugHitboxes() {
+    const showHitboxes = this.registry.get("debug_showHitboxes");
+
+    if (!showHitboxes) {
+      if (this.hitboxDebugGfx) {
+        this.hitboxDebugGfx.destroy();
+        this.hitboxDebugGfx = undefined;
+      }
+      return;
+    }
+
+    if (!this.hitboxDebugGfx) {
+      this.hitboxDebugGfx = this.add.graphics().setDepth(9999);
+    }
+
+    const gfx = this.hitboxDebugGfx;
+    gfx.clear();
+
+    // Draw player hitbox (physics body)
+    if (this.playerController) {
+      const body = this.player.body as Phaser.Physics.Arcade.Body;
+      gfx.lineStyle(2, 0x00ff00, 1);
+      gfx.strokeRect(body.x, body.y, body.width, body.height);
+    }
+
+    // Draw edge zone hitboxes (physics zones - axis aligned)
+    for (const ez of this.travelEdgeZones) {
+      const zoneBody = ez.zone.body as Phaser.Physics.Arcade.StaticBody;
+      gfx.lineStyle(2, 0xff00ff, 1);
+      gfx.strokeRect(zoneBody.x, zoneBody.y, zoneBody.width, zoneBody.height);
+    }
+  }
 }

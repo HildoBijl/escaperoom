@@ -3,13 +3,15 @@ import Phaser from "phaser";
 export default class PhoneBoxScene extends Phaser.Scene {
   private returnSceneKey: string = "Face9Scene";
   private readonly correctCode = "6294";
-  private currentWallIndex = 0; // 0 tot 3 (aantal muren (4 dan maar hey 0-index))
+  private currentWallIndex = 0; // 0 tot 3
   private enteredCode = "";
   private numpadContainer!: Phaser.GameObjects.Container;
   private wallContainer!: Phaser.GameObjects.Container;
   private codeDisplay!: Phaser.GameObjects.Text;
   private wallText!: Phaser.GameObjects.Text;
   private wallTitle!: Phaser.GameObjects.Text;
+  private hintDisplay!: Phaser.GameObjects.Text; 
+
   private readonly wallClues = [
     { id: 1, arrows: ["↑", "←", "↑", "→", "↑", "→", "↓"] },       //6
     { id: 2, arrows: ["↑", "→", "↑", "↑", "←"] },                //2
@@ -26,8 +28,12 @@ export default class PhoneBoxScene extends Phaser.Scene {
   }
 
   create() {
+    // Reset state on each scene start
+    this.enteredCode = "";
+    this.currentWallIndex = 0;
+
     const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x2a0a0a).setOrigin(0); 
+    this.add.rectangle(0, 0, width, height, 0x2a0a0a).setOrigin(0);
     this.numpadContainer = this.add.container(0, 0);
     this.wallContainer = this.add.container(0, 0).setVisible(false);
     this.createNumpadView(width, height);
@@ -72,7 +78,7 @@ export default class PhoneBoxScene extends Phaser.Scene {
 
 
     //naar de muren
-    const wallBtn = this.add.text(width-100, height - 80, "[ Kijk naar de muren ]", { //moet nog even op de juiste plek (min de width)
+    const wallBtn = this.add.text(width-200, height - 80, "[Muren bekijken]", { 
       fontSize: "24px", color: "#ffffff", backgroundColor: "#444", padding: { x: 20, y: 10 }
     })
     .setOrigin(0.5)
@@ -80,6 +86,20 @@ export default class PhoneBoxScene extends Phaser.Scene {
     .on("pointerdown", () => this.switchView("wall"));
 
     this.numpadContainer.add(wallBtn);
+    const hintBtn = this.add.text(200, height - 80, "[ Hint ]", {
+        fontSize: "24px", color: "#ffff00", backgroundColor: "#444", padding: { x: 20, y: 10 }
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+ 
+        this.hintDisplay.setVisible(!this.hintDisplay.visible);
+    });
+    this.numpadContainer.add(hintBtn);
+    this.hintDisplay = this.add.text(width / 2, height - 150, "Begin bij nul...", {
+        fontSize: "20px", color: "#ffff00", backgroundColor: "#000000", padding: { x: 10, y: 5 }
+    }).setOrigin(0.5).setVisible(false);
+    this.numpadContainer.add(this.hintDisplay);
   }
 
   private createKeyBtn(x: number, y: number, label: string, onClick: () => void, fill = 0x222222, textCol = 0xffffff) {
@@ -125,7 +145,7 @@ export default class PhoneBoxScene extends Phaser.Scene {
       .on("pointerdown", () => this.changeWall(1));
 
     //return
-    const returnBtn = this.add.text(width / 2, height - 80, "[ Terug naar Nummerbord ]", {
+    const returnBtn = this.add.text(width / 2, height - 80, "[Terug naar cel]", {
       fontSize: "24px", color: "#ffffff", backgroundColor: "#444", padding: { x: 20, y: 10 }
     })
     .setOrigin(0.5)
@@ -194,7 +214,7 @@ export default class PhoneBoxScene extends Phaser.Scene {
   }
 
   private puzzleSolved() {
-    console.log("Phonebox opgelost");
+    console.log("[PhoneBox] Puzzle solved, returning to:", this.returnSceneKey);
     this.registry.set("phonebox_solved", true);
     this.exitScene();
   }
@@ -206,6 +226,7 @@ export default class PhoneBoxScene extends Phaser.Scene {
       spawnX,
       spawnY,
       cameFromScene: "PhoneBoxScene",
+      entry_from_puzzle: true,
     });
   }
 }

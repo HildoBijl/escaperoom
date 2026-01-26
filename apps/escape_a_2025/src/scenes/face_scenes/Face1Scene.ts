@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import FaceBase, { type Edge } from "./_FaceBase";
+import FaceBase, { Edge } from "./_FaceBase";
 import { getIsDesktop } from "../../ControlsMode";
 import { resolveFaceConfig, buildNeighborColorMap } from "./_FaceConfig";
 

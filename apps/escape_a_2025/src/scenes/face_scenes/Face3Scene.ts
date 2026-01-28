@@ -40,7 +40,7 @@ export default class Face3Scene extends FaceBase {
       colorMap,
       edgeTriggerScale: visuals.edgeTriggerScale,
       backgroundColor: visuals.backgroundColor,
-      showLabel: visuals.showLabel ?? true,
+      showLabel: visuals.showLabel,
     });
 
     // 1. Add the Grass Pattern (Background)
@@ -140,7 +140,7 @@ export default class Face3Scene extends FaceBase {
     // Add interaction to the image
     const handle = this.createDialogInteraction(door, {
       hitRadius: 100, 
-      hintText: "Inspecteer deurtje: E",
+      hintText: "Inspecteer deurtje: E / spatie",
       buildLines: () => {
         const solved = !!this.registry.get("streak_maze_solved");
         if (solved) return [{ speaker: "", text: "Het deurtje staat open. Je bent hier al geweest." }];

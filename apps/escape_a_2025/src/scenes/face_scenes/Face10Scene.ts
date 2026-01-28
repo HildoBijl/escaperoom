@@ -31,7 +31,7 @@ export default class Face10Scene extends FaceBase {
       colorMap,
       edgeTriggerScale: visuals.edgeTriggerScale,
       backgroundColor: visuals.backgroundColor,
-      showLabel: visuals.showLabel ?? true,
+      showLabel: visuals.showLabel,
     });
 
     this.drawIntertwinedCables(radius);
@@ -67,7 +67,7 @@ export default class Face10Scene extends FaceBase {
     const handle = this.createDialogInteraction(energyCube, {
       hitRadius: 120,
       paddingX: -60,
-      hintText: "Druk op E om te verbinden",
+      hintText: "E / spatie: Verbind met de kubus",
       buildLines: () => [
         { text: "Hè, waarom trilt de grond zo?", speaker: "Jij" },
         { text: "Hmm, dat is een vreemd ding! Het lijkt wel alsof er een kaars in brandt.", speaker: "Jij" },

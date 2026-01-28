@@ -30,7 +30,7 @@ export default class Face12Scene extends FaceBase {
       colorMap,
       edgeTriggerScale: visuals.edgeTriggerScale,
       backgroundColor: visuals.backgroundColor,
-      showLabel: visuals.showLabel ?? true,
+      showLabel: visuals.showLabel,
     });
 
     this.addSubtleDominoPattern(radius);
@@ -90,7 +90,7 @@ export default class Face12Scene extends FaceBase {
 
     const handle = this.createDialogInteraction(plok, {
       hitRadius: 60,
-      hintText: isSolved ? "Praat met Plok" : "Druk op E",
+      hintText: isSolved ? "Praat met Plok: E / spatie" : "E / spatie: Praat met Plok",
       
       buildLines: () => dialogLines,
       

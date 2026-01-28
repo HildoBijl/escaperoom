@@ -1,5 +1,5 @@
 // TangramSchildpadScene.ts
-import { BaseTangramScene, type TangramPieceConfig } from "./BaseTangramPuzzle";
+import { BaseTangramScene, TangramPieceConfig } from "./BaseTangramPuzzle";
 
 export default class TangramKikkerScene extends BaseTangramScene {
   constructor() {
@@ -7,7 +7,7 @@ export default class TangramKikkerScene extends BaseTangramScene {
   }
 
   protected getTitleText(): string {
-    return "Tangram: Kikker";
+    return "De Kikker";
   }
 
   protected getSubtitleText(): string {
@@ -47,7 +47,7 @@ export default class TangramKikkerScene extends BaseTangramScene {
       {
         type: "largeTri2",
         textureKey: "tan_largeTri",
-        targetX: puzzleCenterX-46,
+        targetX: puzzleCenterX-45,
         targetY: puzzleCenterY+50,
         targetRotation: 7*45,
         color: 0x8a4b14,

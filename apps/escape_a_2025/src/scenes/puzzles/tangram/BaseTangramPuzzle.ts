@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { createBackButton } from "../../../utils/BackButton";
 
 export type TangramPieceType =
   | "largeTri"
@@ -82,7 +83,7 @@ export abstract class BaseTangramScene extends Phaser.Scene {
 
   /** Fill color of the silhouette shape */
   protected getSilhouetteColor(): { color: number; alpha: number } {
-    return { color: 0x333333, alpha: 0.7 };
+    return { color: 0xebe1c3, alpha: 0.7 };
   }
 
   /**
@@ -154,6 +155,9 @@ export abstract class BaseTangramScene extends Phaser.Scene {
 
     // Background
     this.cameras.main.setBackgroundColor(this.getBackgroundColor());
+
+    // Back button
+    createBackButton(this, "TangramSelectScene");
 
     // Title & subtitle
     this.add
@@ -239,7 +243,7 @@ export abstract class BaseTangramScene extends Phaser.Scene {
 
     // Rotate button (45°)
     this.rotateButton = this.add
-      .text(width * 0.15, height - 60, "Roteren (45°)", {
+      .text(width * 0.15, height - 60, "Draai stukje (45°)", {
         fontSize: "20px",
         backgroundColor: "#222222",
         color: "#ffffff",

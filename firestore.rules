@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------
+    // Helpers
+    // ----------------------------
+    function isNonEmptyString(x, min, max) {
+      return x is string && x.size() >= min && x.size() <= max;
+    }
+
+    function isValidAge(a) {
+      return a is int && a >= 6 && a <= 120;
+    }
+
+    function isValidEmail(e) {
+      return e is string && e.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$');
+    }
+
+    function isValidGroup(g) {
+      return g is int && (g == 5 || g == 6 || g == 7 || g == 8);
+    }
+
+    // ========================================================
+    // Kamp A (main URL) — NEW room
+    // ========================================================
+
+    // PUBLIC leaderboard
+    match /leaderbord-kamp-a/{docId} {
+      allow read, list: if true;
+
+      allow create: if
+        request.resource.data.keys().hasOnly(["name", "age", "createdAt"]) &&
+        isNonEmptyString(request.resource.data.name, 1, 60) &&
+        isValidAge(request.resource.data.age) &&
+        (request.resource.data.createdAt is timestamp);
+
+      allow update, delete: if false;
+    }
+
+    // PRIVATE prizes (PII)
+    match /prizes-kamp-a/{docId} {
+      allow read, list: if false;
+
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          "firstName",
+          "lastName",
+          "email",
+          "age",
+          "group",
+          "beenBefore",
+          "parentsPhone",
+          "createdAt"
+        ]) &&
+        isNonEmptyString(request.resource.data.firstName, 1, 60) &&
+        isNonEmptyString(request.resource.data.lastName, 1, 80) &&
+        isValidEmail(request.resource.data.email) &&
+        isValidAge(request.resource.data.age) &&
+        isValidGroup(request.resource.data.group) &&
+        (request.resource.data.beenBefore is bool) &&
+        isNonEmptyString(request.resource.data.parentsPhone, 6, 32) &&
+        (request.resource.data.createdAt is timestamp);
+
+      allow update, delete: if false;
+    }
+
+    // ========================================================
+    // Kamp B (/kamp-b) — OLD room
+    // ========================================================
+    //
+    // You MUST add rules for the collections used by app2.
+    // The old repo example you showed used a collection called "leaderboard".
+    // If that's still true, add:
+
+    match /leaderboard/{docId} {
+      allow read, list: if true;
+
+      // Keep this compatible with the old app:
+      // It likely writes: { naam, plaats, leeftijd, date }
+      // (Your old UI used solver.date.toDate())
+      allow create: if
+        request.resource.data.keys().hasOnly(["naam", "plaats", "leeftijd", "date"]) &&
+        isNonEmptyString(request.resource.data.naam, 1, 60) &&
+        isNonEmptyString(request.resource.data.plaats, 1, 60) &&
+        (request.resource.data.leeftijd is int && request.resource.data.leeftijd >= 6 && request.resource.data.leeftijd <= 120) &&
+        (request.resource.data.date is timestamp);
+
+      allow update, delete: if false;
+    }
+  }
+}

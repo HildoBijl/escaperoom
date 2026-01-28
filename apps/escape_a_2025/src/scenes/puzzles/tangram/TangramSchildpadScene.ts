@@ -1,5 +1,5 @@
 // TangramSchildpadScene.ts
-import { BaseTangramScene, type TangramPieceConfig } from "./BaseTangramPuzzle";
+import { BaseTangramScene, TangramPieceConfig } from "./BaseTangramPuzzle";
 
 export default class TangramSchildpadScene extends BaseTangramScene {
   constructor() {
@@ -7,11 +7,11 @@ export default class TangramSchildpadScene extends BaseTangramScene {
   }
 
   protected getTitleText(): string {
-    return "Tangram: Schildpad";
+    return "De Schildpad";
   }
 
   protected getSubtitleText(): string {
-    return "Sleep de stukken op de schaduw. Selecteer en roteer per 45°. Druk op 'Check'.";
+    return ""
   }
 
   protected onPuzzleSolved(): void {

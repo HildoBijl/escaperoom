@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import FaceBase, { type Edge } from "./_FaceBase";
+import FaceBase, { Edge } from "./_FaceBase";
 import { getIsDesktop } from "../../ControlsMode";
 import { resolveFaceConfig, buildNeighborColorMap } from "./_FaceConfig";
 import { DEBUG } from "../../main";
@@ -122,7 +122,7 @@ export default class Face1Scene extends FaceBase {
     this.layer.fx?.add(this.shipHighlight);
 
     const isDesktop = getIsDesktop(this);
-    const hintText = "Interactie: " + (isDesktop ? "E" : "I");
+    const hintText = "Interactie: " + (isDesktop ? "spatie / E" : "I");
 
     // Interaction for ship/quadratus logic
     this.registerInteraction(
@@ -151,9 +151,10 @@ export default class Face1Scene extends FaceBase {
       this.spawnQuadratus();
     }
 
-    // Dialog input handlers
+    // Dialog input handlers (E and SPACE both work)
     this.input.on("pointerdown", () => this.advanceQuadratusDialog());
     this.input.keyboard?.on("keydown-SPACE", () => this.advanceQuadratusDialog());
+    this.input.keyboard?.on("keydown-E", () => this.advanceQuadratusDialog());
   }
 
   private spawnQuadratus() {
@@ -195,7 +196,8 @@ export default class Face1Scene extends FaceBase {
   }
 
   private startQuadratusDialog() {
-    if (this.quadratusDialogActive || this.registry.get("quadratusDialogSeen")) return;
+    if (this.quadratusDialogActive) return;
+    if (this.registry.get("teaserCompleteShown")) return; // Teaser is done, no more dialog
     this.quadratusDialogActive = true;
     this.quadratusIndex = 0;
 
@@ -270,6 +272,7 @@ export default class Face1Scene extends FaceBase {
 
   private advanceQuadratusDialog() {
     if (!this.quadratusDialogActive) return;
+    if (this.registry.get("teaserCompleteShown")) return; // Popup shown, ignore input
 
     this.quadratusIndex++;
     if (this.quadratusIndex < this.quadratusLines.length) {

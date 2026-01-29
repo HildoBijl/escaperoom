@@ -17,7 +17,7 @@ const ACHTERGROND_TAB_BODY = `Stichting [Vierkant voor Wiskunde](https://www.vie
 
 Je hoeft geen wiskundeheld te zijn om mee te gaan op kamp, maar wel een liefhebber van puzzels en problemen. Tijdens de kampen wordt een aantal onderwerpen met een wiskundig thema verkend, zoals veelvlakken, getallen, grafen, magische vierkanten, geheimschrift of verzamelingen. Je kunt ook aan de slag gaan met berekeningen, bouwwerken, tekeningen of kunstwerken gebaseerd op een nieuw uitdagend onderwerp. Hierbij kun je denken aan Escher-tekeningen of fractals. Naast de wiskunde is er natuurlijk ook tijd voor andere activiteiten, zoals sport, spelletjes, zwemmen en creatieve activiteiten. Er zijn twee deskundige begeleiders per groepje van 6 deelnemers, zodat iedereen voldoende meegenomen en uitgedaagd wordt.
 
-In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school ([speel die hier](https://www.vierkantescaperoom.nl/kamp-b/)). De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool, zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom.
+In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school. De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool, zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom.
 
 Wil je mee op een van de zomerkampen van Vierkant voor Wiskunde? Meer informatie vind je op de website: [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/kampen/)
 Bekijk ook onze [homepagina](https://www.vierkantvoorwiskunde.nl/).`;
@@ -116,12 +116,6 @@ export default class TitleScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.45, "Dit is nog een voorproefje. Je kunt nog niet de hele escaperoom spelen. De echte versie komt in Februari!", {
-      fontFamily: "sans-serif",
-      fontSize: "18px",
-      color: "#b6d5ff",
-    }).setOrigin(0.5);
-
     // Button layout
     const btnX = width / 2;
     const firstBtnY = height * 0.62;
@@ -134,7 +128,7 @@ export default class TitleScene extends Phaser.Scene {
       y: firstBtnY,
       width: BTN_W,
       height: BTN_H,
-      label: "Klik hier om het voorproefje te proberen",
+      label: "Klik hier om te starten",
       onClick: () => this.handleStartClick(),
       lockWhenStarting: true,
     });
@@ -170,6 +164,17 @@ export default class TitleScene extends Phaser.Scene {
   private handleStartClick() {
     if (this.isStarting) return;
     this.isStarting = true;
+
+    // Request fullscreen on mobile (works on Android, ignored on iOS)
+    const device = this.sys.game.device;
+    const isMobileOS = device.os.iOS || device.os.android;
+    if (isMobileOS) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {}); // silently ignore if denied
+      }
+    }
+
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
       if (p === 1) this.scene.start("CockpitScene");
     });

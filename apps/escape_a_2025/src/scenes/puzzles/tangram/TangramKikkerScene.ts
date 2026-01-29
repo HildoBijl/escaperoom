@@ -1,5 +1,5 @@
 // TangramSchildpadScene.ts
-import { BaseTangramScene, type TangramPieceConfig } from "./BaseTangramPuzzle";
+import { BaseTangramScene, TangramPieceConfig } from "./BaseTangramPuzzle";
 
 export default class TangramKikkerScene extends BaseTangramScene {
   constructor() {

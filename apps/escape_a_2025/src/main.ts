@@ -45,9 +45,10 @@ import SudokuScene from "./scenes/puzzles/SudokuScene";
 import DominoScene from "./scenes/puzzles/DominoScene";
 import SlotScene from "./scenes/puzzles/SlotScene";
 import { DebugMenu } from "./ui/DebugMenu";
+import { initTelemetry } from "./telemetry/session";
 
 // Debug mode - set to false for release
-export const DEBUG = true;
+export const DEBUG = false;
 
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
@@ -72,6 +73,7 @@ const config: Phaser.Types.Core.GameConfig = {
   render: { pixelArt: true},
 
   scene: [
+  BootScene,
   PreloadScene,
   ShipFuelScene,
   EndCreditsScene,
@@ -88,7 +90,6 @@ const config: Phaser.Types.Core.GameConfig = {
   Face10Scene,
   Face11Scene,
   Face12Scene,
-  BootScene,
   TitleScene,
   CockpitScene,
   KVQDriehoeken,
@@ -122,3 +123,6 @@ const game = new Phaser.Game(config);
 if (DEBUG) {
   new DebugMenu(game);
 }
+
+// Initialize telemetry (bug reports, error logging, analytics)
+initTelemetry(game);

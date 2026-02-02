@@ -1,7 +1,7 @@
 import Phaser from "phaser";
+import { createBackButton } from "../../utils/BackButton";
 
 export default class LogicTowerScene extends Phaser.Scene {
-  // --- Configuration ---
   private readonly returnSceneKeyDefault = "Face4Scene";
   private readonly panelScale = 0.2;
   private returnSceneKey: string = "";
@@ -15,6 +15,8 @@ export default class LogicTowerScene extends Phaser.Scene {
   private answerInput: Phaser.GameObjects.DOMElement | undefined; 
   private onKeyHandler?: (event: KeyboardEvent) => void;
   private onPointerHandler?: () => void;
+  private wrongAttempts = 0;
+  private hintText?: Phaser.GameObjects.Text;
 
   constructor() {
     super("LogicTower");
@@ -35,18 +37,18 @@ export default class LogicTowerScene extends Phaser.Scene {
     this.answerInput = undefined; 
     this.onKeyHandler = undefined;
     this.onPointerHandler = undefined;
+    this.wrongAttempts = 0;
+    this.hintText = undefined;
     
     this.isSolved = !!this.registry.get("logic_tower_0_solved");
 
     const { width, height } = this.scale;
     
-    this.createTowerBackground(width, height);
+    createBackButton(this, undefined, undefined, () => {
+      this.exitPuzzle();
+    });
 
-    this.add.text(20, 20, "ESC to return", {
-      fontFamily: "sans-serif",
-      fontSize: "16px",
-      color: "#8fd5ff",
-    }).setOrigin(0, 0).setAlpha(0.7);
+    this.createTowerBackground(width, height);
 
     this.panel = this.add.image(width / 2, height / 2, "brokenpanel")
       .setScale(this.panelScale)
@@ -265,6 +267,26 @@ export default class LogicTowerScene extends Phaser.Scene {
     if (value === "sterren" || value === "ster") {
       this.completePuzzle();
     } else {
+      this.wrongAttempts++;
+  
+      if (this.wrongAttempts >= 2 && !this.hintText) {
+          const { width, height } = this.scale;
+
+          this.hintText = this.add.text(width / 2, height * 0.8, "Hint: Kijk eens uit het raampje...", {
+              fontFamily: "sans-serif",
+              fontSize: "18px",
+              color: "#ffffaa", 
+              fontStyle: "italic"
+          }).setOrigin(0.5);
+        
+          this.tweens.add({
+              targets: this.hintText,
+              alpha: { from: 0, to: 1 },
+              duration: 500,
+              ease: 'Sine.easeInOut'
+          });
+      }
+
       inputElement.style.border = "2px solid #ff4444";
       this.tweens.add({
         targets: this.answerInput,

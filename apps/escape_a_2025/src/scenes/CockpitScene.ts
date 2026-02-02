@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { TwinklingStars } from "../utils/TwinklingStars";
 import { DialogManager } from "../ui/DialogManager";
+import { ENERGY_THRESHOLD_HOME } from "./face_scenes/_FaceConfig";
 
 export default class CockpitScene extends Phaser.Scene {
   private stars?: TwinklingStars;
@@ -15,12 +16,12 @@ export default class CockpitScene extends Phaser.Scene {
   };
 
   // Navigation (HEINO bovenaan, DEZONIA onderaan)
-  private destinations: string[] = ["HEINO", "LUNTEREN", "MATHORIA", "CALCULON", "DEZONIA"];
+  private destinations: string[] = ["HEINO", "LUNTEREN", "MATHORIA", "DRUNEN", "DEZONIA"];
   private distances: Record<string, number> = {
     "DEZONIA": 2026,
-    "CALCULON": 850,
+    "DRUNEN": 850000,
     "MATHORIA": 2400,
-    "LUNTEREN": 450000,
+    "LUNTEREN": 790000,
     "HEINO": 785042,
   };
   private selectedDestination: number = 0; // Start with HEINO selected (index 0)
@@ -716,8 +717,8 @@ export default class CockpitScene extends Phaser.Scene {
 
     const barWidth = (this.energyLevel / 100) * maxWidth;
     let color = 0x00ff00;
-    if (this.energyLevel < 30) color = 0xff0000;
-    else if (this.energyLevel < 60) color = 0xffaa00;
+    if (this.energyLevel < ENERGY_THRESHOLD_HOME / 2) color = 0xff0000;
+    else if (this.energyLevel < ENERGY_THRESHOLD_HOME) color = 0xffaa00;
 
     // Only draw bar if energy > 0
     if (this.energyLevel > 0) {
@@ -764,7 +765,7 @@ export default class CockpitScene extends Phaser.Scene {
     // 2:00 position = 60 degrees from top (12:00) = 150 degrees in our system
     // 7:00 position = 210 degrees from top (12:00)
     const baseAngle = this.currentPhase === "intro1" ? 150 :
-                      (this.currentPhase === "damaged" || this.currentPhase === "repaired") ? 210 : 90;
+      (this.currentPhase === "damaged" || this.currentPhase === "repaired") ? 210 : 90;
     const wobbleAmount = this.currentPhase === "intro1" ? 3 : 0;
 
     this.updateNeedle(cx, cy, radius, baseAngle);
@@ -1084,19 +1085,31 @@ export default class CockpitScene extends Phaser.Scene {
     const regFuel = this.registry.get("energy");
     const fuel = typeof regFuel === "number" ? regFuel : 0;
 
-    if (fuel >= 80) {
+    if (fuel >= ENERGY_THRESHOLD_HOME) {
       this.animateJoystickDownOnly(() => {
-        this.cameras.main.shake(800, 0.02);
+        this.inputLocked = true;
+        this.dialogManager?.confirm("Weet je zeker dat je naar huis wilt vliegen? Als je naar huis vliegt kun je niet meer terugkomen om verder te puzzelen.", {
+          yesText: "Ja",
+          noText: "Nee",
+          onYes: () => {
+            this.cameras.main.shake(800, 0.02);
 
-        // Go to new scene after the shake starts (pick your scene name)
-        this.time.delayedCall(500, () => {
-          this.cameras.main.fadeOut(600, 0, 0, 0);
-        });
+            this.time.delayedCall(500, () => {
+              this.cameras.main.fadeOut(600, 0, 0, 0);
+            });
+            this.inputLocked = false;
 
-        this.cameras.main.once("camerafadeoutcomplete", () => {
-          this.scene.start("EndCreditsScene");
+            this.cameras.main.once("camerafadeoutcomplete", () => {
+              this.scene.start("EndCreditsScene");
+            });
+          },
+          onNo: () => {
+            // Do nothing: player stays in cockpit and can exit again / do puzzles
+            this.inputLocked = false;
+          },
         });
       });
+      return;
     } else {
       // Not enough fuel/energy
       this.animateJoystickDownOnly(() => {

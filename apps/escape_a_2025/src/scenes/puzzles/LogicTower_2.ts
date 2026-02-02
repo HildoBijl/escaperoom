@@ -1,11 +1,14 @@
 import Phaser from "phaser";
+import { createBackButton } from "../../utils/BackButton";
 
 export default class LogicTower_2 extends Phaser.Scene {
   private returnSceneKey: string = "Face4Scene"; 
   private puzzleContainer!: Phaser.GameObjects.Container;
   private inputElement?: Phaser.GameObjects.DOMElement;
   private isPuzzleOpen = false;
-  private readonly backgroundScale = 1.0; 
+  private wrongAnswersCount = 0; 
+  private hintButton?: Phaser.GameObjects.Text;
+  private isSolved = false;
   private readonly gridSize = 320; 
   private readonly step = 32;      
   private readonly starsData = [
@@ -32,15 +35,25 @@ export default class LogicTower_2 extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale;
-    this.add.image(width / 2, height / 2, "background_tower")
-      .setScale(this.backgroundScale) 
-      .setInteractive();
+    this.isSolved = !!this.registry.get("logic_tower_2_solved");
 
-    //iets van een visual ipv alleen de pointer
+    const { width, height } = this.scale;
+    this.createTowerBackground(width, height);
+    this.add.image(width / 2, height / 2, "background_tower")
+      .setScale(0.5); 
+
+    createBackButton(this, undefined, undefined, () => {
+        if (this.isPuzzleOpen) {
+            this.closePuzzle();
+        } else {
+            this.exitScene();
+        }
+    });
+
+
     const hoverGuide = this.add.graphics();
     hoverGuide.lineStyle(4, 0x00ff00, 0.6);
-    hoverGuide.strokeCircle(width / 2, height / 2, 80);
+    hoverGuide.strokeCircle(width / 2, height / 2, 100); 
     hoverGuide.setVisible(false);
     
     this.tweens.add({
@@ -52,53 +65,65 @@ export default class LogicTower_2 extends Phaser.Scene {
         repeat: -1
     });
 
-    const triggerZone = this.add.zone(width / 2, height / 2, 160, 160)
+
+    const triggerZone = this.add.zone(width / 2, height / 2, 200, 200)
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
 
     triggerZone.on("pointerover", () => {
-        if (!this.isPuzzleOpen) hoverGuide.setVisible(true);
+        if (!this.isPuzzleOpen && !this.isSolved) hoverGuide.setVisible(true);
     });
 
     triggerZone.on("pointerout", () => {
         hoverGuide.setVisible(false);
     });
-    //half nodig want je gaat gelijk , maar leuk
+    
     triggerZone.on("pointerdown", () => {
       if (!this.isPuzzleOpen) {
-        hoverGuide.setVisible(false); 
-        this.openGridPuzzle();
-      }
-    });
-    this.add.text(20, 20, "ESC om terug te gaan", {
-      fontFamily: "sans-serif", fontSize: "16px", color: "#8fd5ff",
-    }).setAlpha(0.7);
-    this.input.keyboard?.on("keydown-ESC", () => {
-        if (this.isPuzzleOpen) {
-            this.closePuzzle();
+        if (this.isSolved) {
+            this.scene.start("LogicTower_3", { returnScene: this.returnSceneKey });
         } else {
-            this.exitScene();
+            hoverGuide.setVisible(false); 
+            this.openGridPuzzle();
         }
+      }
     });
   }
 
-    //grid puzzle UI
+  private createTowerBackground(width: number, height: number) {
+    this.add.rectangle(0, 0, width, height, 0x222222).setOrigin(0);
+    const wallGraphics = this.add.graphics();
+    wallGraphics.fillStyle(0x333333, 0.4);
+    
+    for (let i = 0; i < 40; i++) {
+        const bx = Math.random() * width;
+        const by = Math.random() * height;
+        wallGraphics.fillRect(bx, by, 60, 30);
+    }
+  }
+
   private openGridPuzzle() {
     this.isPuzzleOpen = true;
+    this.wrongAnswersCount = 0; 
+    this.hintButton = undefined;
+
     const { width, height } = this.scale;
     this.puzzleContainer = this.add.container(0, 0).setDepth(100);
+    
     const overlay = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.85)
         .setInteractive();
     this.puzzleContainer.add(overlay);
+    
     const panelW = 450;
     const panelH = 580; 
     const panel = this.add.rectangle(width/2, height/2, panelW, panelH, 0x1b2748)
         .setStrokeStyle(4, 0x3c5a99);
     this.puzzleContainer.add(panel);
 
-    // --- GRID CALCS ---
+
     const originX = (width / 2) - (this.gridSize / 2);
     const originY = (height / 2) + (this.gridSize / 2) - 40; 
+    
     const instructionText = this.add.text(width / 2, originY - this.gridSize - 50, 
         "Geef de coordinaten van de groene\n ster door om het signaal te ontvangen", {
         fontFamily: "sans-serif",
@@ -109,7 +134,6 @@ export default class LogicTower_2 extends Phaser.Scene {
     }).setOrigin(0.5);
     this.puzzleContainer.add(instructionText);
 
-    // grid tijd
     const gfx = this.add.graphics();
     this.puzzleContainer.add(gfx);
     gfx.lineStyle(1, 0x3c5a99, 0.3); 
@@ -119,6 +143,8 @@ export default class LogicTower_2 extends Phaser.Scene {
         gfx.lineTo(originX + pos, originY - this.gridSize);
         gfx.moveTo(originX, originY - pos);
         gfx.lineTo(originX + this.gridSize, originY - pos);
+        
+
         this.puzzleContainer.add(this.add.text(originX + pos, originY + 10, i.toString(), { fontSize: '12px', color: '#88aaff' }).setOrigin(0.5));
         this.puzzleContainer.add(this.add.text(originX - 15, originY - pos, i.toString(), { fontSize: '12px', color: '#88aaff' }).setOrigin(0.5));
     }
@@ -130,7 +156,7 @@ export default class LogicTower_2 extends Phaser.Scene {
     gfx.lineTo(originX + this.gridSize, originY); 
     gfx.strokePath();
 
-    // sterren
+
     this.starsData.forEach(star => {
         const screenX = originX + (star.x * this.step);
         const screenY = originY - (star.y * this.step); 
@@ -138,7 +164,7 @@ export default class LogicTower_2 extends Phaser.Scene {
         this.puzzleContainer.add(starObj);
     });
 
-    //dom
+
     const inputY = originY + 60;
     this.inputElement = this.add.dom(width / 2, inputY).createFromHTML(`
         <div style="display:flex; align-items:center; gap:10px; font-family:sans-serif;">
@@ -181,6 +207,12 @@ export default class LogicTower_2 extends Phaser.Scene {
       } else {
           xInput.style.borderColor = "red";
           yInput.style.borderColor = "red";
+          this.wrongAnswersCount++;
+
+          if (this.wrongAnswersCount >= 2 && !this.hintButton) {
+              this.showHintButton();
+          }
+
           this.tweens.add({
               targets: this.inputElement,
               x: this.inputElement.x + 5,
@@ -191,6 +223,28 @@ export default class LogicTower_2 extends Phaser.Scene {
       }
   }
 
+  private showHintButton() {
+    const { width } = this.scale;
+    const hintY = (this.inputElement?.y || 0) + 60;
+
+    this.hintButton = this.add.text(width / 2, hintY, "[ Hint Tonen ]", {
+        fontSize: "18px",
+        color: "#ffff00",
+        backgroundColor: "#333333",
+        padding: { x: 10, y: 5 }
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+        if (this.hintButton) {
+            this.hintButton.setText("X = Horizontaal (Opzij)\nY = Verticaal (Omhoog)");
+            this.hintButton.disableInteractive();
+        }
+    });
+
+    this.puzzleContainer.add(this.hintButton);
+  }
+
   private closePuzzle() {
       this.isPuzzleOpen = false;
       this.inputElement?.destroy();
@@ -198,6 +252,7 @@ export default class LogicTower_2 extends Phaser.Scene {
   }
 
   private completePuzzle() {
+      this.registry.set("logic_tower_2_solved", true);
       this.closePuzzle();
       this.scene.start("LogicTower_3", { returnScene: this.returnSceneKey });
   }

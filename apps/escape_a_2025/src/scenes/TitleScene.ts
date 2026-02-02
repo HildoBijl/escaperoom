@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { TwinklingStars, WarpStars } from "../utils/TwinklingStars";
 import { getLeaderboardKampA } from "../firebase/firestore";
+import { enterAndKeepFullscreen } from "../utils/fullscreen";
+import { getIsDesktop } from "../ControlsMode";
+import { SAVE_KEY } from "./BootScene";
 
 /**
  * Links supported as markdown:
@@ -12,7 +15,9 @@ import { getLeaderboardKampA } from "../firebase/firestore";
 // -----------------------------
 // TAB CONTENT
 // -----------------------------
-const INFO_TAB_BODY = `Deze escaperoom is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Voor nu staat alleen de teaser nog online. Dit voorproefje geeft alvast een beeld van de escaperoom die in februari volledig online zal komen. Let op: als je de teaser afsluit, dan is je voortgang weg. Speel hem dus in 1x uit, of schrijf de antwoorden op zodat je de volgende keer er sneller doorheen kan.`;
+const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd, en waarvoor je met deze escaperoom een gratis plaats kunt winnen? Kijk dan even op het tabje ‘Achtergrond’.
+
+Verzamelmania op Dezonia is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Je voortgang wordt automatisch opgeslagen, dus je kunt later verder spelen waar je gebleven was.`;
 
 const ACHTERGROND_TAB_BODY = `Stichting [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/) organiseert al vanaf 1993 wiskundige activiteiten voor jongeren. Onder andere organiseert de stichting elk jaar wiskundezomerkampen voor groep 6 tot en met klas 6. Om dit mooie initiatief te ondersteunen, hebben de [bèta-vicedecanen van de Nederlandse universiteiten](https://www.vierkantvoorwiskunde.nl/2023/10/uitbouw-van-de-vierkant-voor-wiskunde-zomerkampen/) in 2024 een bijdrage toegekend om de zomerkampen uit te breiden.
 
@@ -29,6 +34,8 @@ const CONTACT_TAB_BODY = `Makers escaperoom 2025-2026:
 - Illustraties: Gegenereerd met AI.
 
 Bugs kunnen worden gemeld via [escaperoom@vierkantvoorwiskunde.nl](mailto:escaperoom@vierkantvoorwiskunde.nl)
+
+[Privacybeleid](https://www.vierkantvoorwiskunde.nl/stichting/privacybeleid/)
 `;
 
 type Tab = { title: string; body: string };
@@ -95,6 +102,9 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   create() {
+    this.isStarting = false;
+    this.popup = undefined;
+
     const { width, height } = this.scale;
 
     // -------------------------
@@ -113,8 +123,10 @@ export default class TitleScene extends Phaser.Scene {
       this.warpStars?.update(delta);
     });
 
+    const hasSave = this.hasSavedGame();
+
     this.add
-      .text(width / 2, height * 0.28, "Verzamelmania op Dezonia!", {
+      .text(width / 2, height * (hasSave ? 0.20 : 0.28), "Verzamelmania op Dezonia!", {
         fontFamily: "sans-serif",
         fontSize: "80px",
         fontStyle: "900",
@@ -125,7 +137,7 @@ export default class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, height * 0.38, "Lukt het jou om terug te keren naar Aarde?", {
+      .text(width / 2, height * (hasSave ? 0.30 : 0.38), "Lukt het jou om terug te keren naar Aarde?", {
         fontFamily: "sans-serif",
         fontSize: "35px",
         color: "#b6d5ff",
@@ -134,24 +146,43 @@ export default class TitleScene extends Phaser.Scene {
 
     // Button layout
     const btnX = width / 2;
-    const firstBtnY = height * 0.57;
     const btnGap = 15;
     const BTN_W = 600;
     const BTN_H = 90;
 
+    let nextY = hasSave ? height * 0.47 : height * 0.57;
+
+    if (hasSave) {
+      const resumeButton = this.makeMenuButton({
+        x: btnX,
+        y: nextY,
+        width: BTN_W,
+        height: BTN_H,
+        label: "Hervat spel",
+        onClick: () => this.handleResumeClick(),
+        lockWhenStarting: true,
+      });
+      resumeButton.pad.setDepth(10);
+      resumeButton.text.setDepth(11);
+      nextY += BTN_H + btnGap;
+    }
+
     const startButton = this.makeMenuButton({
       x: btnX,
-      y: firstBtnY,
+      y: nextY,
       width: BTN_W,
       height: BTN_H,
-      label: "Klik hier om te starten",
-      onClick: () => this.handleStartClick(),
+      label: hasSave ? "Nieuw spel starten" : "Klik hier om te starten",
+      onClick: () => this.handleStartClick(hasSave),
       lockWhenStarting: true,
     });
+    startButton.pad.setDepth(10);
+    startButton.text.setDepth(11);
+    nextY += BTN_H + btnGap;
 
     const infoButton = this.makeMenuButton({
       x: btnX,
-      y: firstBtnY + BTN_H + btnGap,
+      y: nextY,
       width: BTN_W,
       height: BTN_H,
       label: "Info / Achtergrond / Contact",
@@ -163,25 +194,21 @@ export default class TitleScene extends Phaser.Scene {
         ]),
       lockWhenStarting: true,
     });
+    infoButton.pad.setDepth(10);
+    infoButton.text.setDepth(11);
+    nextY += BTN_H + btnGap;
 
     const leaderboardButton = this.makeMenuButton({
       x: btnX,
-      y: firstBtnY + (BTN_H + btnGap) * 2,
+      y: nextY,
       width: BTN_W,
       height: BTN_H,
       label: "Leaderboard",
       onClick: () => this.openLeaderboardPopup(),
       lockWhenStarting: true,
     });
-
     leaderboardButton.pad.setDepth(10);
     leaderboardButton.text.setDepth(11);
-
-
-    startButton.pad.setDepth(10);
-    startButton.text.setDepth(11);
-    infoButton.pad.setDepth(10);
-    infoButton.text.setDepth(11);
   }
 
   update(_time: number, delta: number) {
@@ -191,11 +218,56 @@ export default class TitleScene extends Phaser.Scene {
   // =========================================================
   // START FLOW
   // =========================================================
-  private handleStartClick() {
+  private hasSavedGame(): boolean {
+    try {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      // Show resume if player solved at least the first puzzle
+      return !!data.ship_fuel_solved || (data.energy ?? 0) > 0
+        || Object.keys(data).some((k) => k.endsWith("_solved") && data[k]);
+    } catch {
+      return false;
+    }
+  }
+
+  private handleStartClick(clearSave: boolean) {
     if (this.isStarting) return;
     this.isStarting = true;
+
+    if (clearSave) {
+      localStorage.removeItem(SAVE_KEY);
+      const all = this.registry.getAll();
+      for (const key of Object.keys(all)) {
+        if (key !== "version" && !key.startsWith("debug_")) {
+          this.registry.remove(key);
+        }
+      }
+    }
+
+    if (!getIsDesktop(this)) {
+      enterAndKeepFullscreen();
+    }
+
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
       if (p === 1) this.scene.start("IntroScene");
+    });
+  }
+
+  private handleResumeClick() {
+    if (this.isStarting) return;
+    this.isStarting = true;
+
+    if (!getIsDesktop(this)) {
+      enterAndKeepFullscreen();
+    }
+
+    // If player was on the planet, go there; otherwise cockpit
+    const shipSolved = this.registry.get("electricitySolved") || this.registry.get("ship_fuel_solved");
+    const targetScene = shipSolved ? "Face1Scene" : "CockpitScene";
+
+    this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
+      if (p === 1) this.scene.start(targetScene);
     });
   }
 

@@ -1,5 +1,9 @@
 import Phaser from "phaser";
-import { TwinklingStars } from "../utils/TwinklingStars";
+import { TwinklingStars, WarpStars } from "../utils/TwinklingStars";
+import { getLeaderboardKampA } from "../firebase/firestore";
+import { enterAndKeepFullscreen } from "../utils/fullscreen";
+import { getIsDesktop } from "../ControlsMode";
+import { SAVE_KEY } from "./BootScene";
 
 /**
  * Links supported as markdown:
@@ -11,7 +15,9 @@ import { TwinklingStars } from "../utils/TwinklingStars";
 // -----------------------------
 // TAB CONTENT
 // -----------------------------
-const INFO_TAB_BODY = `Deze escaperoom is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Voor nu staat alleen de teaser nog online. Dit voorproefje geeft alvast een beeld van de escaperoom die in februari volledig online zal komen. Let op: als je de teaser afsluit, dan is je voortgang weg. Speel hem dus in 1x uit, of schrijf de antwoorden op zodat je de volgende keer er sneller doorheen kan.`;
+const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd, en waarvoor je met deze escaperoom een gratis plaats kunt winnen? Kijk dan even op het tabje ‘Achtergrond’.
+
+Verzamelmania op Dezonia is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Je voortgang wordt automatisch opgeslagen, dus je kunt later verder spelen waar je gebleven was.`;
 
 const ACHTERGROND_TAB_BODY = `Stichting [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/) organiseert al vanaf 1993 wiskundige activiteiten voor jongeren. Onder andere organiseert de stichting elk jaar wiskundezomerkampen voor groep 6 tot en met klas 6. Om dit mooie initiatief te ondersteunen, hebben de [bèta-vicedecanen van de Nederlandse universiteiten](https://www.vierkantvoorwiskunde.nl/2023/10/uitbouw-van-de-vierkant-voor-wiskunde-zomerkampen/) in 2024 een bijdrage toegekend om de zomerkampen uit te breiden.
 
@@ -23,11 +29,13 @@ Wil je mee op een van de zomerkampen van Vierkant voor Wiskunde? Meer informatie
 Bekijk ook onze [homepagina](https://www.vierkantvoorwiskunde.nl/).`;
 
 const CONTACT_TAB_BODY = `Makers escaperoom 2025-2026:
-- Verhaal en Raadsels: Sonja Lakovleva & Moniek Messink
+- Verhaal en Raadsels: Sonja Iakovleva & Moniek Messink
 - Programmering: Daniël Wielenga, Misha Stassen, Robin van Hoorn
 - Illustraties: Gegenereerd met AI.
 
 Bugs kunnen worden gemeld via [escaperoom@vierkantvoorwiskunde.nl](mailto:escaperoom@vierkantvoorwiskunde.nl)
+
+[Privacybeleid](https://www.vierkantvoorwiskunde.nl/stichting/privacybeleid/)
 `;
 
 type Tab = { title: string; body: string };
@@ -85,6 +93,7 @@ type PopupState = {
 
 export default class TitleScene extends Phaser.Scene {
   private twinklingStars?: TwinklingStars;
+  private warpStars?: WarpStars;
   private isStarting = false;
   private popup?: PopupState;
 
@@ -93,14 +102,33 @@ export default class TitleScene extends Phaser.Scene {
   }
 
   create() {
+    this.isStarting = false;
+    this.popup = undefined;
+
     const { width, height } = this.scale;
 
-    this.twinklingStars = new TwinklingStars(this, 140, width, height);
+    // -------------------------
+    // Background: Warp Stars
+    // -------------------------
+    const stars = new WarpStars(this, 600, width, height, {
+      baseSpeed: 200,
+      depth: 1400,
+      fov: 280,
+      fadeInZPortion: 0.25,
+    });
+    stars.setDepth(-10);
+    this.warpStars = stars;
+
+    this.events.on("update", (_time: number, delta: number) => {
+      this.warpStars?.update(delta);
+    });
+
+    const hasSave = this.hasSavedGame();
 
     this.add
-      .text(width / 2, height * 0.28, "Verzamelmania op Dezonia!", {
+      .text(width / 2, height * (hasSave ? 0.20 : 0.28), "Verzamelmania op Dezonia!", {
         fontFamily: "sans-serif",
-        fontSize: "42px",
+        fontSize: "80px",
         fontStyle: "900",
         color: "#e7f3ff",
         stroke: "#66a3ff",
@@ -109,33 +137,52 @@ export default class TitleScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.add
-      .text(width / 2, height * 0.38, "Lukt het jou om terug te keren naar Aarde?", {
+      .text(width / 2, height * (hasSave ? 0.30 : 0.38), "Lukt het jou om terug te keren naar Aarde?", {
         fontFamily: "sans-serif",
-        fontSize: "18px",
+        fontSize: "35px",
         color: "#b6d5ff",
       })
       .setOrigin(0.5);
 
     // Button layout
     const btnX = width / 2;
-    const firstBtnY = height * 0.62;
-    const btnGap = 18;
-    const BTN_W = 420;
-    const BTN_H = 70;
+    const btnGap = 15;
+    const BTN_W = 600;
+    const BTN_H = 90;
+
+    let nextY = hasSave ? height * 0.47 : height * 0.57;
+
+    if (hasSave) {
+      const resumeButton = this.makeMenuButton({
+        x: btnX,
+        y: nextY,
+        width: BTN_W,
+        height: BTN_H,
+        label: "Hervat spel",
+        onClick: () => this.handleResumeClick(),
+        lockWhenStarting: true,
+      });
+      resumeButton.pad.setDepth(10);
+      resumeButton.text.setDepth(11);
+      nextY += BTN_H + btnGap;
+    }
 
     const startButton = this.makeMenuButton({
       x: btnX,
-      y: firstBtnY,
+      y: nextY,
       width: BTN_W,
       height: BTN_H,
-      label: "Klik hier om te starten",
-      onClick: () => this.handleStartClick(),
+      label: hasSave ? "Nieuw spel starten" : "Klik hier om te starten",
+      onClick: () => this.handleStartClick(hasSave),
       lockWhenStarting: true,
     });
+    startButton.pad.setDepth(10);
+    startButton.text.setDepth(11);
+    nextY += BTN_H + btnGap;
 
     const infoButton = this.makeMenuButton({
       x: btnX,
-      y: firstBtnY + BTN_H + btnGap,
+      y: nextY,
       width: BTN_W,
       height: BTN_H,
       label: "Info / Achtergrond / Contact",
@@ -147,11 +194,21 @@ export default class TitleScene extends Phaser.Scene {
         ]),
       lockWhenStarting: true,
     });
-
-    startButton.pad.setDepth(10);
-    startButton.text.setDepth(11);
     infoButton.pad.setDepth(10);
     infoButton.text.setDepth(11);
+    nextY += BTN_H + btnGap;
+
+    const leaderboardButton = this.makeMenuButton({
+      x: btnX,
+      y: nextY,
+      width: BTN_W,
+      height: BTN_H,
+      label: "Leaderboard",
+      onClick: () => this.openLeaderboardPopup(),
+      lockWhenStarting: true,
+    });
+    leaderboardButton.pad.setDepth(10);
+    leaderboardButton.text.setDepth(11);
   }
 
   update(_time: number, delta: number) {
@@ -161,22 +218,56 @@ export default class TitleScene extends Phaser.Scene {
   // =========================================================
   // START FLOW
   // =========================================================
-  private handleStartClick() {
+  private hasSavedGame(): boolean {
+    try {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      // Show resume if player solved at least the first puzzle
+      return !!data.ship_fuel_solved || (data.energy ?? 0) > 0
+        || Object.keys(data).some((k) => k.endsWith("_solved") && data[k]);
+    } catch {
+      return false;
+    }
+  }
+
+  private handleStartClick(clearSave: boolean) {
     if (this.isStarting) return;
     this.isStarting = true;
 
-    // Request fullscreen on mobile (works on Android, ignored on iOS)
-    const device = this.sys.game.device;
-    const isMobileOS = device.os.iOS || device.os.android;
-    if (isMobileOS) {
-      const el = document.documentElement;
-      if (el.requestFullscreen) {
-        el.requestFullscreen().catch(() => {}); // silently ignore if denied
+    if (clearSave) {
+      localStorage.removeItem(SAVE_KEY);
+      const all = this.registry.getAll();
+      for (const key of Object.keys(all)) {
+        if (key !== "version" && !key.startsWith("debug_")) {
+          this.registry.remove(key);
+        }
       }
     }
 
+    if (!getIsDesktop(this)) {
+      enterAndKeepFullscreen();
+    }
+
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
-      if (p === 1) this.scene.start("CockpitScene");
+      if (p === 1) this.scene.start("IntroScene");
+    });
+  }
+
+  private handleResumeClick() {
+    if (this.isStarting) return;
+    this.isStarting = true;
+
+    if (!getIsDesktop(this)) {
+      enterAndKeepFullscreen();
+    }
+
+    // If player was on the planet, go there; otherwise cockpit
+    const shipSolved = this.registry.get("electricitySolved") || this.registry.get("ship_fuel_solved");
+    const targetScene = shipSolved ? "Face1Scene" : "CockpitScene";
+
+    this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
+      if (p === 1) this.scene.start(targetScene);
     });
   }
 
@@ -199,7 +290,7 @@ export default class TitleScene extends Phaser.Scene {
       .setStrokeStyle(2, 0x3c5a99);
 
     const text = this.add
-      .text(x, y, label, { fontFamily: "sans-serif", fontSize: "22px", color: "#cfe8ff" })
+      .text(x, y, label, { fontFamily: "sans-serif", fontSize: "40px", color: "#cfe8ff" })
       .setOrigin(0.5);
 
     const canInteract = () => !(lockWhenStarting && this.isStarting);
@@ -651,4 +742,89 @@ export default class TitleScene extends Phaser.Scene {
     measurer.destroy();
     return y + lineHeight;
   }
+
+  // =========================================================
+  // LEADERBOARD POPUP
+  // =========================================================
+  private openLeaderboardPopup() {
+    // Open popup immediately with a loading message
+    this.openTabbedPopup([{ title: "Leaderboard", body: "Laden..." }]);
+
+    // Then fetch and replace content
+    (async () => {
+      try {
+        const rows = await getLeaderboardKampA(100);
+
+        if (!this.popup) return; // user closed it
+        if (!rows.length) {
+          this.replacePopupBody("Nog geen inzendingen. Wees de eerste!");
+          return;
+        }
+
+        // Build a nice fixed-width-ish list (works with your rich-text builder)
+        // We'll show newest first (already sorted)
+        const lines: string[] = [];
+        lines.push("Nieuwste inzendingen:\n");
+
+        // Keep it readable; show top 50 or 100 based on fetch
+        rows.forEach((r, i) => {
+          const name = (r as any).name ?? "";
+          const age = (r as any).age ?? "";
+          // Optional date
+          let dateStr = "";
+          const ts = (r as any).createdAt;
+          if (ts?.toDate) {
+            dateStr = ts.toDate().toLocaleDateString("nl-NL", { day: "2-digit", month: "short" });
+          }
+          const idx = String(i + 1).padStart(2, " ");
+          const ageStr = String(age).padStart(2, " ");
+          const suffix = dateStr ? `  ·  ${dateStr}` : "";
+          lines.push(`${idx}. ${name} (${ageStr})${suffix}`);
+        });
+
+        this.replacePopupBody(lines.join("\n"));
+      } catch (err) {
+        console.error("[LEADERBOARD FAILED]", err);
+        if (!this.popup) return;
+        this.replacePopupBody("Oeps! Het leaderboard kon niet geladen worden. Probeer het later opnieuw.");
+      }
+    })();
+  }
+
+  private replacePopupBody(body: string) {
+    const pop = this.popup;
+    if (!pop) return;
+
+    // Keep one tab; set its body
+    pop.tabs = [{ title: "Leaderboard", body }];
+    pop.tabIndex = 0;
+
+    // Hide/disable tab buttons if there are multiple from earlier calls
+    // (Since we opened with one tab, there should only be one.)
+    pop.tabButtons.forEach((btn, i) => {
+      const active = i === 0;
+      btn.pad.setFillStyle(active ? 0x26365f : 0x1e2a4a, 0.95);
+      btn.pad.setStrokeStyle(2, active ? 0x66a3ff : 0x3c5a99);
+      btn.text.setColor(active ? "#ffffff" : "#cfe8ff");
+    });
+
+    // Rebuild content container
+    pop.content.removeAll(true);
+    pop.content.x = pop.viewportX;
+    pop.content.y = pop.viewportY;
+
+    const contentHeight = this.buildRichTextIntoContainer(pop.content, body, {
+      maxWidth: pop.viewportW,
+      fontSize: 18,
+      lineHeight: 26,
+    });
+
+    pop.scrollY = 0;
+    pop.maxScroll = Math.max(0, contentHeight - pop.viewportH);
+    pop.scrollThumb.height = this.calcThumbH(pop.trackH, contentHeight, 30);
+
+    this.setPopupScroll(0);
+  }
+
+
 }

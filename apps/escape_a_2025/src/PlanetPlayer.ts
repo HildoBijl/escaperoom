@@ -27,6 +27,13 @@ export interface PlayerControllerOptions {
 
 type V2 = Phaser.Math.Vector2;
 
+type EdgeInfo = {
+  start: V2;
+  end: V2;
+  dir: V2;       // normalized direction along edge
+  normal: V2;    // inward-facing normal
+};
+
 export class PlayerController {
   public readonly sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
@@ -68,7 +75,7 @@ export class PlayerController {
     this.sprite = this.scene.physics.add
       .sprite(spawn.x, spawn.y, startTexture)
       .setOrigin(0.5, 0.8)
-      .setDisplaySize(48, 48)
+      .setDisplaySize(120, 120)
       .setDepth(35)
       .setCollideWorldBounds(false);
 
@@ -206,16 +213,51 @@ export class PlayerController {
     else if (down && !up) ay = this.accel;
 
     this.sprite.setAcceleration(ax, ay);
-    if (ax === 0 && ay === 0) this.sprite.setAcceleration(0, 0);
 
-    const pos = new Phaser.Math.Vector2(this.sprite.x, this.sprite.y);
-    const point = new Phaser.Geom.Point(pos.x, pos.y);
+    const body = this.sprite.body as Phaser.Physics.Arcade.Body;
+    const bc = new Phaser.Math.Vector2(body.center.x, body.center.y);
+    const point = new Phaser.Geom.Point(bc.x, bc.y);
+
+    // Offset from sprite anchor to body center (constant while body config unchanged)
+    const offX = body.center.x - this.sprite.x;
+    const offY = body.center.y - this.sprite.y;
+
     if (Phaser.Geom.Polygon.ContainsPoint(this.poly, point)) {
-      this.lastSafePos.copy(pos);
+      // Inside polygon - save body center as safe position
+      this.lastSafePos.copy(bc);
     } else {
-      this.sprite.setVelocity(0, 0);
-      this.sprite.x = this.lastSafePos.x;
-      this.sprite.y = this.lastSafePos.y;
+      // Outside polygon - apply wall sliding
+      const edge = this.findClosestEdge(bc);
+
+      if (edge) {
+        const velocity = new Phaser.Math.Vector2(
+          body.velocity.x,
+          body.velocity.y
+        );
+
+        // Project velocity onto edge direction (tangent) for sliding
+        const slideSpeed = velocity.dot(edge.dir);
+        const slideVel = edge.dir.clone().scale(slideSpeed);
+
+        // Apply the slide velocity
+        this.sprite.setVelocity(slideVel.x, slideVel.y);
+
+        // Place body center at closest point on edge, pushed slightly inward
+        const pushDist = 1;
+        const targetX = edge.closestPoint.x + edge.normal.x * pushDist;
+        const targetY = edge.closestPoint.y + edge.normal.y * pushDist;
+
+        // Convert body center target back to sprite position
+        this.sprite.x = targetX - offX;
+        this.sprite.y = targetY - offY;
+
+        this.lastSafePos.set(targetX, targetY);
+      } else {
+        // Fallback: no edge found
+        this.sprite.setVelocity(0, 0);
+        this.sprite.x = this.lastSafePos.x - offX;
+        this.sprite.y = this.lastSafePos.y - offY;
+      }
     }
   }
 
@@ -280,5 +322,70 @@ export class PlayerController {
       g.setPosition(obj.x, obj.y + (obj.displayHeight ?? 0) * 0.35);
       g.setDepth((obj.depth ?? 0) - 1);
     });
+  }
+
+  private getPolygonCenter(): V2 {
+    let sx = 0, sy = 0;
+    for (const p of this.poly.points) {
+      sx += p.x;
+      sy += p.y;
+    }
+    return new Phaser.Math.Vector2(
+      sx / this.poly.points.length,
+      sy / this.poly.points.length
+    );
+  }
+
+  /**
+   * Find the closest edge to a point and return edge info with:
+   * - inward-facing normal
+   * - the closest point on that edge
+   * - the edge index (for travel triggers)
+   */
+  private findClosestEdge(pos: V2): (EdgeInfo & { closestPoint: V2; edgeIndex: number }) | null {
+    const pts = this.poly.points;
+    if (pts.length < 3) return null;
+
+    const center = this.getPolygonCenter();
+    let closestEdge: (EdgeInfo & { closestPoint: V2; edgeIndex: number }) | null = null;
+    let closestDist = Infinity;
+
+    for (let i = 0; i < pts.length; i++) {
+      const p1 = pts[i];
+      const p2 = pts[(i + 1) % pts.length];
+
+      const start = new Phaser.Math.Vector2(p1.x, p1.y);
+      const end = new Phaser.Math.Vector2(p2.x, p2.y);
+      const edgeVec = end.clone().subtract(start);
+      const edgeLen = edgeVec.length();
+      if (edgeLen === 0) continue;
+
+      const dir = edgeVec.clone().normalize();
+
+      // Project pos onto edge line to find closest point
+      const toPos = pos.clone().subtract(start);
+      const t = Phaser.Math.Clamp(toPos.dot(dir) / edgeLen, 0, 1);
+      const closestPoint = start.clone().add(dir.clone().scale(t * edgeLen));
+      const dist = pos.distance(closestPoint);
+
+      if (dist < closestDist) {
+        closestDist = dist;
+
+        // Calculate normal (perpendicular to edge)
+        // We want the inward-facing normal
+        let normal = new Phaser.Math.Vector2(-dir.y, dir.x);
+
+        // Check if normal points toward center (inward)
+        const edgeMid = start.clone().add(end).scale(0.5);
+        const toCenter = center.clone().subtract(edgeMid);
+        if (toCenter.dot(normal) < 0) {
+          normal.negate();
+        }
+
+        closestEdge = { start, end, dir, normal, closestPoint, edgeIndex: i };
+      }
+    }
+
+    return closestEdge;
   }
 }

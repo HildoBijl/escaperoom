@@ -1,5 +1,7 @@
 // TangramSelectScene.ts
 import Phaser from "phaser";
+import { createBackButton } from "../../../utils/BackButton";
+import { PUZZLE_REWARDS, PuzzleKey } from "../../face_scenes/_FaceConfig";
 
 interface TangramLevel {
   key: string;          // Scene key of the puzzle
@@ -11,17 +13,17 @@ export default class TangramSelectScene extends Phaser.Scene {
   private levels: TangramLevel[] = [
     {
       key: "TangramKikkerScene",
-      label: "Mijn kikkertje",
+      label: "Kikker",
       registryFlag: "tangram_kikker_solved",
     },
     {
       key: "TangramSchildpadScene",
-      label: "Mijn schildpad",
+      label: "Schildpad",
       registryFlag: "tangram_schildpad_solved",
     },
     {
       key: "TangramKrabScene",
-      label: "En mijn krabbetje",
+      label: "Krab",
       registryFlag: "tangram_krab_solved",
     },
   ];
@@ -35,18 +37,27 @@ export default class TangramSelectScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
+    // Back button
+    createBackButton(this, "Face2Scene", { entry_from_puzzle: true });
+
     // 🔧 IMPORTANT: reset the stored text objects when the scene (re)starts
     this.levelTextObjects = [];
 
     this.add
-        .text(width / 2, height * 0.2, "Kun jij de dieren terugvinden?", {
+        .text(width / 2, height * 0.2, "Kun jij mijn dieren terugvinden?", {
         fontFamily: "sans-serif",
         fontSize: "36px",
         color: "#ffffff",
         })
         .setOrigin(0.5);
 
-    const startY = height * 0.4;
+    this.add.text(width / 2, height * 0.3, "Klik een van de dieren om de schaduw na te maken", {
+        fontFamily: "sans-serif",
+        fontSize: "24px",
+        color: "#ffffff",
+    }).setOrigin(0.5);
+
+    const startY = height * 0.5;
     const gap = 70;
 
     this.levels.forEach((level, index) => {
@@ -105,7 +116,7 @@ export default class TangramSelectScene extends Phaser.Scene {
     );
 
     if (allSolved) {
-      this.registry.set("tangram_puzzle_solved", true);
+      this.registry.set(PUZZLE_REWARDS[PuzzleKey.Tangram].puzzleSolvedRegistryKey, true);
 
       this.time.delayedCall(400, () => {
         // 👇 pass the "came from puzzle" flag

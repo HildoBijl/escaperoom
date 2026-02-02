@@ -9,6 +9,8 @@ import {
 import { Hud } from "../../PlanetHud";
 import { getIsDesktop } from "../../ControlsMode";
 import { TwinklingStars } from "../../utils/TwinklingStars";
+import { PUZZLE_REWARDS, PuzzleKey } from "./_FaceConfig";
+import { DialogManager, DialogLine } from "../../ui/DialogManager";
 
 export type Edge = { a: Phaser.Math.Vector2; b: Phaser.Math.Vector2 };
 
@@ -41,11 +43,11 @@ type EdgeMeta = {
 };
 
 type TravelEdgeZone = {
-  zone: Phaser.GameObjects.Zone;
   target: string;
   gfx: Phaser.GameObjects.Graphics;
   width: number;
   height: number;
+  edge: Edge;              // real segment (a->b)
 };
 
 type StandardFaceConfig = {
@@ -59,8 +61,6 @@ type StandardFaceConfig = {
   edgeTriggerScale?: number;
   backgroundColor?: string;
   showLabel?: boolean;
-  disableEscape?: boolean; // Disable ESC key to title screen
-  disableTravel?: boolean; // Disable face-to-face travel (keeps visual colors)
 };
 
 export default abstract class FaceBase extends Phaser.Scene {
@@ -69,7 +69,6 @@ export default abstract class FaceBase extends Phaser.Scene {
 
   protected playerController!: PlayerController;
   protected hud!: Hud;
-  protected escapeHandler?: (() => void) | null;
 
   // Gameplay geometry
   protected poly!: Phaser.Geom.Polygon;
@@ -85,7 +84,7 @@ export default abstract class FaceBase extends Phaser.Scene {
   protected maxEnergy = 100;
 
   // ---- CAMERA & 3D preview fields ----
-  private camZ = 1800; // camera position on +Z
+  private camZ = 2200; // camera position on +Z
   private tilt = -DIHEDRAL; // rotate neighbors away from viewer (negative z)
 
   // drawing caches
@@ -95,6 +94,13 @@ export default abstract class FaceBase extends Phaser.Scene {
   protected twinklingStars?: TwinklingStars;
   protected travelEdgeZones: TravelEdgeZone[] = [];
   protected activeTravelEdge: string | null = null;
+  // @ts-ignore - reserved for stripe pattern feature
+  private faceStripeOverlay?: Phaser.GameObjects.TileSprite;
+  // @ts-ignore - reserved for stripe pattern feature
+  private faceStripeMaskGfx?: Phaser.GameObjects.Graphics;
+
+  // ---- Debug hitbox visualization ----
+  private hitboxDebugGfx?: Phaser.GameObjects.Graphics;
 
   // ---- Interaction highlights ----
   private interactableHighlights: {
@@ -104,12 +110,7 @@ export default abstract class FaceBase extends Phaser.Scene {
   }[] = [];
 
   // ---- Shared dialog system ----
-  private dialogBox?: Phaser.GameObjects.Rectangle;
-  private dialogText?: Phaser.GameObjects.Text;
-  private dialogLines: string[] = [];
-  private dialogIndex = 0;
-  private dialogActive = false;
-  private dialogOnComplete?: () => void;
+  protected dialogManager?: DialogManager;
 
   // ------------------------------------
   // Lifecycle
@@ -132,18 +133,6 @@ export default abstract class FaceBase extends Phaser.Scene {
    * Ensure energy exists in the registry.
    * Call this in your face `create()` if you want this scene to use energy.
    */
-  protected ensureEnergyInitialized(initial: number = 0) {
-    const existing = this.registry.get(FaceBase.ENERGY_KEY);
-    if (typeof existing !== "number") {
-      const clamped = Phaser.Math.Clamp(initial, 0, this.maxEnergy);
-      this.registry.set(FaceBase.ENERGY_KEY, clamped);
-      this.events.emit("energyChanged", clamped);
-    } else {
-      // Emit event so HUD can sync to current value when entering this scene
-      this.events.emit("energyChanged", this.getEnergy());
-    }
-  }
-
   protected getEnergy(): number {
     let value = this.registry.get(FaceBase.ENERGY_KEY);
     if (typeof value !== "number") {
@@ -154,13 +143,95 @@ export default abstract class FaceBase extends Phaser.Scene {
   }
 
   protected setEnergy(value: number) {
-    const clamped = Phaser.Math.Clamp(value, 0, this.maxEnergy);
+    // Allow values > maxEnergy (number can exceed 100, but bar fill is capped visually)
+    const clamped = Math.max(0, value);
     this.registry.set(FaceBase.ENERGY_KEY, clamped);
     this.events.emit("energyChanged", clamped);
   }
 
   protected addEnergy(delta: number) {
     this.setEnergy(this.getEnergy() + delta);
+  }
+
+  protected addPuzzleRewardIfNotObtained(
+    puzzleKey: PuzzleKey
+  ) {
+    const rewardInfo = PUZZLE_REWARDS[puzzleKey];
+    if (!rewardInfo) return;
+    const obtainedKey = rewardInfo.rewardObtainedRegistryKey;
+    if (!this.registry.get(obtainedKey)) {
+      this.registry.set(obtainedKey, true);
+      const energyBefore = this.getEnergy();
+      // Set energy immediately so it's safe even if the player leaves the scene
+      this.addEnergy(rewardInfo.rewardEnergy);
+      // Play animation purely as visual feedback
+      this.playEnergyRewardAnimation(rewardInfo.rewardEnergy, energyBefore);
+    }
+  }
+
+  private playEnergyRewardAnimation(amount: number, displayFrom: number) {
+    // Get player screen position (center of screen since camera follows player)
+    const playerScreenX = this.scale.width / 2;
+    const playerScreenY = this.scale.height / 2;
+
+    // Energy bar position (left edge of bar)
+    const barX = this.scale.width - 180 - 16; // bar width + margin
+    const barY = 35 + 22; // bar top + half height
+
+    // Temporarily show old energy value so the count-up animation makes sense
+    this.events.emit("energyChanged", displayFrom);
+
+    // Create floating text at player position
+    const text = this.add.text(playerScreenX, playerScreenY - 50, `+${amount}`, {
+      fontFamily: "sans-serif",
+      fontSize: "28px",
+      color: "#00ff00",
+      stroke: "#003300",
+      strokeThickness: 4,
+    })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(1000);
+
+    // Fly towards energy bar
+    this.tweens.add({
+      targets: text,
+      x: barX + 30,
+      y: barY,
+      scale: 0.7,
+      duration: 1600,
+      ease: "Power2",
+      onComplete: () => {
+        text.destroy();
+        // Visually count up to the real energy value (already set in registry)
+        this.countUpEnergyDisplay(displayFrom, displayFrom + amount);
+      },
+    });
+  }
+
+  private countUpEnergyDisplay(from: number, to: number) {
+    const amount = to - from;
+    let added = 0;
+    const interval = Math.max(30, 500 / amount);
+
+    const timer = this.time.addEvent({
+      delay: interval,
+      callback: () => {
+        added++;
+        this.events.emit("energyChanged", from + added);
+        if (added >= amount) {
+          timer.destroy();
+        }
+      },
+      repeat: amount - 1,
+    });
+  }
+
+  // Debug method to test the reward animation from debug menu
+  public debugTestRewardAnimation(amount: number) {
+    const energyBefore = this.getEnergy();
+    this.addEnergy(amount);
+    this.playEnergyRewardAnimation(amount, energyBefore);
   }
 
   // ---------------------------
@@ -214,35 +285,38 @@ export default abstract class FaceBase extends Phaser.Scene {
     const isDesktop = getIsDesktop(this);
 
     this.hud = new Hud(this, this.playerController, {
-      getPlayer: () => this.player,
+      getPlayer: () => {
+        const body = this.player.body as Phaser.Physics.Arcade.Body;
+        return body.center;
+      },
       isDesktop,
-      onEscape: this.escapeHandler ? () => this.escapeHandler!() : undefined,
+      onEscape: () => this.scene.start("TitleScene"),
       // Energy hooks for HUD (optional in subclasses)
       getEnergy: () => this.getEnergy(),
       maxEnergy: this.maxEnergy,
     });
 
-    // Support both E and SPACE for dialog advancement
-    this.input.keyboard?.on("keydown-SPACE", () => {
-      if (this.dialogActive) {
-        this.advanceDialog();
-      } else {
-        // Trigger active interaction if one exists
-        const active = this.hud.getActiveInteraction(this.player);
-        if (active) active.onUse();
-      }
-    });
-    this.input.keyboard?.on("keydown-E", () => {
-      if (this.dialogActive) {
-        this.advanceDialog();
-      }
-      // E for starting interaction is already handled by HUD
+    // Initialize dialog manager for face scenes (bottom position)
+    this.dialogManager = new DialogManager(this, {
+      position: "bottom",
+      showOverlay: false,
+      ownKeyboardInput: false,
+      speakerStyles: {
+        Jij: "#4bff72ff",
+        Quadratus: "#ffb74cff",
+      },
     });
 
     this.setCameraToPlayerBounds();
 
     this.events.on("update", () => {
       this.hud.update();
+    });
+
+    // Clean up HUD and DialogManager when scene shuts down
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.hud?.destroy();
+      this.dialogManager?.destroy();
     });
   }
 
@@ -273,6 +347,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     return Phaser.Math.Distance.Between(p.x, p.y, closest.x, closest.y);
   }
 
+  // Only used in face1scene??
   protected isNearEdge(player: { x: number; y: number }, e: Edge): boolean {
     const p = new Phaser.Math.Vector2(player.x, player.y);
     return this.distanceToEdge(p, e) < 16;
@@ -434,10 +509,9 @@ export default abstract class FaceBase extends Phaser.Scene {
       const style = center.neighborStyles?.[i];
       const f = style?.fill ?? defaultNeighFill;
       const s = style?.stroke ?? 0x4b7ad1;
-      const a = style?.alpha ?? 0.95;
+      const a = style?.alpha ?? 1;
       this.drawPolygon(this.gNeighbors, n, f, a, s);
     }
-    this.gNeighbors.setAlpha(1.0);
 
     // central face last
     this.drawPolygon(this.gMain, poly2D, mainFill, 1, 0x66a3ff);
@@ -448,7 +522,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     this.worldBounds = this.unionRects(rects);
   }
 
-  private getPolyBounds(poly: Phaser.Geom.Polygon): Phaser.Geom.Rectangle {
+  protected getPolyBounds(poly: Phaser.Geom.Polygon): Phaser.Geom.Rectangle {
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
@@ -514,12 +588,12 @@ export default abstract class FaceBase extends Phaser.Scene {
       hintText?: string;
       paddingX?: number;
       paddingY?: number;
-      buildLines: () => string[];      // called each time you start talking
+      buildLines: () => DialogLine[];      // called each time you start talking
       onComplete?: () => void;         // called after dialog finishes
     }
   ): { start: () => void } {
     const start = () => {
-      if (this.dialogActive) return; // already in a dialog, ignore
+      if (this.isDialogActive()) return; // already in a dialog, ignore
       const lines = config.buildLines();
       this.startDialog(lines, config.onComplete);
     };
@@ -530,7 +604,7 @@ export default abstract class FaceBase extends Phaser.Scene {
       paddingX: config.paddingX,
       paddingY: config.paddingY,
       onUse: () => {
-        if (this.dialogActive) {
+        if (this.isDialogActive()) {
           this.advanceDialog();
         } else {
           start();
@@ -612,90 +686,26 @@ export default abstract class FaceBase extends Phaser.Scene {
 
 
   protected isDialogActive(): boolean {
-    return this.dialogActive;
+    return this.dialogManager?.isActive() ?? false;
   }
 
-  private ensureDialogUi() {
-    if (this.dialogText && this.dialogText.scene && this.dialogText.active) {
-      return;
-    }
-
-    const { width, height } = this.scale;
-
-    this.dialogBox?.destroy();
-    this.dialogText?.destroy();
-
-    this.dialogBox = this.add
-      .rectangle(width / 2 + 100, height - 80, width - 100, 100, 0x1b2748, 0.9)
-      .setStrokeStyle(2, 0x3c5a99)
-      .setDepth(999);
-
-    this.dialogText = this.add
-      .text(
-        this.dialogBox.x - this.dialogBox.width / 2 + 20,
-        this.dialogBox.y - 40,
-        "",
-        {
-          fontFamily: "sans-serif",
-          fontSize: "18px",
-          color: "#e7f3ff",
-          wordWrap: {
-            width: this.dialogBox.width - 40,
-            useAdvancedWrap: true,
-          },
-        }
-      )
-      .setDepth(1000);
-
-    this.dialogBox.setVisible(false);
-    this.dialogText.setVisible(false);
-  }
-
-  protected startDialog(lines: string[], onComplete?: () => void) {
+  protected startDialog(lines: DialogLine[], onComplete?: () => void) {
     if (!lines.length) return;
 
-    this.ensureDialogUi();
     this.playerController.setInputEnabled(false);
-
-    this.dialogLines = lines;
-    this.dialogIndex = 0;
-    this.dialogOnComplete = onComplete;
-    this.dialogActive = true;
-
-    this.showCurrentDialogLine();
+    this.dialogManager?.show(lines, () => {
+      this.playerController.setInputEnabled(true);
+      onComplete?.();
+    });
   }
 
   protected advanceDialog() {
-    if (!this.dialogActive) return;
-
-    this.dialogIndex++;
-    if (this.dialogIndex >= this.dialogLines.length) {
-      this.endDialog();
-    } else {
-      this.showCurrentDialogLine();
-    }
+    this.dialogManager?.advance();
   }
 
   protected endDialog() {
-    if (!this.dialogActive) return;
-
-    this.dialogActive = false;
+    this.dialogManager?.close();
     this.playerController.setInputEnabled(true);
-
-    if (this.dialogBox) this.dialogBox.setVisible(false);
-    if (this.dialogText) this.dialogText.setVisible(false);
-
-    const cb = this.dialogOnComplete;
-    this.dialogOnComplete = undefined;
-    cb?.();
-  }
-
-  private showCurrentDialogLine() {
-    if (!this.dialogBox || !this.dialogText) return;
-
-    this.dialogBox.setVisible(true);
-    this.dialogText.setVisible(true);
-    this.dialogText.setText(this.dialogLines[this.dialogIndex] ?? "");
   }
 
 
@@ -707,7 +717,7 @@ export default abstract class FaceBase extends Phaser.Scene {
     radius: number,
     color: number,
     alpha: number
-  ): Phaser.GameObjects.Graphics {
+  ) {
     const g = this.add.graphics();
     const b = 1; // blur-ish by layering circles
     for (let i = 0; i < 4; i++) {
@@ -727,7 +737,6 @@ export default abstract class FaceBase extends Phaser.Scene {
       g.setPosition(obj.x, obj.y + (obj.displayHeight ?? 0) * 0.35);
       g.setDepth((obj.depth ?? 0) - 1);
     });
-    return g;
   }
 
   /** Create standard bg/ground/deco/actors/fx/ui layer containers. */
@@ -755,11 +764,9 @@ export default abstract class FaceBase extends Phaser.Scene {
     if (!this.faceLayers) return;
 
     this.twinklingStars = new TwinklingStars(this, 220, width, height);
-    this.twinklingStars.graphics.setScrollFactor(0);
     this.faceLayers.bg.add(this.twinklingStars.graphics);
 
     const stars = this.add.graphics();
-    stars.setScrollFactor(0);
     for (let i = 0; i < 200; i++) {
       stars.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.15, 0.8));
       stars.fillRect(
@@ -816,11 +823,6 @@ export default abstract class FaceBase extends Phaser.Scene {
       const hitWidth = e.length * EDGE_TRIGGER_SCALE;
       const hitHeight = 40 * EDGE_TRIGGER_SCALE;
 
-      const zone = this.add
-        .zone(e.mid.x, e.mid.y, hitWidth, hitHeight)
-        .setOrigin(0.5);
-      this.physics.add.existing(zone, true);
-
       const gfx = this.add.graphics().setDepth(60);
       gfx.fillStyle(0x4b7ad1, 0.16);
       gfx.lineStyle(2, 0x4b7ad1, 0.9);
@@ -840,38 +842,37 @@ export default abstract class FaceBase extends Phaser.Scene {
 
       this.faceLayers.fx.add(gfx);
 
-      // DEV: Add label showing target scene name
-      // DISABLED: Labels turned off for cleaner visuals
-      /*
-      const center = this.getPolygonCenter(this.poly);
-      const dx = e.mid.x - center.x;
-      const dy = e.mid.y - center.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      // // DEV: Add label showing target scene name
+      // const center = this.getPolygonCenter(this.poly);
+      // const dx = e.mid.x - center.x;
+      // const dy = e.mid.y - center.y;
+      // const dist = Math.sqrt(dx * dx + dy * dy);
+      //
+      // const pushDistance = 25;
+      // const labelX = e.mid.x + (dx / dist) * pushDistance;
+      // const labelY = e.mid.y + (dy / dist) * pushDistance;
+      //
+      // const labelText = target.replace("Scene", "");
+      //
+      // const label = this.add.text(labelX, labelY, labelText, {
+      //   fontFamily: "monospace",
+      //   fontSize: "12px",
+      //   color: "#00ff00",
+      //   backgroundColor: "#000000",
+      //   padding: { x: 4, y: 2 }
+      // })
+      // .setOrigin(0.5)
+      // .setDepth(61);
+      // this.faceLayers.ui.add(label);
 
-      const pushDistance = 25;
-      const labelX = e.mid.x + (dx / dist) * pushDistance;
-      const labelY = e.mid.y + (dy / dist) * pushDistance;
-
-      const labelText = target.replace("Scene", "");
-
-      const label = this.add.text(labelX, labelY, labelText, {
-        fontFamily: "monospace",
-        fontSize: "12px",
-        color: "#00ff00",
-        backgroundColor: "#000000",
-        padding: { x: 4, y: 2 }
-      })
-      .setOrigin(0.5)
-      .setDepth(61);
-      this.faceLayers.ui.add(label);
-      */
+      const edge: Edge = { a: e.start, b: e.end };
 
       this.travelEdgeZones.push({
-        zone,
         target,
         gfx,
         width: hitWidth,
         height: hitHeight,
+        edge,
       });
     }
   }
@@ -879,7 +880,7 @@ export default abstract class FaceBase extends Phaser.Scene {
   /** Register edge travel interaction (call AFTER createPlayerAt). */
   protected registerEdgeTravelInteraction() {
     const isDesktop = getIsDesktop(this);
-    const edgeHint = "Ga naar volgende vlak: " + (isDesktop ? "E" : "I");
+    const edgeHint = isDesktop ? "E / spatie: Ga naar buurvlak" : "I: Ga naar buurvlak";
 
     this.registerInteraction(
       () => this.activeTravelEdge !== null,
@@ -906,9 +907,6 @@ export default abstract class FaceBase extends Phaser.Scene {
    */
   protected initStandardFace(config: StandardFaceConfig) {
     const { width, height } = this.scale;
-
-    // Set escape handler (null disables ESC key)
-    this.escapeHandler = config.disableEscape ? null : () => this.scene.start("TitleScene");
 
     const bgColor = config.backgroundColor ?? "#0b1020";
     this.cameras.main.setBackgroundColor(bgColor);
@@ -938,7 +936,7 @@ export default abstract class FaceBase extends Phaser.Scene {
         config.colorMap && config.colorMap[key] !== undefined
           ? config.colorMap[key]!
           : neighborFill;
-      return { fill: color, stroke: 0x4b7ad1, alpha: 1.0 };
+      return { fill: color, stroke: 0x4b7ad1, alpha: 1 };
     });
 
     this.renderFaceAndNeighbors({
@@ -959,31 +957,32 @@ export default abstract class FaceBase extends Phaser.Scene {
 
     // If we came from another scene via edge travel, spawn near the edge that leads back
     if (this.cameFromScene && !this.incomingSpawnX) {
-      // Find the edge zone that points back to where we came from
-      const returnEdgeZone = this.travelEdgeZones.find(ez => ez.target === this.cameFromScene);
-      if (returnEdgeZone) {
-        // Move spawn point INWARD from edge toward center, so it's inside the pentagon
+      const returnEdge = this.travelEdgeZones.find(
+        (ez) => ez.target === this.cameFromScene
+      );
+
+      if (returnEdge) {
         const center = this.getPolygonCenter(this.poly);
-        const edgeX = returnEdgeZone.zone.x;
-        const edgeY = returnEdgeZone.zone.y;
+
+        // Midpoint of the actual edge segment
+        const edgeX = (returnEdge.edge.a.x + returnEdge.edge.b.x) / 2;
+        const edgeY = (returnEdge.edge.a.y + returnEdge.edge.b.y) / 2;
+
         const dx = center.x - edgeX;
         const dy = center.y - edgeY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        // Move 15% of the way from edge to center (closer to edge)
         const inwardRatio = 0.15;
         spawnX = edgeX + (dx / dist) * dist * inwardRatio;
         spawnY = edgeY + (dy / dist) * dist * inwardRatio;
       }
     }
 
+
     this.createPlayerAt(spawnX, spawnY);
 
     // Now register edge travel interaction (requires HUD to exist)
-    // Skip if disableTravel is set (e.g., in teaser mode)
-    if (!config.disableTravel) {
-      this.registerEdgeTravelInteraction();
-    }
+    this.registerEdgeTravelInteraction();
   }
 
   /**
@@ -998,7 +997,9 @@ export default abstract class FaceBase extends Phaser.Scene {
     // ----- Edge travel highlighting -----
     this.activeTravelEdge = null;
     for (const ez of this.travelEdgeZones) {
-      if (this.physics.world.overlap(this.player, ez.zone)) {
+      const active = this.doesPlayerOverlapEdgeTrigger(ez);
+
+      if (active) {
         this.activeTravelEdge = ez.target;
         ez.gfx.clear();
         ez.gfx.fillStyle(0x4b7ad1, 0.26);
@@ -1041,15 +1042,232 @@ export default abstract class FaceBase extends Phaser.Scene {
     }
 
     // ----- Interactable object highlight -----
-    const player = this.player;
+    const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
     for (const h of this.interactableHighlights) {
       const c = h.getCenter();
-      const dist = Phaser.Math.Distance.Between(player.x, player.y, c.x, c.y);
+      const dist = Phaser.Math.Distance.Between(playerBody.center.x, playerBody.center.y, c.x, c.y);
       const inRange = dist < h.radius;
 
       // Simple on/off; you can add fancier effects later
-      h.highlight.setVisible(inRange && !this.dialogActive);
+      h.highlight.setVisible(inRange && !this.isDialogActive());
+    }
+
+    // ----- Debug hitbox visualization -----
+    this.drawDebugHitboxes();
+  }
+
+  protected addDiagonalStripesInFace(options?: {
+    textureKey?: string;
+    tileSize?: number;
+    stripeWidth?: number;
+    gap?: number;
+    stripeColor?: number;
+    stripeAlpha?: number;
+    overlayAlpha?: number;
+    angleDeg?: number;
+    depth?: number;
+  }) {
+    const {
+      textureKey = "__diag_stripes",
+      tileSize = 256,     // bigger tile = less chance you notice repetition
+      stripeWidth = 10,
+      gap = 22,
+      stripeColor = 0xffffff,
+      stripeAlpha = 0.12,
+      overlayAlpha = 0.18,
+      angleDeg = -18,
+      depth = 11,
+    } = options ?? {};
+
+    // 1) Build a seamless stripe tile (angle is baked in)
+    if (!this.textures.exists(textureKey)) {
+      const g = this.make.graphics({ x: 0, y: 0 });
+      g.clear();
+
+      const a = Phaser.Math.DegToRad(angleDeg);
+      const dir = new Phaser.Math.Vector2(Math.cos(a), Math.sin(a)); // stripe direction
+      const nrm = new Phaser.Math.Vector2(-dir.y, dir.x);            // perpendicular
+
+      g.lineStyle(stripeWidth, stripeColor, stripeAlpha);
+
+      const c = new Phaser.Math.Vector2(tileSize / 2, tileSize / 2);
+      const L = tileSize * 3; // long enough to cover tile at any angle
+
+      // Draw stripes by sliding along the perpendicular direction (nrm).
+      // This tiles cleanly because the pattern is periodic along nrm.
+      for (let t = -tileSize * 2; t <= tileSize * 2; t += gap) {
+        const p0 = c.clone().add(nrm.clone().scale(t)).subtract(dir.clone().scale(L));
+        const p1 = c.clone().add(nrm.clone().scale(t)).add(dir.clone().scale(L));
+
+        g.beginPath();
+        g.moveTo(p0.x, p0.y);
+        g.lineTo(p1.x, p1.y);
+        g.strokePath();
+      }
+
+      g.generateTexture(textureKey, tileSize, tileSize);
+      g.destroy();
+
+      // Optional: if you're doing pixel-art and want crisp sampling:
+      // this.textures.get(textureKey).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
+
+    // 2) Big tiling overlay (NOT rotated)
+    const bounds = this.getPolyBounds(this.poly); // make getPolyBounds protected
+    const pad = 200;
+
+    const overlay = this.add
+      .tileSprite(
+        bounds.x - pad,
+        bounds.y - pad,
+        bounds.width + pad * 2,
+        bounds.height + pad * 2,
+        textureKey
+      )
+      .setOrigin(0, 0)
+      .setAlpha(overlayAlpha)
+      .setDepth(depth);
+
+    // 3) Mask to the pentagon
+    const maskGfx = this.make.graphics({ x: 0, y: 0 });
+    maskGfx.fillStyle(0xffffff, 1);
+    maskGfx.beginPath();
+    maskGfx.moveTo(this.poly.points[0].x, this.poly.points[0].y);
+    for (let i = 1; i < this.poly.points.length; i++) {
+      maskGfx.lineTo(this.poly.points[i].x, this.poly.points[i].y);
+    }
+    maskGfx.closePath();
+    maskGfx.fillPath();
+
+    overlay.setMask(maskGfx.createGeometryMask());
+
+    this.faceLayers?.ground.add(overlay);
+
+    return overlay;
+  }
+
+  /**
+   * Draw debug hitboxes for player and edge zones.
+   * Toggle via debug menu: "Show Hitboxes"
+   */
+  private drawDebugHitboxes() {
+    const showHitboxes = this.registry.get("debug_showHitboxes");
+
+    if (!showHitboxes) {
+      if (this.hitboxDebugGfx) {
+        this.hitboxDebugGfx.destroy();
+        this.hitboxDebugGfx = undefined;
+      }
+      return;
+    }
+
+    if (!this.hitboxDebugGfx) {
+      this.hitboxDebugGfx = this.add.graphics().setDepth(9999);
+    }
+
+    const gfx = this.hitboxDebugGfx;
+    gfx.clear();
+
+    // Draw player hitbox (physics body)
+    if (this.playerController) {
+      const body = this.player.body as Phaser.Physics.Arcade.Body;
+      gfx.lineStyle(2, 0x00ff00, 1);
+      gfx.strokeRect(body.x, body.y, body.width, body.height);
+    }
+
+    // Draw edge zone hitboxes (physics zones - axis aligned)
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    const p = new Phaser.Math.Vector2(body.center.x, body.center.y);
+
+    gfx.fillStyle(0xffff00, 1);
+    gfx.fillCircle(p.x, p.y, 3);
+
+    for (const ez of this.travelEdgeZones) {
+      const a = ez.edge.a;
+      const b = ez.edge.b;
+
+      const mid = new Phaser.Math.Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
+      const dir = new Phaser.Math.Vector2(b.x - a.x, b.y - a.y).normalize();
+      const nrm = new Phaser.Math.Vector2(-dir.y, dir.x);
+
+      const halfW = ez.width * 0.5;
+      const halfH = ez.height * 0.5;
+
+      // corners of rotated rectangle (OBB)
+      const c1 = mid.clone().add(dir.clone().scale(-halfW)).add(nrm.clone().scale(-halfH));
+      const c2 = mid.clone().add(dir.clone().scale( halfW)).add(nrm.clone().scale(-halfH));
+      const c3 = mid.clone().add(dir.clone().scale( halfW)).add(nrm.clone().scale( halfH));
+      const c4 = mid.clone().add(dir.clone().scale(-halfW)).add(nrm.clone().scale( halfH));
+
+      const active = this.doesPlayerOverlapEdgeTrigger(ez);
+
+      gfx.lineStyle(2, active ? 0x00ff00 : 0xff00ff, 1);
+      gfx.beginPath();
+      gfx.moveTo(c1.x, c1.y);
+      gfx.lineTo(c2.x, c2.y);
+      gfx.lineTo(c3.x, c3.y);
+      gfx.lineTo(c4.x, c4.y);
+      gfx.closePath();
+      gfx.strokePath();
+
+      // also draw the edge line
+      gfx.lineStyle(1, 0xffffff, 0.6);
+      gfx.beginPath();
+      gfx.moveTo(a.x, a.y);
+      gfx.lineTo(b.x, b.y);
+      gfx.strokePath();
     }
   }
+
+  protected doesPlayerOverlapEdgeTrigger(ez: TravelEdgeZone): boolean {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+
+    // Player AABB in world space
+    const px = body.x;
+    const py = body.y;
+    const pw = body.width;
+    const ph = body.height;
+
+    // Edge trigger OBB basis
+    const a = ez.edge.a;
+    const b = ez.edge.b;
+
+    const mid = new Phaser.Math.Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
+    const dir = new Phaser.Math.Vector2(b.x - a.x, b.y - a.y).normalize(); // u axis
+    const nrm = new Phaser.Math.Vector2(-dir.y, dir.x);                    // v axis
+
+    const halfW = ez.width * 0.5;   // along edge
+    const halfH = ez.height * 0.5;  // thickness
+
+    // Convert player AABB corners into OBB local space (u,v)
+    const corners = [
+      new Phaser.Math.Vector2(px, py),
+      new Phaser.Math.Vector2(px + pw, py),
+      new Phaser.Math.Vector2(px + pw, py + ph),
+      new Phaser.Math.Vector2(px, py + ph),
+    ];
+
+    let minU = Infinity, maxU = -Infinity;
+    let minV = Infinity, maxV = -Infinity;
+
+    for (const c of corners) {
+      const d = c.clone().subtract(mid);
+      const u = d.dot(dir);
+      const v = d.dot(nrm);
+      if (u < minU) minU = u;
+      if (u > maxU) maxU = u;
+      if (v < minV) minV = v;
+      if (v > maxV) maxV = v;
+    }
+
+    // Overlap test between:
+    // - player AABB projected onto (u,v)
+    // - OBB local box [-halfW..halfW] x [-halfH..halfH]
+    const overlapU = !(maxU < -halfW || minU > halfW);
+    const overlapV = !(maxV < -halfH || minV > halfH);
+
+    return overlapU && overlapV;
+  }
+
 
 }

@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 import { PlayerController } from "./PlanetPlayer";
 import { toggleControlsMode } from "./ControlsMode";
+import { DEBUG } from "./main";
+import { ENERGY_THRESHOLD_HOME } from "./scenes/face_scenes/_FaceConfig";
 
 type V2Like = { x: number; y: number };
 
@@ -29,7 +31,10 @@ export class Hud {
   private portalHint!: Phaser.GameObjects.Text;
 
   // Energy UI
+  private readonly energyBarWidth = 180;
+  private readonly energyBarHeight = 45;
   private energyBar?: Phaser.GameObjects.Graphics;
+  private energyText?: Phaser.GameObjects.Text;
   private energyContainer?: Phaser.GameObjects.Container;
 
   // Mobile interaction button (+ glow)
@@ -50,7 +55,6 @@ export class Hud {
     if (!opts.isDesktop) {
       this.createTouchControls();
     }
-    this.bindEscape();
     this.bindModeToggle();
   }
 
@@ -58,16 +62,20 @@ export class Hud {
     this.interactions.push(interaction);
 
     if (!this.interactKey && this.opts.isDesktop) {
-      this.interactKey = this.scene.input.keyboard?.addKey(INTERACT_KEY);
-      this.scene.input.keyboard?.on(`keydown-${INTERACT_KEY}`, () => {
+      const handleInteract = () => {
         const player = this.opts.getPlayer();
         const active = this.getActiveInteraction(player);
         if (active) active.onUse();
-      });
+      };
+
+      this.interactKey = this.scene.input.keyboard?.addKey(INTERACT_KEY);
+      this.scene.input.keyboard?.addKey("SPACE");
+      this.scene.input.keyboard?.on(`keydown-${INTERACT_KEY}`, handleInteract);
+      this.scene.input.keyboard?.on("keydown-SPACE", handleInteract);
     }
   }
 
-  getActiveInteraction(player: V2Like): Interaction | undefined {
+  private getActiveInteraction(player: V2Like): Interaction | undefined {
     return this.interactions.find((i) => i.isInRange(player));
   }
 
@@ -78,7 +86,7 @@ export class Hud {
 
     if (active) {
       const defaultHint = this.opts.isDesktop
-        ? "Interact: spatie / E"
+        ? "Interact: E / spatie"
         : "Interact: tap";
       const hint = active.hintText ?? defaultHint;
       this.portalHint.setText(hint).setAlpha(1);
@@ -96,13 +104,13 @@ export class Hud {
     this.joystickBase?.destroy();
     this.joystickKnob?.destroy();
     this.energyBar?.destroy();
+    this.energyText?.destroy();
     this.energyContainer?.destroy();
     this.interactButton?.destroy();
     this.interactButtonGlow?.destroy();
 
     // Unsubscribe from events
     this.scene.events.off("energyChanged", this.handleEnergyChanged, this);
-    // You can also remove input listeners here if you want to be extra clean.
   }
 
   // ---------------------------
@@ -112,17 +120,11 @@ export class Hud {
   private createControlsUI() {
     // Bottom-right controls hint ONLY on desktop
     if (this.opts.isDesktop) {
-      // Build controls text - only show ESC if escape handler exists
-      let controlsText = "Lopen: WASD / Pijltjes   |  E:  Interactie";
-      if (this.opts.onEscape) {
-        controlsText += "   |  ESC: Titel Scherm";
-      }
-
       this.controlsText = this.scene.add
         .text(
           this.scene.scale.width - 12,
           this.scene.scale.height - 10,
-          controlsText,
+          "Lopen: WASD / Pijltjes   |  Spatie: Interactie",
           { fontFamily: "sans-serif", fontSize: "14px", color: "#b6d5ff" }
         )
         .setScrollFactor(0)
@@ -142,47 +144,88 @@ export class Hud {
       .setAlpha(0);
   }
 
-  // Energy bar UI (top-right)
+  // Energy bar UI (top-right) - cockpit style
   private createEnergyUI() {
     if (!this.opts.getEnergy) return; // HUD can be used without energy
 
+    const barWidth = this.energyBarWidth;
+    const barHeight = this.energyBarHeight;
     const max = this.opts.maxEnergy ?? 100;
-    const initialEnergy = Phaser.Math.Clamp(this.opts.getEnergy(), 0, max);
+    const current = this.opts.getEnergy();
 
+    // Label above the bar
+    const label = this.scene.add.text(barWidth / 2, -10, "ENERGIE", {
+      fontFamily: "sans-serif",
+      fontSize: "16px",
+      color: "#aaccff",
+    }).setOrigin(0.5, 1);
+
+    // Background with border
     const energyBg = this.scene.add.graphics();
-    energyBg.fillStyle(0x222222, 0.7);
-    energyBg.fillRect(0, 0, 104, 24);
+    energyBg.fillStyle(0x111122, 0.85);
+    energyBg.fillRect(0, 0, barWidth, barHeight);
+    energyBg.lineStyle(3, 0x3c5a99, 1);
+    energyBg.strokeRect(0, 0, barWidth, barHeight);
 
+    // Energy fill bar
     this.energyBar = this.scene.add.graphics();
-    this.energyBar.fillStyle(0x00ff00, 1);
-    this.energyBar.fillRect(2, 2, Math.min(initialEnergy, max), 20);
+    this.drawEnergyFill(current, max, barWidth, barHeight);
+
+    // Energy value text (no % sign since value can exceed 100)
+    this.energyText = this.scene.add.text(barWidth / 2, barHeight / 2, `${current}`, {
+      fontFamily: "sans-serif",
+      fontSize: "20px",
+      color: "#ffffff",
+    }).setOrigin(0.5);
 
     this.energyContainer = this.scene.add
-      .container(this.scene.scale.width - 120, 28, [energyBg, this.energyBar])
+      .container(this.scene.scale.width - barWidth - 16, 35, [energyBg, this.energyBar, this.energyText, label])
       .setScrollFactor(0)
       .setDepth(20);
 
     this.scene.events.on("energyChanged", this.handleEnergyChanged, this);
   }
 
+  private drawEnergyFill(current: number, max: number, barWidth: number, barHeight: number) {
+    if (!this.energyBar) return;
+
+    this.energyBar.clear();
+
+    // Cap fill at 100% (bar doesn't overflow even if energy > max)
+    const maxFillWidth = barWidth - 4;
+    const fillWidth = Math.min((current / max) * maxFillWidth, maxFillWidth);
+    if (fillWidth <= 0) return;
+
+    // Color based on level (same as cockpit) — green at threshold to fly home
+    let color = 0x00ff00; // green
+    const percentage = (current / max) * 100;
+    const thresholdPct = (ENERGY_THRESHOLD_HOME / (max || 100)) * 100;
+    if (percentage < thresholdPct / 2) color = 0xff0000; // red
+    else if (percentage < thresholdPct) color = 0xffaa00; // orange
+
+    this.energyBar.fillStyle(color, 0.8);
+    this.energyBar.fillRect(2, 2, fillWidth, barHeight - 4);
+  }
+
   private handleEnergyChanged = (newEnergy: number) => {
     if (!this.energyBar) return;
 
     const max = this.opts.maxEnergy ?? 100;
-    const clamped = Phaser.Math.Clamp(newEnergy, 0, max);
+    // Clamp for the bar fill (visual), but show actual value in text
+    const clampedForFill = Phaser.Math.Clamp(newEnergy, 0, max);
 
-    this.energyBar.clear();
-    this.energyBar.fillStyle(0x00ff00, 1);
-    this.energyBar.fillRect(2, 2, Math.min(clamped, max), 20);
+    this.drawEnergyFill(clampedForFill, max, this.energyBarWidth, this.energyBarHeight);
+
+    if (this.energyText) {
+      // Show actual energy value (can be > 100), no % sign
+      this.energyText.setText(`${Math.round(Math.max(0, newEnergy))}`);
+    }
   };
 
-  private bindEscape() {
-    if (!this.opts.onEscape) return;
-    this.scene.input.keyboard?.on("keydown-ESC", this.opts.onEscape);
-  }
-
   private bindModeToggle() {
-    // Secret dev key: backtick (`) toggles control mode and restarts the scene.
+    // Dev-only: backtick (`) toggles control mode and restarts the scene.
+    if (!DEBUG) return;
+
     this.scene.input.keyboard?.on("keydown-BACKTICK", () => {
       const isNowDesktop = toggleControlsMode(this.scene);
 

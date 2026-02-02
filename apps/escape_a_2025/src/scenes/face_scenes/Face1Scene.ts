@@ -1,8 +1,7 @@
 import Phaser from "phaser";
 import FaceBase, { Edge } from "./_FaceBase";
 import { getIsDesktop } from "../../ControlsMode";
-import { resolveFaceConfig, buildNeighborColorMap } from "./_FaceConfig";
-import { DEBUG } from "../../main";
+import { resolveFaceConfig, buildNeighborColorMap, ENERGY_THRESHOLD_HOME } from "./_FaceConfig";
 
 export default class Face1Scene extends FaceBase {
   constructor() {
@@ -19,44 +18,20 @@ export default class Face1Scene extends FaceBase {
     ui: null as Phaser.GameObjects.Container | null,
   };
 
-  private shipZone!: Phaser.GameObjects.Zone; // proximity window
-  private shipHighlight!: Phaser.GameObjects.Graphics; // visual highlight around ship
-
-  private quadratusZone!: Phaser.GameObjects.Zone; // Quadratus interaction zone
-  private quadratusHighlight!: Phaser.GameObjects.Graphics;
-
   private inShipRange = false;
-  private inQuadratusRange = false;
+  private inPuzzleRange = false;
 
-  // Quadratus character
-  private quadratusSprite?: Phaser.GameObjects.Image;
+  private entry_from_cockpit: boolean = false;
+  private static readonly QUADRATUS_FACE1_MET_KEY = "face1_quadratus_met";
 
-  // Quadratus dialog
-  private quadratusDialogActive = false;
-  private quadratusLines: { speaker: string; text: string; thought?: boolean }[] = [
-    { speaker: "Q", text: "Hoi vreemdeling, ik ben Quadratus de Espirantus. Welkom op de planeet Dezonia!" },
-    { speaker: "IK", text: "(Quadratus lijkt vriendelijk en ik kan wel wat hulp gebruiken.)", thought: true },
-    { speaker: "IK", text: "Hoi Quadratus, ik ben een beetje verdwaald geloof ik." },
-    { speaker: "IK", text: "Ik was op weg naar de Aarde met mijn raket, maar nu ben ik ineens hier." },
-    { speaker: "IK", text: "Mijn raket doet het nog, maar de energietank is bijna leeg. Hoe kom ik nu naar huis?" },
-    { speaker: "Q", text: "Ach vreemdeling toch, wat een pech. Gelukkig is er hier op Dezonia ook energie te vinden..." },
-    { speaker: "IK", text: "Nou, dan ga ik meteen zoeken, dank je wel Quadratus!" },
-    { speaker: "Q", text: "Helaas, je moet nog even geduld hebben." },
-    { speaker: "IK", text: "Waarom dan?" },
-    { speaker: "Q", text: "Omdat ik eerst nog het hele spel moet afmaken. Dit was de teaser en die heb je zojuist uitgespeeld." },
-  ];
-  private quadratusIndex = 0;
-  private quadratusBox?: Phaser.GameObjects.Graphics;
-  private quadratusText?: Phaser.GameObjects.Text;
-  private quadratusSpeaker?: Phaser.GameObjects.Text;
-  private quadratusOverlay?: Phaser.GameObjects.Rectangle;
+  init(data?: any) {
+    super.init(data);
+    this.entry_from_cockpit = !!data?.entry_from_cockpit;
+  }
 
   create() {
     console.log("[ENTER]", this.scene.key);
     const { width, height } = this.scale;
-
-    // Shared energy initialization for this face
-    this.ensureEnergyInitialized(0);
 
     // --- Pull config from faceConfig.ts ---
     const cfg = resolveFaceConfig("Face1Scene");
@@ -65,15 +40,13 @@ export default class Face1Scene extends FaceBase {
 
     this.initStandardFace({
       radius,
-      faceTravelTargets: neighbors, // Keep neighbors for visual colors
+      faceTravelTargets: neighbors,
       mainFill: visuals.mainFill,
       neighborFill: visuals.neighborFill,
       colorMap,
       edgeTriggerScale: visuals.edgeTriggerScale,
       backgroundColor: visuals.backgroundColor,
       showLabel: visuals.showLabel, // false for Face1 in config
-      disableEscape: true, // Disable ESC to title screen in teaser
-      disableTravel: true, // Disable face-to-face travel (keeps visual colors)
     });
 
     // Grab the created layers from FaceBase and map them to our local layer object
@@ -90,301 +63,120 @@ export default class Face1Scene extends FaceBase {
 
     // ---- Crash site / ship
     const center = this.getPolygonCenter(this.poly);
-    const shipPos = new Phaser.Math.Vector2(center.x, center.y + 50);
+    const shipPos = new Phaser.Math.Vector2(center.x-60, center.y + 100);
 
     const ship = this.add
       .image(shipPos.x, shipPos.y, "ship")
       .setOrigin(0.5, 0.6)
-      .setDisplaySize(48, 48)
+      .setDisplaySize(150, 150)
       .setDepth(50);
     ship.setAngle(-18);
-    this.addSoftShadowBelow(ship, 22, 0x000000, 0.28);
     this.layer.actors?.add(ship);
 
-    const shipBlock = this.add.zone(shipPos.x, shipPos.y, 44, 28);
+    const shipBlock = this.add.zone(shipPos.x, shipPos.y-60, 50, 120);
     this.physics.add.existing(shipBlock, true);
     this.physics.add.collider(this.player, shipBlock);
 
     // ---- Ship zone & highlight
-    this.shipZone = this.add.zone(shipPos.x, shipPos.y, 90, 70).setOrigin(0.5);
-    this.physics.add.existing(this.shipZone, true);
-
-    this.shipHighlight = this.add.graphics().setDepth(51).setVisible(false);
-    this.shipHighlight.lineStyle(2, 0xffffff, 0.6);
-    this.shipHighlight.strokeRoundedRect(
-      shipPos.x - 45,
-      shipPos.y - 35,
-      90,
-      70,
-      10
-    );
-    this.shipHighlight.setAlpha(0.8);
-    this.layer.fx?.add(this.shipHighlight);
-
-    const isDesktop = getIsDesktop(this);
-    const hintText = "Interactie: " + (isDesktop ? "spatie / E" : "I");
-
-    // Interaction for ship/quadratus logic
-    this.registerInteraction(
-      () => this.inShipRange || this.inQuadratusRange,
-      () => {
-        if (this.inShipRange) {
-          // If puzzle already solved, go to cockpit instead of puzzle
-          if (this.registry.get("electricitySolved")) {
-            this.scene.start("CockpitScene");
-          } else {
-            this.scene.start("ShipFuelScene");
-          }
-        } else if (this.inQuadratusRange && !this.quadratusDialogActive) {
-          // Talk to Quadratus (repeatable)
-          this.startQuadratusDialog();
-        }
-      },
-      { hintText }
-    );
+    this.makeObjectInteractable(ship, {
+      hitRadius: 100,
+      paddingX: 0,
+      paddingY: 0,
+      hintText: "Interactie: " + (getIsDesktop(this) ? "E / spatie" : "I"),
+      onUse: () => {
+        this.scene.start("CockpitScene");
+      }
+    })
 
     // Decorations etc.
     this.decorateCrashSite(radius);
 
-    // Spawn Quadratus (if electricity is solved, or in debug mode)
-    if (DEBUG || this.registry.get("electricitySolved")) {
-      this.spawnQuadratus();
-    }
 
-    // Dialog input handlers (E and SPACE both work)
-    this.input.on("pointerdown", () => this.advanceQuadratusDialog());
-    this.input.keyboard?.on("keydown-SPACE", () => this.advanceQuadratusDialog());
-    this.input.keyboard?.on("keydown-E", () => this.advanceQuadratusDialog());
-  }
+    // ---- Quadratus near the ship
+    const quadratusPos = new Phaser.Math.Vector2(shipPos.x + 140, shipPos.y - 180);
 
-  private spawnQuadratus() {
-    const center = this.getPolygonCenter(this.poly);
-    const quadratusX = center.x + 100; // Further right to avoid overlap
-    const quadratusY = center.y - 30; // Slightly higher, not too much
-
-    // Test NEAREST filter for pixel-art look (sharp pixels, no blur)
-    const texture = this.textures.get("quadratus_small");
-    texture.setFilter(Phaser.Textures.FilterMode.NEAREST);
-
-    // LOD approach: Use pre-scaled quadratus_small.webp (200x336) for gameplay
-    // This avoids GPU downsampling artifacts from scaling down large images
-    // setDisplaySize 42x70 pixels (30% smaller than previous 60x100)
-    this.quadratusSprite = this.add.image(quadratusX, quadratusY, "quadratus_small")
-      .setOrigin(0.5, 0.6)
-      .setDisplaySize(42, 70) // 30% smaller, similar to farmer size
+    const quadratus = this.add
+      .image(quadratusPos.x, quadratusPos.y, "quadratus_small")
       .setDepth(55)
-      .setFlipX(true);
+      // match your Face7 sizing vibe (adjust to taste)
+      .setDisplaySize(-200 / 2, 336 / 2);
 
-    this.addSoftShadowBelow(this.quadratusSprite, 18, 0x000000, 0.28);
-    this.layer.actors?.add(this.quadratusSprite);
+    this.layer.deco?.add(quadratus);
 
-    // Create interaction zone around Quadratus
-    this.quadratusZone = this.add.zone(quadratusX, quadratusY, 80, 80);
-    this.physics.world.enable(this.quadratusZone);
+    // Optional: block so you can't walk through him
+    const quadBlock = this.add.zone(quadratusPos.x, quadratusPos.y - 30, 60, 90);
+    this.physics.add.existing(quadBlock, true);
+    this.physics.add.collider(this.player, quadBlock);
 
-    this.quadratusHighlight = this.add.graphics().setDepth(51).setVisible(false);
-    this.quadratusHighlight.lineStyle(2, 0x66ff66, 0.6);
-    this.quadratusHighlight.strokeRoundedRect(
-      quadratusX - 40,
-      quadratusY - 40,
-      80,
-      80,
-      10
-    );
-    this.quadratusHighlight.setAlpha(0.8);
-    this.layer.fx?.add(this.quadratusHighlight);
-  }
+    // ---- Dialog interaction
+    const hasMet = !!this.registry.get(Face1Scene.QUADRATUS_FACE1_MET_KEY);
+    const current_energie = this.getEnergy();
 
-  private startQuadratusDialog() {
-    if (this.quadratusDialogActive) return;
-    if (this.registry.get("teaserCompleteShown")) return; // Teaser is done, no more dialog
-    this.quadratusDialogActive = true;
-    this.quadratusIndex = 0;
+    const quadHandle = this.createDialogInteraction(quadratus, {
+      hitRadius: 110,
+      hintText: "Praat met Quadratus",
+      buildLines: () => {
+        // First ever emergence from cockpit => longer intro
+        if (this.entry_from_cockpit && !hasMet) {
+          return [
+            { speaker: "Quadratus", text: "Ah hallo vreemdeling! Welkom op Dezonia, onze twaalf vlakkige planeet. Ik ben Quadratus. Is er iets waarmee ik je kan helpen?" },
+            { speaker: "Jij", text: "Hoi Quadratus. Fijn om iemand te leren kennen. Ik was onderweg naar huis toen ik problemen kreeg met mijn raket. Nu heb ik te weinig energie om terug naar huis te reizen. Weet jij misschien hoe ik op Dezonia energie kan krijgen?" },
+            { speaker: "Quadratus", text: "Energie is er genoeg op Dezonia. Je moet alleen weten waar je moet zoeken. Ik denk dat je gewoon maar moet gaan zoeken! Er zullen vast veel bewoners zijn die je hulp kunnen gebruiken in ruil voor wat energie. Op ieder van de twaalf vlakken van deze planeet is wel wat unieks te vinden." },
+            { speaker: "Jij", text: `Dankjewel voor de tip! Ik heb nog 10 energie, maar ik moet nog een lang stuk naar huis. Ik moet dus proberen om in totaal ${ENERGY_THRESHOLD_HOME} energie te verzamelen om weer terug te kunnen reizen.`},
+            { speaker: "Quadratus", text: "Je kunt over de hele planeet heen lopen door gebruik te maken van de pijltjes toetsen of de WASD toetsen. Als je in de buurt van de rand van dit vlak komt, dan kun je je naar een ander vlak verplaatsen door op de spatiebalk te drukken." },
+            { speaker: "Jij", text: "Super handig, dankjewel! Ik ga nu op onderzoek uit." },
 
-    // Stop player movement and disable input during dialog
-    this.playerController.setInputEnabled(false);
+          ];
+        }
 
-    const { width, height } = this.scale;
+        // Later occasions: always the same single line
+        if (current_energie == 10) {
+          return [
+            { speaker: "Quadratus", text: "Je kunt bewegen met de pijltjes toetsen of de WASD toetsen. Aan de rand van het vlak kun je met behulp van de spatiebalk je naar een ander vlak verplaatsen" },
+            { speaker: "Quadratus", text: `Als je ${ENERGY_THRESHOLD_HOME} energie hebt verzameld, dan kun je terug naar huis reizen! Heel veel succes!` },
+          ];
+        } else if (current_energie < ENERGY_THRESHOLD_HOME) {
+          return [
+            { speaker: "Quadratus", text: "Hoi! Hoe gaat het met je zoektocht naar energie?" },
+            { speaker: "Jij", text: `Ik heb nu ${current_energie} energie verzameld.` },
+            { speaker: "Quadratus", text: "Wow, goed bezig! Blijf vooral zoeken, er is nog genoeg energie te vinden op deze planeet!" },
+          ];
+        } else {
+          return [
+            { speaker: "Quadratus", text: `Wauw! Je hebt al ${current_energie} energie verzameld! Dat is genoeg om terug naar huis te reizen!` },
+            { speaker: "Quadratus", text: "Ga snel terug naar je raket! Ik wens je een goede reis!" },
+          ];
+        }
+      },
+      onComplete: () => {
+        // Mark met after the first forced talk
+        if (this.entry_from_cockpit && !hasMet) {
+          this.registry.set(Face1Scene.QUADRATUS_FACE1_MET_KEY, true);
+        }
+        // consume the entry flag so we don't retrigger in the same lifetime
+        this.entry_from_cockpit = false;
+      },
+    });
 
-    // No dark overlay - keep Quadratus visible
-    this.quadratusOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0);
-    this.quadratusOverlay.setDepth(200);
-    this.quadratusOverlay.setScrollFactor(0);
-
-    // Dialog box at bottom (same dimensions as CockpitScene, fixed to screen)
-    const boxHeight = 120;
-    const boxWidth = 640;
-    const boxX = width / 2 - boxWidth / 2;
-    const boxY = height - boxHeight - 20;
-
-    this.quadratusBox = this.add.graphics();
-    this.quadratusBox.setDepth(201);
-    this.quadratusBox.setScrollFactor(0);
-    this.quadratusBox.fillStyle(0x1b2748, 0.95);
-    this.quadratusBox.fillRoundedRect(boxX, boxY, boxWidth, boxHeight, 12);
-    this.quadratusBox.lineStyle(2, 0x3c5a99, 1);
-    this.quadratusBox.strokeRoundedRect(boxX, boxY, boxWidth, boxHeight, 12);
-
-    // Text layout (same as CockpitScene, fixed to screen)
-    const textStartX = boxX + 20;
-
-    // Speaker name at top of box
-    this.quadratusSpeaker = this.add.text(textStartX, boxY + 15, "", {
-      fontFamily: "sans-serif",
-      fontSize: "14px",
-      color: "#ffaa00",
-      fontStyle: "bold",
-    }).setDepth(202).setScrollFactor(0);
-
-    // Dialog text below speaker
-    this.quadratusText = this.add.text(textStartX, boxY + 35, "", {
-      fontFamily: "sans-serif",
-      fontSize: "18px",
-      color: "#e7f3ff",
-      wordWrap: { width: boxWidth - 40, useAdvancedWrap: true },
-    }).setDepth(202).setScrollFactor(0);
-
-    // Hint positioned bottom-right inside box
-    this.add.text(boxX + boxWidth - 10, boxY + boxHeight - 10, "Klik →", {
-      fontFamily: "sans-serif",
-      fontSize: "12px",
-      color: "#888888",
-    }).setOrigin(1, 1).setDepth(202).setScrollFactor(0).setName("quadratusHint");
-
-    this.showDialogLine();
-  }
-
-  private showDialogLine() {
-    if (!this.quadratusText || !this.quadratusSpeaker) return;
-
-    const line = this.quadratusLines[this.quadratusIndex];
-    const speakerName = line.speaker === "Q" ? "Quadratus" : "Jij";
-    const textColor = line.thought ? "#aaaaff" : "#e7f3ff";
-    const speakerColor = line.speaker === "Q" ? "#ffaa00" : "#88ff88";
-
-    this.quadratusSpeaker.setText(speakerName).setColor(speakerColor);
-    this.quadratusText.setText(line.text).setColor(textColor);
-
-    // Fade in effect
-    this.quadratusText.setAlpha(0);
-    this.tweens.add({ targets: this.quadratusText, alpha: 1, duration: 150 });
-  }
-
-  private advanceQuadratusDialog() {
-    if (!this.quadratusDialogActive) return;
-    if (this.registry.get("teaserCompleteShown")) return; // Popup shown, ignore input
-
-    this.quadratusIndex++;
-    if (this.quadratusIndex < this.quadratusLines.length) {
-      this.showDialogLine();
-    } else {
-      this.endQuadratusDialog();
+    // Auto-start ONLY the first time you emerge from cockpit (and haven't met yet)
+    if (this.entry_from_cockpit && !hasMet) {
+      this.time.delayedCall(50, () => quadHandle.start());
     }
-  }
 
-  private endQuadratusDialog() {
-    this.quadratusDialogActive = false;
-    this.registry.set("quadratusDialogSeen", true);
-
-    // Re-enable player movement
-    this.playerController.setInputEnabled(true);
-
-    // Clean up dialog UI only (Quadratus stays on the planet)
-    this.quadratusOverlay?.destroy();
-    this.quadratusBox?.destroy();
-    this.quadratusText?.destroy();
-    this.quadratusSpeaker?.destroy();
-    this.children.getByName("quadratusHint")?.destroy();
-
-    // Show teaser complete popup after dialog (only first time)
-    if (!this.registry.get("teaserCompleteShown")) {
-      this.registry.set("teaserCompleteShown", true);
-      this.time.delayedCall(500, () => this.showTeaserCompletePopup());
-    }
-  }
-
-  private showTeaserCompletePopup() {
-    const { width, height } = this.scale;
-    this.playerController.setInputEnabled(false);
-
-    // Darken background - must cover entire screen
-    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
-    overlay.setDepth(200);
-    overlay.setScrollFactor(0); // Fixed to camera, not world
-
-    // Popup box
-    const boxWidth = 400;
-    const boxHeight = 200;
-    const box = this.add.graphics();
-    box.setDepth(201);
-    box.setScrollFactor(0);
-    box.fillStyle(0x1b2748, 0.95);
-    box.fillRoundedRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight, 16);
-    box.lineStyle(3, 0x3c5a99, 1);
-    box.strokeRoundedRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight, 16);
-
-    // Title
-    this.add.text(width / 2, height / 2 - 50, "Gelukt!", {
-      fontFamily: "sans-serif",
-      fontSize: "32px",
-      color: "#00ff88",
-      fontStyle: "bold",
-    }).setOrigin(0.5).setDepth(202).setScrollFactor(0);
-
-    // Message
-    this.add.text(width / 2, height / 2 + 10, "Dit was de teaser voor de escape room!\nKom in februari terug voor meer!", {
-      fontFamily: "sans-serif",
-      fontSize: "18px",
-      color: "#e7f3ff",
-      align: "center",
-    }).setOrigin(0.5).setDepth(202).setScrollFactor(0);
-
-    // Confetti effect
-    const confettiColors = [0xffd700, 0x00ff00, 0x00ffff, 0xff00ff, 0xffffff, 0xffff00];
-    for (let i = 0; i < 50; i++) {
-      const x = Phaser.Math.Between(width / 2 - 200, width / 2 + 200);
-      const startY = height / 2 - 120;
-      const particle = this.add.circle(x, startY, Phaser.Math.Between(3, 6), Phaser.Utils.Array.GetRandom(confettiColors));
-      particle.setDepth(203);
-      particle.setScrollFactor(0);
-
-      this.tweens.add({
-        targets: particle,
-        y: startY + Phaser.Math.Between(150, 250),
-        x: x + Phaser.Math.Between(-50, 50),
-        alpha: 0,
-        duration: Phaser.Math.Between(1500, 2500),
-        ease: "cubic.out",
-        delay: Phaser.Math.Between(0, 500),
-        onComplete: () => particle.destroy(),
-      });
-    }
   }
 
   update(_time: number, delta: number) {
     this.baseFaceUpdate(delta);
-
-    // ---- Ship overlap
-    const isOverlappingShip = this.physics.world.overlap(this.player, this.shipZone);
-    this.inShipRange = isOverlappingShip;
-    this.shipHighlight.setVisible(this.inShipRange);
-
-    // ---- Quadratus overlap
-    if (this.quadratusZone) {
-      const isOverlappingQuadratus = this.physics.world.overlap(this.player, this.quadratusZone);
-      this.inQuadratusRange = isOverlappingQuadratus;
-      this.quadratusHighlight.setVisible(this.inQuadratusRange && !this.quadratusDialogActive);
-    }
   }
 
   /**
    * Override FaceBase's edge-based proximity:
-   * For this scene, "interaction in range" is defined by the ship/quadratus zones,
+   * For this scene, "interaction in range" is defined by the ship/puzzle zones,
    * OR a travel edge being active.
    */
   protected isNearEdge(_player: { x: number; y: number }, _e: Edge): boolean {
     // `activeTravelEdge` is managed by baseFaceUpdate() in FaceBase
-    return this.inShipRange || this.inQuadratusRange || this.activeTravelEdge !== null;
+    return this.inShipRange || this.inPuzzleRange || this.activeTravelEdge !== null;
   }
 
   // ---------------------------

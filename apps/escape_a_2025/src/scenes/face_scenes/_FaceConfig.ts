@@ -17,20 +17,52 @@
 
 type TopoFace = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L";
 
-// Correct dodecahedron topology (validated to be symmetric)
+// Dodecahedron topology with correct cyclic edge ordering.
+// Each entry lists the 5 neighbors in the order they appear around the
+// pentagon edges (CW as seen from outside the dodecahedron).
+// Consecutive entries MUST be mutual neighbors (they share a dodecahedron edge).
 const DODECAHEDRON_TOPOLOGY: Record<TopoFace, TopoFace[]> = {
-  F: ["A", "B", "C", "D", "E"],
-  A: ["F", "B", "E", "K", "G"],
-  B: ["F", "C", "A", "G", "H"],
-  C: ["F", "D", "B", "H", "I"],
-  D: ["F", "E", "C", "I", "J"],
-  E: ["F", "A", "D", "J", "K"],
-  G: ["A", "B", "H", "K", "L"],
-  H: ["B", "C", "I", "G", "L"],
-  I: ["C", "D", "J", "H", "L"],
-  J: ["D", "E", "K", "I", "L"],
-  K: ["E", "A", "G", "J", "L"],
-  L: ["K", "G", "H", "I", "J"],
+  F: ["A", "B", "C", "D", "E"],       // top cap
+  A: ["F", "E", "K", "G", "B"],       // top ring
+  B: ["F", "A", "G", "H", "C"],
+  C: ["F", "B", "H", "I", "D"],
+  D: ["F", "C", "I", "J", "E"],
+  E: ["F", "D", "J", "K", "A"],
+  G: ["A", "B", "H", "L", "K"],       // bottom ring
+  H: ["B", "C", "I", "L", "G"],
+  I: ["C", "D", "J", "L", "H"],
+  J: ["D", "E", "K", "L", "I"],
+  K: ["E", "A", "G", "L", "J"],
+  L: ["G", "H", "I", "J", "K"],       // bottom cap
+};
+
+// Puzzle keys
+export enum PuzzleKey {
+  KistVanQuadratus = "kist_van_quadratus",
+  Tangram = "tangram",
+  ShipFuel = "ship_fuel",
+  LogicTower = "logic_tower",
+  Slot = "slot",
+  StreakMaze = "streak_maze",
+  PhoneBox = "phone_box",
+  Sudoku = "sudoku",
+  Domino = "domino",
+}
+
+// Energy threshold to fly home (used for cockpit check + energy bar color)
+export const ENERGY_THRESHOLD_HOME = 80;
+
+// Constant of puzzle key, reward, and reward obtained key
+export const PUZZLE_REWARDS: Record<PuzzleKey, { rewardEnergy: number; rewardObtainedRegistryKey: string; puzzleSolvedRegistryKey: string }> = {
+  [PuzzleKey.KistVanQuadratus]: { rewardEnergy: 20, rewardObtainedRegistryKey: "kvq_puzzle_solved_fuel_obtained", puzzleSolvedRegistryKey: "kvq_puzzle_solved" },
+  [PuzzleKey.Tangram]: { rewardEnergy: 10, rewardObtainedRegistryKey: "tangram_puzzle_solved_fuel_obtained" , puzzleSolvedRegistryKey: "tangram_puzzle_solved" },
+  [PuzzleKey.ShipFuel]: { rewardEnergy: 10, rewardObtainedRegistryKey: "ship_fuel_obtained", puzzleSolvedRegistryKey: "ship_fuel_solved" },
+  [PuzzleKey.LogicTower]: { rewardEnergy: 25, rewardObtainedRegistryKey: "tower_reward_obtained", puzzleSolvedRegistryKey: "tower_solved" },
+  [PuzzleKey.Slot]: { rewardEnergy: 10, rewardObtainedRegistryKey: "slot_reward_obtained", puzzleSolvedRegistryKey: "slot_solved" },
+  [PuzzleKey.StreakMaze]: { rewardEnergy: 10, rewardObtainedRegistryKey: "streak_maze_reward_obtained", puzzleSolvedRegistryKey: "streak_maze_solved" },
+  [PuzzleKey.PhoneBox]: { rewardEnergy: 10, rewardObtainedRegistryKey: "phonebox_reward_obtained", puzzleSolvedRegistryKey: "phonebox_solved" },
+  [PuzzleKey.Sudoku]: { rewardEnergy: 20, rewardObtainedRegistryKey: "sudoku_reward_obtained", puzzleSolvedRegistryKey: "sudoku_solved" },
+  [PuzzleKey.Domino]: { rewardEnergy: 10, rewardObtainedRegistryKey: "domino_reward_obtained", puzzleSolvedRegistryKey: "domino_solved" },
 };
 
 export type FaceKey =
@@ -50,18 +82,18 @@ export type FaceKey =
 // Mapping from topology letters to actual Face scenes
 // You can rearrange this mapping to change which puzzle is on which face
 const TOPOLOGY_TO_FACE: Record<TopoFace, FaceKey> = {
-  F: "Face1Scene",  // Top cap - starting face
-  A: "Face2Scene",  // Top ring
-  B: "Face3Scene",
-  C: "Face4Scene",
-  D: "Face5Scene",
-  E: "Face6Scene",
-  G: "Face7Scene",  // Bottom ring
-  H: "Face8Scene",
-  I: "Face9Scene",
-  J: "Face10Scene",
-  K: "Face11Scene",
-  L: "Face12Scene", // Bottom cap
+  F: "Face1Scene",   // Top cap  - Crash site (raket)
+  A: "Face2Scene",   // Top ring - Tangram
+  B: "Face3Scene",   //          - StreakMaze
+  C: "Face9Scene",   //          - PhoneBox
+  D: "Face11Scene",  //          - Slot
+  E: "Face8Scene",   //          - KVQ (vierkant, fruit) bordjes
+  G: "Face6Scene",   // Bot ring - KVQ (eieren, oneven)
+  H: "Face12Scene",  //          - Domino
+  I: "Face5Scene",   //          - KVQ (driehoeken, som)
+  J: "Face10Scene",  //          - Sudoku
+  K: "Face4Scene",   //          - LogicTower
+  L: "Face7Scene",   // Bot cap  - KVQ (antwoorden invullen)
 };
 
 // Reverse mapping for lookup
@@ -119,7 +151,7 @@ function getNeighborsForFace(faceKey: FaceKey): FaceNeighbors {
 export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
   Face1Scene: {
     key: "Face1Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face1Scene"),
     visuals: {
       mainFill: 0x1f4a2b,
@@ -128,7 +160,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face2Scene: {
     key: "Face2Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face2Scene"),
     visuals: {
       mainFill: 0x11315a, // dark blue
@@ -137,7 +169,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face3Scene: {
     key: "Face3Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face3Scene"),
     visuals: {
       mainFill: 0x1f3b24, // dark green
@@ -146,7 +178,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face4Scene: {
     key: "Face4Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face4Scene"),
     visuals: {
       mainFill: 0x5a1131, // dark magenta
@@ -155,7 +187,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face5Scene: {
     key: "Face5Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face5Scene"),
     visuals: {
       mainFill: 0x5a4b11, // olive / brownish
@@ -164,7 +196,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face6Scene: {
     key: "Face6Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face6Scene"),
     visuals: {
       mainFill: 0x11425a, // teal / cyan-ish
@@ -173,7 +205,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face7Scene: {
     key: "Face7Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face7Scene"),
     visuals: {
       mainFill: 0x3b115a, // violet
@@ -182,7 +214,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face8Scene: {
     key: "Face8Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face8Scene"),
     visuals: {
       mainFill: 0x1f2f5a, // indigo
@@ -191,25 +223,25 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face9Scene: {
     key: "Face9Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face9Scene"),
     visuals: {
-      mainFill: 0x2f5a1f, // green variant
+      mainFill: 0x8a1c1c, // dark red (phonebox face)
     },
   },
 
   Face10Scene: {
     key: "Face10Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face10Scene"),
     visuals: {
-      mainFill: 0x5a2f1f, // reddish brown
+      mainFill: 0x1a1a2e, // dark navy (energy cube face)
     },
   },
 
   Face11Scene: {
     key: "Face11Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face11Scene"),
     visuals: {
       mainFill: 0x1f5a4b, // turquoise
@@ -218,7 +250,7 @@ export const FACE_CONFIGS: Record<FaceKey, FaceConfig> = {
 
   Face12Scene: {
     key: "Face12Scene",
-    radius: 180,
+    radius: 300,
     neighbors: getNeighborsForFace("Face12Scene"),
     visuals: {
       mainFill: 0x4b1f5a, // purple

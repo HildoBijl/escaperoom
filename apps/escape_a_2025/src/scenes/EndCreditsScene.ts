@@ -19,7 +19,7 @@ export default class EndCreditsScene extends Phaser.Scene {
   private domStatus?: HTMLDivElement;
 
   // mode UI
-  private mode: Mode = "leaderboard";
+  private mode: Mode = "prizes";
   private tabLeaderboardBtn?: HTMLButtonElement;
   private tabPrizesBtn?: HTMLButtonElement;
 
@@ -141,7 +141,7 @@ export default class EndCreditsScene extends Phaser.Scene {
 
     // Initial layout
     this.onResize();
-    this.setMode("leaderboard");
+    this.setMode("prizes");
   }
 
   // =========================================================
@@ -406,8 +406,8 @@ export default class EndCreditsScene extends Phaser.Scene {
       return b;
     };
 
-    this.tabLeaderboardBtn = makeTabBtn("Leaderboard");
     this.tabPrizesBtn = makeTabBtn("Prijzen");
+    this.tabLeaderboardBtn = makeTabBtn("Leaderboard");
 
     this.tabLeaderboardBtn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -420,8 +420,8 @@ export default class EndCreditsScene extends Phaser.Scene {
       this.setMode("prizes");
     });
 
-    tabs.appendChild(this.tabLeaderboardBtn);
     tabs.appendChild(this.tabPrizesBtn);
+    tabs.appendChild(this.tabLeaderboardBtn);
 
     // ---------- sections ----------
     const lbSection = document.createElement("div");
@@ -697,8 +697,14 @@ export default class EndCreditsScene extends Phaser.Scene {
         b.style.color = "#ffffff";
       } else {
         b.style.borderColor = "rgba(60, 90, 153, 0.95)";
-        b.style.background = "rgba(30, 42, 74, 0.60)";
-        b.style.color = "#cfe8ff";
+
+        // Make "Prijzen" pop even when inactive
+        const isPrizes = b === this.tabPrizesBtn;
+        b.style.background = isPrizes
+          ? "rgba(38, 54, 95, 0.78)"   // slightly brighter than normal inactive
+          : "rgba(30, 42, 74, 0.60)";
+
+        b.style.color = isPrizes ? "#ffffff" : "#cfe8ff";
       }
       b.style.transform = "scale(1)";
       b.style.cursor = this.hasSubmitted || this.isSubmitting ? "default" : "pointer";

@@ -18,8 +18,7 @@ export default class LogicTower_3 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("balance_scale_puzzle", "assets/decor/balance_scale_puzzle.png");
-    this.load.image("balance_scale_puzzle", "assets/decor/balance_scale_puzzle_nobg.png");
+    this.load.image("balance_scale_puzzle", "assets/decor/balance_scale_puzzle.webp");
   }
 
   create() {

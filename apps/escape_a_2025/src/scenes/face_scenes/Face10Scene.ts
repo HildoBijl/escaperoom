@@ -14,7 +14,7 @@ export default class Face10Scene extends FaceBase {
   }
 
   preload() {
-    this.load.image("energycube", "assets/decor/energycube.png");
+    this.load.image("energycube", "assets/decor/energycube.webp");
   }
 
   create() {

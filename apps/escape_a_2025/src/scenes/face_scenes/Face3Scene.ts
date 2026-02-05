@@ -22,7 +22,7 @@ export default class Face3Scene extends FaceBase {
   }
 
   preload() {
-    this.load.image("mazedoor", "assets/decor/mazedoor.png");
+    this.load.image("mazedoor", "assets/decor/mazedoor.webp");
   }
 
   create() {

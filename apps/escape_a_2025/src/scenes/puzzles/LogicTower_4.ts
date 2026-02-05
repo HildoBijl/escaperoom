@@ -18,7 +18,7 @@ export default class LogicTower_4 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("whiteboard", "assets/decor/whiteboard.png");
+    this.load.image("whiteboard", "assets/decor/whiteboard.webp");
   }
 
   create() {

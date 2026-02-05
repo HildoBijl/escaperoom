@@ -135,7 +135,7 @@ export default class DominoScene extends Phaser.Scene {
 
   preload() {
     // Load Plok image
-    this.load.image("plok", "assets/decor/plok.png"); 
+    this.load.image("plok", "assets/decor/plok.webp"); 
   }
 
   create() {

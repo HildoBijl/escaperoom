@@ -2,10 +2,12 @@
 
 ## Huidige situatie
 
-- **9.2 GB in 2.5 dagen** (~3.7 GB/dag, ~110 GB/maand projectie)
-- **~154 unieke bezoekers/dag**, elk ~24 MB download
+- **12.9 GB in 4 dagen** (2-5 feb), stijgend verkeer
+- **3,748 sessies gestart** in die periode (~645 unieke bezoekers, ~5.8 sessies per bezoeker)
+- Verkeer groeit snel: 87 → 802 → 1.062 → 1.797 sessies/dag
 - Firebase gratis limiet: 10 GB/maand, Blaze plan: $0.15/GB daarboven
-- Geschatte kosten bij huidig gebruik: ~$15/maand
+- Browsers cachen heuristisch, waardoor herhaalde sessies minder bandwidth kosten
+- Geschatte ~20 MB per unieke bezoeker (eerste bezoek, gzip-gecomprimeerd)
 
 ### Waar gaat die 24 MB per bezoeker heen?
 
@@ -78,12 +80,13 @@
 
 ## Verwacht resultaat
 
-| Scenario | Per bezoeker | Maandelijks (154/dag) |
-|----------|-------------|----------------------|
-| Nu | 24 MB | ~110 GB |
-| Na stap 1-3 (speelt) | ~3-4 MB | ~15-18 GB |
-| Na stap 1-3 (bounced) | ~2 MB | afhankelijk van bounce rate |
-| Overage kosten | | ~$1-1.20/maand |
+| Scenario | Per unieke bezoeker (eerste bezoek) |
+|----------|-------------------------------------|
+| Nu | ~20 MB |
+| Na stap 1-3 (speelt) | ~3-4 MB |
+| Na stap 1-3 (bounced) | ~2 MB (alleen JS bundle) |
+
+Exacte maandelijkse bandbreedte hangt af van verhouding unieke vs terugkerende bezoekers en verdere groei van het verkeer. Met compressie wordt de eerste download ~5-6x kleiner, ongeacht het aantal bezoekers.
 
 ## Verificatie
 

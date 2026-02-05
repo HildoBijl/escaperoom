@@ -27,7 +27,7 @@ export default class LogicTowerScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("brokenpanel", "assets/decor/brokenpanel.png");
+    this.load.image("brokenpanel", "assets/decor/brokenpanel.webp");
   }
 
   create() {

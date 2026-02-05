@@ -47,8 +47,8 @@ import SlotScene from "./scenes/puzzles/SlotScene";
 import { DebugMenu } from "./ui/DebugMenu";
 import { initTelemetry } from "./telemetry/session";
 
-// Debug mode - set to false for release
-export const DEBUG = false;
+// Debug mode - automatically enabled in dev, disabled in builds
+export const DEBUG = import.meta.env.DEV;
 
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;

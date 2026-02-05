@@ -14,7 +14,7 @@ export default class Face12Scene extends FaceBase {
   }
 
   preload() {
-    this.load.image("plok", "assets/decor/plok.png");
+    this.load.image("plok", "assets/decor/plok.webp");
   }
 
   create() {

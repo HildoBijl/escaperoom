@@ -17,11 +17,18 @@ Een browser-based escape room game voor basisschoolleerlingen (groep 6, 7, 8). K
 
 ---
 
+## Git Workflow
+
+- Werk op een branch, bijvoorbeeld `misha/dev`, niet direct op `main`
+- Pushen naar `main` triggert automatisch een live deploy (Firebase Hosting)
+- Maak een PR naar `main` om te deployen; bij elke PR komt een preview URL (Firebase Preview Channel)
+- Na controle via de preview: merge naar `main` voor live deploy
+
 ## Git Commits
 
 **Voeg NOOIT toe:**
-- ❌ `Co-Authored-By: Claude <noreply@anthropic.com>`
-- ❌ `🤖 Generated with [Claude Code]`
+- `Co-Authored-By: Claude <noreply@anthropic.com>`
+- `Generated with [Claude Code]`
 
 Schrijf heldere commit messages in het Engels, volg bestaande stijl (`git log`).
 

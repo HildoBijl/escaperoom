@@ -35,7 +35,7 @@ export default class SlotScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("erwts", "assets/decor/erwts.png");
+    this.load.image("erwts", "assets/decor/erwts.webp");
   }
 
   create() {

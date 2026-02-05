@@ -29,7 +29,7 @@ export default class LogicTower_1 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("telescope", "assets/decor/telescope.png");
+    this.load.image("telescope", "assets/decor/telescope.webp");
   }
 
   create() {

@@ -14,7 +14,7 @@ export default class Face9Scene extends FaceBase {
   }
 
   preload() {
-    this.load.image("phonebox", "assets/decor/phonebox.png");
+    this.load.image("phonebox", "assets/decor/phonebox.webp");
   }
 
   create() {

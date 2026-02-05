@@ -36,8 +36,8 @@ export default class LogicTower_5 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("quadratus", "assets/decor/quadratus.png");
-    this.load.image("morsesheet", "assets/decor/morsesheet.png");
+    this.load.image("quadratus", "assets/decor/quadratus.webp");
+    this.load.image("morsesheet", "assets/decor/morsesheet.webp");
   }
 
   create() {

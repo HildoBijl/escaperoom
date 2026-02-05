@@ -37,8 +37,8 @@ export default class StreakMaze extends Phaser.Scene {
   }
 
   preload() {
-      this.load.image("zippu", "assets/decor/zippu.png"); 
-      this.load.image("poffie", "assets/decor/poffie.png"); 
+      this.load.image("zippu", "assets/decor/zippu.webp"); 
+      this.load.image("poffie", "assets/decor/poffie.webp"); 
   }
 
   create() {

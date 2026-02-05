@@ -31,7 +31,7 @@ export default class LogicTower_2 extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("background_tower", "assets/decor/background_tower.png");
+    this.load.image("background_tower", "assets/decor/background_tower.webp");
   }
 
   create() {

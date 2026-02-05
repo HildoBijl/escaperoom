@@ -15,8 +15,8 @@ export default class Face11Scene extends FaceBase {
 
   preload() {
     //this.load.image("ufo_slot", "assets/decor/slot/ufo met slot.webp");
-    this.load.image("ufo_slot_png", "assets/decor/slot/ufo met slot.png");
-    this.load.image("erwts", "assets/decor/erwts.png");
+    this.load.image("ufo_slot_png", "assets/decor/slot/ufo met slot.webp");
+    this.load.image("erwts", "assets/decor/erwts.webp");
   }
 
   create() {

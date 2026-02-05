@@ -45,7 +45,7 @@ export default class BootScene extends Phaser.Scene {
     this.registry.events.on("setdata", save);
     this.registry.events.on("changedata", save);
 
-    // Immediately move to Preload so we can show a loading bar for future assets.
-    this.scene.start("PreloadScene");
+    // Go straight to title screen; assets load when the player clicks Start.
+    this.scene.start("TitleScene");
   }
 }

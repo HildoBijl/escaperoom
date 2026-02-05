@@ -250,7 +250,7 @@ export default class TitleScene extends Phaser.Scene {
     }
 
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
-      if (p === 1) this.scene.start("IntroScene");
+      if (p === 1) this.scene.start("PreloadScene", { targetScene: "IntroScene" });
     });
   }
 
@@ -267,7 +267,7 @@ export default class TitleScene extends Phaser.Scene {
     const targetScene = shipSolved ? "Face1Scene" : "CockpitScene";
 
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
-      if (p === 1) this.scene.start(targetScene);
+      if (p === 1) this.scene.start("PreloadScene", { targetScene });
     });
   }
 

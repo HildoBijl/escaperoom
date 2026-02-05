@@ -3,9 +3,14 @@ import Phaser from "phaser";
 export default class PreloadScene extends Phaser.Scene {
   private progressBar!: Phaser.GameObjects.Rectangle;
   private percentText!: Phaser.GameObjects.Text;
+  private targetScene = "IntroScene";
 
   constructor() {
     super("PreloadScene");
+  }
+
+  init(data: { targetScene?: string }) {
+    if (data?.targetScene) this.targetScene = data.targetScene;
   }
 
   preload() {
@@ -30,7 +35,7 @@ export default class PreloadScene extends Phaser.Scene {
       this.percentText.setText(`${Math.round(value * 100)}%`);
     });
     this.load.on("complete", () => {
-      this.time.delayedCall(200, () => this.scene.start("TitleScene"));
+      this.time.delayedCall(200, () => this.scene.start(this.targetScene));
     });
 
     // ---------------------------

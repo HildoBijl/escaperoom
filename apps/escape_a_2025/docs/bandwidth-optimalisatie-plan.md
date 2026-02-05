@@ -1,6 +1,6 @@
 # Bandwidth Optimalisatie Plan
 
-## Huidige situatie
+## Situatie voor optimalisatie
 
 - **12.9 GB in 4 dagen** (2-5 feb), stijgend verkeer
 - **3,748 sessies gestart** in die periode (~645 unieke bezoekers, ~5.8 sessies per bezoeker)
@@ -9,89 +9,85 @@
 - Browsers cachen heuristisch, waardoor herhaalde sessies minder bandwidth kosten
 - Geschatte ~20 MB per unieke bezoeker (eerste bezoek, gzip-gecomprimeerd)
 
-### Waar gaat die 24 MB per bezoeker heen?
+### Waar ging die ~20 MB per bezoeker heen?
 
 | Categorie | Grootte |
 |-----------|---------|
-| Images (60 stuks, ongecomprimeerd PNG) | ~18 MB |
-| JS bundle (Phaser 3 + game code) | 1.7 MB |
+| Images (53 PNGs, ongecomprimeerd) | ~18 MB |
+| JS bundle (Phaser 3 + Firebase SDK + game code) | 1.7 MB (485 KB gzipped) |
 | Verspilde dubbele loads (bugs) | ~1.4 MB |
 | HTML/CSS/overig | ~0.3 MB |
-| **Totaal** | **~24 MB** |
 
 ### Gevonden bugs in PreloadScene.ts
 
-- **Regel 77-78:** Key `"tower"` wordt twee keer geladen — eerst `tower.png` (106 KB), dan overschreven met `brokenpanel.png`. De eerste download is weggegooid.
-- **Regel 81-82:** Key `"balance_scale_puzzle"` wordt geladen met het 1.3 MB bestand, dan direct overschreven met de 140 KB no-background variant. 1.3 MB verspild per bezoeker.
+- Key `"tower"` werd twee keer geladen — eerst `tower.png`, dan `brokenpanel.png` op dezelfde key. In Phaser wint de eerste load, dus `brokenpanel.png` werd gedownload maar weggegooid.
+- Key `"balance_scale_puzzle"` werd geladen met het 1.3 MB bestand, dan overschreven met de 140 KB no-background variant. Het spel gebruikte de eerste (met achtergrond), dus de nobg download was verspild.
 
 ---
 
-## Implementatieplan
+## Uitgevoerde optimalisaties
 
-### Stap 1: Bugs fixen + cache headers
+### Stap 1: Bugs fixen + cache headers ✓
 
-**Dubbele loads fixen in `PreloadScene.ts`:**
-- Regel 77: rename key `"tower"` naar `"brokenpanel"` of verwijder de eerste load (afhankelijk van welke image daadwerkelijk gebruikt wordt)
-- Regel 81: verwijder de load van `balance_scale_puzzle.png` (1.3 MB), houd alleen `balance_scale_puzzle_nobg.png` (140 KB)
+**Dubbele loads gefixt in `PreloadScene.ts`:**
+- `"tower"` en `"brokenpanel"` zijn nu aparte keys (voorheen beide op key `"tower"`)
+- `"balance_scale_puzzle"` laadt nu alleen `balance_scale_puzzle.png` (met achtergrond, de versie die daadwerkelijk werd gebruikt)
 - Besparing: ~1.4 MB per bezoeker
 
-**Cache headers toevoegen aan `firebase.json`:**
+**Cache headers toegevoegd aan `firebase.json`:**
 - Hashed JS/CSS (Vite output): `max-age=31536000, immutable` (1 jaar)
 - Images: `max-age=604800` (7 dagen)
-- Effect: terugkerende bezoekers downloaden niks opnieuw
 
-**Bestanden:** `firebase.json`, `PreloadScene.ts`
+### Stap 2: Image compressie via custom Vite plugin ✓
 
-### Stap 2: Image compressie via Vite plugin
+**Aanpak:** Custom Vite plugin met `sharp` die tijdens `npm run build`:
+- Alle PNGs in `public/assets/` converteert naar WebP (quality 80)
+- Oversized images verkleint naar max 1280px breed
+- Originele PNGs verwijdert uit `dist/`
 
-**Aanpak:** Vite plugin die tijdens `npm run build` alle PNGs in `public/assets/` converteert naar WebP (quality 80) en oversized images verkleint naar max canvasgrootte (1280px breed). Draait bij elke build (paar seconden extra).
+Dev middleware zorgt ervoor dat `.webp` requests in dev mode terugvallen op `.png` bestanden in `public/`.
 
-- Dependency toevoegen: `vite-plugin-imagemin` (of vergelijkbaar)
-- Plugin configureren in `vite.config.js` met WebP output, quality 80, max breedte 1280px
-- Originele PNGs blijven in de repo (bronbestanden)
-- Alle `this.load.image()` paden in scene bestanden updaten van `.png` naar `.webp`
-
-**Geschatte reductie:** ~18 MB images -> ~2 MB WebP. Per bezoeker: ~24 MB -> ~4-5 MB.
+**Resultaat:** 17.9 MB → 1.3 MB images (93% reductie). Totale `dist/`: 3.3 MB.
 
 **Bestanden:**
-- `vite.config.js` (plugin toevoegen)
-- `package.json` (dependency toevoegen)
-- `PreloadScene.ts` + alle scene bestanden met `this.load.image()` (extensies updaten)
+- `vite.config.js` — custom plugin + dev middleware
+- `package.json` — `sharp` als devDependency
+- Alle scene bestanden — `.png` referenties geüpdatet naar `.webp`
 
-### Stap 3: Lazy loading — assets pas laden na "Start"
+### Stap 3: Lazy loading — assets pas laden na "Start" ✓
 
-**Probleem:** TitleScene heeft nul images nodig, maar PreloadScene laadt alle 60 images _voor_ het beginscherm verschijnt.
+**Aanpak:** PreloadScene hergebruikt met een `targetScene` parameter (geen nieuw bestand nodig).
 
-**Aanpak:**
-1. `BootScene` gaat direct naar `TitleScene` (skipt PreloadScene)
-2. Nieuwe `GamePreloadScene` met de huidige PreloadScene loading logica + loading bar
-3. `TitleScene`: klik op "Start" -> `GamePreloadScene` ipv direct naar `IntroScene`
-4. `TitleScene`: klik op "Verder spelen" -> `GamePreloadScene` die daarna naar de juiste scene gaat
+- `BootScene` gaat direct naar `TitleScene` (skipt PreloadScene)
+- `TitleScene` "Start" → `PreloadScene` met `{ targetScene: "IntroScene" }`
+- `TitleScene` "Hervat spel" → `PreloadScene` met `{ targetScene: "Face1Scene" }` of `"CockpitScene"`
+- `PreloadScene` laadt alle assets, toont loading bar, gaat dan naar `targetScene`
 
-**Effect:** Bezoekers die niet spelen downloaden alleen de JS bundle (~2 MB). Beginscherm laadt direct.
+**Effect:** Beginscherm laadt instant. Bezoekers die niet spelen downloaden alleen de JS bundle (~485 KB gzipped).
 
-**Bestanden:**
-- `BootScene.ts` — scene start aanpassen
-- `TitleScene.ts` — start/resume routing aanpassen
-- `PreloadScene.ts` — hernoemen/refactoren naar `GamePreloadScene.ts`
-- `main.ts` — scene lijst updaten
+### Extra: Debug menu automatisch in dev mode ✓
+
+`DEBUG` flag in `main.ts` veranderd van hardcoded `false` naar `import.meta.env.DEV`. Debug menu is automatisch aan in dev, uit in builds.
 
 ---
 
-## Verwacht resultaat
+## Resultaat
 
-| Scenario | Per unieke bezoeker (eerste bezoek) |
-|----------|-------------------------------------|
-| Nu | ~20 MB |
-| Na stap 1-3 (speelt) | ~3-4 MB |
-| Na stap 1-3 (bounced) | ~2 MB (alleen JS bundle) |
+| Scenario | Dist grootte | Over de lijn (gzipped) |
+|----------|-------------|----------------------|
+| Voor optimalisatie | 24 MB | ~20 MB |
+| Na optimalisatie (speelt) | 3.3 MB | ~2 MB |
+| Na optimalisatie (bounced) | n.v.t. | ~485 KB (alleen JS) |
 
-Exacte maandelijkse bandbreedte hangt af van verhouding unieke vs terugkerende bezoekers en verdere groei van het verkeer. Met compressie wordt de eerste download ~5-6x kleiner, ongeacht het aantal bezoekers.
+## Mogelijke vervolgstappen
+
+- **Hosting migratie naar Cloudflare Pages** — onbeperkte gratis bandbreedte (vs 10 GB/maand Firebase). Firebase blijft voor Firestore.
+- **Phaser tree-shaking/code-splitting** — JS bundle (1.7 MB) is nu het grootste bestand. Phaser is lastig te tree-shaken, maar code-splitting per scene is mogelijk.
 
 ## Verificatie
 
-- `npm run build` runnen en `dist/` grootte vergelijken (voor/na)
-- Visueel controleren dat WebP images er goed uitzien in de game
-- PR aanmaken -> Firebase preview deployment testen
-- Browser DevTools Network tab: controleer WebP loading + cache headers
-- Na deploy: Firebase console bandwidth monitoren
+- [x] `npm run build` en `dist/` grootte checken (3.3 MB)
+- [ ] Visueel controleren dat WebP images er goed uitzien in de game
+- [ ] PR aanmaken → Firebase preview deployment testen
+- [ ] Browser DevTools Network tab: controleer WebP loading + cache headers
+- [ ] Na deploy: Firebase console bandwidth monitoren

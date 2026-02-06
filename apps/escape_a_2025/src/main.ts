@@ -70,7 +70,8 @@ const config: Phaser.Types.Core.GameConfig = {
     default: "arcade",
     arcade: { gravity: { x: 0, y: 0 }, debug: false },  
   },
-  render: { pixelArt: true},
+  render: { pixelArt: true },
+  audio: { disableWebAudio: true },
 
   scene: [
   BootScene,
@@ -119,7 +120,7 @@ const config: Phaser.Types.Core.GameConfig = {
 
 const game = new Phaser.Game(config);
 
-// Initialize debug menu (F1 to toggle)
+// Initialize debug menu (\ to toggle)
 if (DEBUG) {
   new DebugMenu(game);
 }

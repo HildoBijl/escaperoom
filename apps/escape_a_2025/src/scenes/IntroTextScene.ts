@@ -271,7 +271,7 @@ export default class IntroScene extends Phaser.Scene {
     if (this.isContinuing) return;
     this.isContinuing = true;
     this.cameras.main.fadeOut(180, 0, 0, 0, (_: any, p: number) => {
-      if (p === 1) this.scene.start("CockpitScene");
+      if (p === 1) this.scene.start("PreloadScene", { targetScene: "CockpitScene" });
     });
   }
 

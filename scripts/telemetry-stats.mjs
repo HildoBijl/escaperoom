@@ -38,6 +38,7 @@ function main() {
   let totalPuzzleCompletes = 0;
   let totalGameCompletes = 0;
   const sessionsByDay = {};
+  const puzzleCompletions = {};
 
   for (const doc of analyticsDocs) {
     const events = doc.events || [];
@@ -49,7 +50,11 @@ function main() {
 
     for (const evt of events) {
       if (evt.type === "puzzle_start") totalPuzzleStarts++;
-      if (evt.type === "puzzle_complete") totalPuzzleCompletes++;
+      if (evt.type === "puzzle_complete") {
+        totalPuzzleCompletes++;
+        const key = evt.puzzleKey || evt.puzzle || "unknown";
+        puzzleCompletions[key] = (puzzleCompletions[key] || 0) + 1;
+      }
       if (evt.type === "game_complete") totalGameCompletes++;
     }
   }
@@ -87,6 +92,11 @@ function main() {
   console.log(`   Puzzels voltooid: ${fmt(totalPuzzleCompletes)}`);
   console.log(`   Spellen voltooid: ${fmt(totalGameCompletes)}`);
   console.log(`   Errors gelogd:    ${fmt(errorDocs.length)}`);
+
+  console.log("\n🧩 Aantal opgelost per puzzel");
+  for (const [key, count] of Object.entries(puzzleCompletions).sort((a, b) => b[1] - a[1])) {
+    console.log(`   ${fmt(count).padStart(6)}  ${key}`);
+  }
 
   console.log("\n📅 Sessies per dag");
   for (const day of Object.keys(sessionsByDay).sort()) {

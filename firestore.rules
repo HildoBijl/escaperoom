@@ -1,10 +1,8 @@
+// firestore.rules
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------
-    // Helpers
-    // ----------------------------
     function isNonEmptyString(x, min, max) {
       return x is string && x.size() >= min && x.size() <= max;
     }
@@ -17,20 +15,35 @@ service cloud.firestore {
       return e is string && e.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$');
     }
 
-    function isValidGroup(g) {
-      return g is int && (g == 5 || g == 6 || g == 7 || g == 8);
+    // For eligibilityGroup (6/7/8)
+    function isValidEligibilityGroup(g) {
+      return g is int && (g == 6 || g == 7 || g == 8);
     }
 
-    // ========================================================
-    // Kamp A (main URL) — NEW room
-    // ========================================================
+    // NL postcode: "1234 AB" or "1234AB"
+    function isValidNLPostcode(p) {
+      return p is string && p.upper().matches('^[1-9][0-9]{3}\\s?[A-Z]{2}$');
+    }
 
-    // PUBLIC leaderboard
+    function isValidCampPreference(v) {
+      return v is string && (v == "A1" || v == "A2" || v == "geen");
+    }
+
+    // geboortedatum as "YYYY-MM-DD" (basic format validation)
+    function isValidBirthdate(b) {
+      return b is string && b.matches('^\\d{4}-\\d{2}-\\d{2}$');
+    }
+
+    // ----------------------------
+    // Kamp A: PUBLIC leaderboard
+    // ----------------------------
     match /leaderbord-kamp-a/{docId} {
       allow read, list: if true;
 
       allow create: if
-        request.resource.data.keys().hasOnly(["name", "age", "createdAt"]) &&
+        request.resource.data.keys().hasOnly([
+          "name", "age", "createdAt"
+        ]) &&
         isNonEmptyString(request.resource.data.name, 1, 60) &&
         isValidAge(request.resource.data.age) &&
         (request.resource.data.createdAt is timestamp);
@@ -38,26 +51,64 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // PRIVATE prizes (PII)
+    // ----------------------------
+    // Kamp A: PRIVATE prizes (PII)
+    // ----------------------------
     match /prizes-kamp-a/{docId} {
+      // do NOT allow client reads
       allow read, list: if false;
 
       allow create: if
         request.resource.data.keys().hasOnly([
+          // required (*)
           "firstName",
           "lastName",
+          "address",
+          "postcode",
+          "city",
           "email",
+          "phone",
+          "birthdate",
+          "groupText",
+          "school",
+          "campPreference",
+
+          // optional
+          "gender",
+
+          // kept restriction fields
           "age",
-          "group",
+          "eligibilityGroup",
           "beenBefore",
           "parentsPhone",
           "createdAt"
         ]) &&
+
+        // required strings
         isNonEmptyString(request.resource.data.firstName, 1, 60) &&
         isNonEmptyString(request.resource.data.lastName, 1, 80) &&
+        isNonEmptyString(request.resource.data.address, 3, 120) &&
+        isValidNLPostcode(request.resource.data.postcode) &&
+        isNonEmptyString(request.resource.data.city, 1, 80) &&
         isValidEmail(request.resource.data.email) &&
+        isNonEmptyString(request.resource.data.phone, 6, 32) &&
+
+        // geboortedatum + school + group text + camp pref
+        isValidBirthdate(request.resource.data.birthdate) &&
+        isNonEmptyString(request.resource.data.groupText, 1, 24) &&
+        isNonEmptyString(request.resource.data.school, 1, 120) &&
+        isValidCampPreference(request.resource.data.campPreference) &&
+
+        // optional gender (if present, must be a reasonable string)
+        (
+          !("gender" in request.resource.data) ||
+          request.resource.data.gender == null ||
+          isNonEmptyString(request.resource.data.gender, 1, 40)
+        ) &&
+
+        // kept restrictions
         isValidAge(request.resource.data.age) &&
-        isValidGroup(request.resource.data.group) &&
+        isValidEligibilityGroup(request.resource.data.eligibilityGroup) &&
         (request.resource.data.beenBefore is bool) &&
         isNonEmptyString(request.resource.data.parentsPhone, 6, 32) &&
         (request.resource.data.createdAt is timestamp);
@@ -65,28 +116,74 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ========================================================
-    // Kamp B (/kamp-b) — OLD room
-    // ========================================================
-    //
-    // You MUST add rules for the collections used by app2.
-    // The old repo example you showed used a collection called "leaderboard".
-    // If that's still true, add:
+    // ----------------------------
+    // Telemetry: Bug Reports
+    // ----------------------------
+    match /telemetry-bug-reports/{docId} {
+      allow read, list: if false;
 
-    match /leaderboard/{docId} {
-      allow read, list: if true;
-
-      // Keep this compatible with the old app:
-      // It likely writes: { naam, plaats, leeftijd, date }
-      // (Your old UI used solver.date.toDate())
       allow create: if
-        request.resource.data.keys().hasOnly(["naam", "plaats", "leeftijd", "date"]) &&
-        isNonEmptyString(request.resource.data.naam, 1, 60) &&
-        isNonEmptyString(request.resource.data.plaats, 1, 60) &&
-        (request.resource.data.leeftijd is int && request.resource.data.leeftijd >= 6 && request.resource.data.leeftijd <= 120) &&
-        (request.resource.data.date is timestamp);
+        request.resource.data.keys().hasOnly([
+          "description", "currentScene", "sessionId",
+          "deviceInfo", "registrySnapshot", "createdAt"
+        ]) &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() <= 2000 &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.createdAt is timestamp;
 
       allow update, delete: if false;
+    }
+
+    // ----------------------------
+    // Telemetry: Error Logs
+    // ----------------------------
+    match /telemetry-errors/{docId} {
+      allow read, list: if false;
+
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          "message", "stack", "type", "currentScene",
+          "sessionId", "deviceInfo", "url", "createdAt"
+        ]) &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() <= 500 &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.createdAt is timestamp;
+
+      allow update, delete: if false;
+    }
+
+    // ----------------------------
+    // Telemetry: Analytics
+    // ----------------------------
+    match /telemetry-analytics/{docId} {
+      allow read, list: if false;
+
+      allow create: if
+        request.resource.data.keys().hasOnly([
+          "sessionId", "playerId", "deviceInfo", "events", "createdAt"
+        ]) &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.playerId is string &&
+        request.resource.data.events is list &&
+        request.resource.data.createdAt is timestamp;
+
+      allow update, delete: if false;
+    }
+
+    // ----------------------------
+    // Telemetry: Budget Counter
+    // ----------------------------
+    match /telemetry-meta/{docId} {
+      allow read: if true;
+
+      allow create, update: if
+        request.resource.data.keys().hasOnly(["date", "count"]) &&
+        request.resource.data.date is string &&
+        request.resource.data.count is int;
+
+      allow delete: if false;
     }
   }
 }

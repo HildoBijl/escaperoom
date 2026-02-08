@@ -93,6 +93,12 @@ export default class TangramSelectScene extends Phaser.Scene {
 
     // This is okay now, because levelTextObjects only has the *new* objects
     this.updateLevelStates();
+
+    // Telemetry snapshot: which animals are already solved
+    const solved = this.levels
+      .filter((l) => this.registry.get(l.registryFlag) === true)
+      .map((l) => l.label);
+    this.game.events.emit("telemetry:puzzle_snapshot", { solved });
     }
 
   private updateLevelStates() {

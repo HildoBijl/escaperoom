@@ -184,6 +184,7 @@ export default class PhoneBoxScene extends Phaser.Scene {
       this.codeDisplay.setColor("#00ffff");
       this.time.delayedCall(500, () => this.puzzleSolved());
     } else {
+      this.game.events.emit("telemetry:attempt_fail", "PhoneBoxScene", this.enteredCode);
       this.codeDisplay.setColor("#ff0000");
       this.cameras.main.shake(100, 0.01);
       this.time.delayedCall(500, () => this.clearInput());

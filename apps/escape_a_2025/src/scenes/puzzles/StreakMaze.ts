@@ -305,6 +305,7 @@ export default class StreakMaze extends Phaser.Scene {
     this.choiceContainer.removeAll(true); 
 
     if (room.isEndWrong) {
+      this.game.events.emit("telemetry:attempt_fail", "StreakMaze", roomId, this.currentRoom?.id);
       this.mainSignText.setText("Fout! Je hebt ergens onderweg een fout gemaakt.");
       this.createChoiceSign(this.scale.width / 2, this.scale.height * 0.5, "Opnieuw", () => {
           this.enterRoom("stage1");
@@ -323,6 +324,12 @@ export default class StreakMaze extends Phaser.Scene {
         });
       });
       return;
+    }
+
+    // Track stage progression as substeps
+    if (roomId.startsWith("stage")) {
+      this.game.events.emit("telemetry:substep", "StreakMaze", roomId);
+      this.game.events.emit("telemetry:puzzle_snapshot", { lastStage: roomId });
     }
 
     this.mainSignText.setText(room.clue ?? "");

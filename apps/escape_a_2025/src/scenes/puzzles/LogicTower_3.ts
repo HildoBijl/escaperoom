@@ -171,6 +171,7 @@ export default class LogicTower_3 extends Phaser.Scene {
     if (val === correctAnswer) {
       this.completePuzzle();
     } else {
+      this.game.events.emit("telemetry:attempt_fail", "LogicTower_3", String(val));
       input.style.borderColor = "#ff0000";
       input.style.backgroundColor = "#ffcccc";
       this.wrongAnswersCount++;

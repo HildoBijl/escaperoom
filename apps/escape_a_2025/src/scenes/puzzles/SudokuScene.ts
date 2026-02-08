@@ -269,6 +269,7 @@ export default class SudokuScene extends Phaser.Scene {
     if (isCorrect) {
         this.puzzleSolved();
     } else {
+        this.game.events.emit("telemetry:attempt_fail", "SudokuScene", enteredCode.join(","));
         this.tweens.add({
             targets: this.codeDOM,
             x: this.codeDOM.x + 5,
@@ -415,6 +416,10 @@ export default class SudokuScene extends Phaser.Scene {
     this.currentGrid[r][c] = value;
     const textObj = this.cellTexts[r][c];
     textObj.setText(value === 0 ? "" : value.toString());
+    // Telemetry snapshot: count filled cells for abandon tracking
+    let filled = 0;
+    for (const row of this.currentGrid) for (const v of row) if (v !== 0) filled++;
+    this.game.events.emit("telemetry:puzzle_snapshot", { filledCells: filled });
   }
 
   private puzzleSolved() {

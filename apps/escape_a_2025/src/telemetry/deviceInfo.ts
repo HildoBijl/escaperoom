@@ -5,6 +5,7 @@ export interface DeviceInfo {
   screenHeight: number;
   isMobile: boolean;
   language: string;
+  referrer: string;
 }
 
 let cached: DeviceInfo | null = null;
@@ -20,6 +21,7 @@ export function getDeviceInfo(): DeviceInfo {
       window.matchMedia("(pointer: coarse)").matches ||
       window.screen.width < 768,
     language: navigator.language ?? "unknown",
+    referrer: document.referrer.slice(0, 200),
   };
   return cached;
 }

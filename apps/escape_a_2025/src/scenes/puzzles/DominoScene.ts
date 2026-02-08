@@ -367,6 +367,13 @@ export default class DominoScene extends Phaser.Scene {
         if (!passed) allPassed = false;
     });
 
+    // Telemetry snapshot: track rules progress for abandon tracking
+    let passedCount = 0;
+    this.rules.forEach(rule => {
+      if (this.ruleLabels.get(rule.id)?.text.includes("\u2714")) passedCount++;
+    });
+    this.game.events.emit("telemetry:puzzle_snapshot", { rulesPassed: passedCount, totalRules: this.rules.length });
+
     if (allPassed) this.puzzleSolved();
   }
 

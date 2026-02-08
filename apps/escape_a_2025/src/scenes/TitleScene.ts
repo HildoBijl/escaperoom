@@ -236,6 +236,7 @@ export default class TitleScene extends Phaser.Scene {
     this.isStarting = true;
 
     if (clearSave) {
+      this.game.events.emit("telemetry:new_game", true);
       localStorage.removeItem(SAVE_KEY);
       const all = this.registry.getAll();
       for (const key of Object.keys(all)) {
@@ -340,6 +341,7 @@ export default class TitleScene extends Phaser.Scene {
   // =========================================================
   private openTabbedPopup(tabs: Tab[]) {
     if (this.popup) return;
+    this.game.events.emit("telemetry:info_tab", tabs[0]?.title ?? "unknown");
 
     const { width, height } = this.scale;
 
@@ -569,6 +571,7 @@ export default class TitleScene extends Phaser.Scene {
     if (nextIndex < 0 || nextIndex >= pop.tabs.length) return;
 
     pop.tabIndex = nextIndex;
+    this.game.events.emit("telemetry:info_tab", pop.tabs[nextIndex]?.title ?? "unknown");
 
     // Update tab visuals
     pop.tabButtons.forEach((btn, i) => {
@@ -690,7 +693,10 @@ export default class TitleScene extends Phaser.Scene {
       if (url) {
         t.setInteractive({ useHandCursor: true });
         t.on("pointerdown", () => {
-          if (typeof window !== "undefined") window.open(url, "_blank");
+          if (typeof window !== "undefined") {
+            this.game.events.emit("telemetry:link_click", url);
+            window.open(url, "_blank");
+          }
         });
         t.on("pointerover", () => t.setAlpha(0.85));
         t.on("pointerout", () => t.setAlpha(1));

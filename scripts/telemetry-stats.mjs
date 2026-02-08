@@ -3,92 +3,23 @@
 /**
  * Telemetry Stats Script
  *
- * Fetches and displays statistics from Firestore telemetry collections.
- * Uses Firebase CLI credentials for authentication.
+ * Reads local JSON data (fetched by fetch-telemetry.mjs) and displays statistics.
  *
  * Usage: node scripts/telemetry-stats.mjs
  */
 
-import https from "https";
-import os from "os";
 import fs from "fs";
 import path from "path";
 
-const PROJECT_ID = "vierkantescaperoom";
+const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
 
-// Load Firebase CLI credentials
-function getRefreshToken() {
-  const configPath = path.join(os.homedir(), ".config/configstore/firebase-tools.json");
-  const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-  return (config.tokens || config.user?.tokens).refresh_token;
-}
-
-// Exchange refresh token for access token
-function getAccessToken(refreshToken) {
-  return new Promise((resolve, reject) => {
-    const postData = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: "563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com",
-      client_secret: "j9iVZfS8kkCEFUPaAeJV0sAi",
-    }).toString();
-
-    const req = https.request({
-      hostname: "oauth2.googleapis.com",
-      path: "/token",
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    }, (res) => {
-      let data = "";
-      res.on("data", (chunk) => data += chunk);
-      res.on("end", () => {
-        const parsed = JSON.parse(data);
-        if (parsed.access_token) resolve(parsed.access_token);
-        else reject(new Error(parsed.error_description || "Failed to get token"));
-      });
-    });
-    req.on("error", reject);
-    req.write(postData);
-    req.end();
-  });
-}
-
-// Fetch all documents from a Firestore collection (handles pagination)
-function fetchCollection(token, collection) {
-  return new Promise(async (resolve) => {
-    let allDocs = [];
-    let pageToken = null;
-
-    do {
-      const result = await new Promise((res) => {
-        let urlPath = `/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}?pageSize=300`;
-        if (pageToken) urlPath += `&pageToken=${encodeURIComponent(pageToken)}`;
-
-        const req = https.request({
-          hostname: "firestore.googleapis.com",
-          path: urlPath,
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        }, (r) => {
-          let data = "";
-          r.on("data", (chunk) => data += chunk);
-          r.on("end", () => res(JSON.parse(data)));
-        });
-        req.end();
-      });
-
-      if (result.error) {
-        console.error(`Error fetching ${collection}:`, result.error.message);
-        resolve(allDocs);
-        return;
-      }
-
-      allDocs = allDocs.concat(result.documents || []);
-      pageToken = result.nextPageToken;
-    } while (pageToken);
-
-    resolve(allDocs);
-  });
+function readJSON(name) {
+  const filePath = path.join(DATA_DIR, `${name}.json`);
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing ${filePath} — run fetch-telemetry.mjs first`);
+    return [];
+  }
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
 // Helper to format numbers with dots as thousands separator
@@ -96,18 +27,11 @@ function fmt(n) {
   return n.toLocaleString("nl-NL");
 }
 
-// Main
-async function main() {
-  console.log("Fetching telemetry data...\n");
-
-  const token = await getAccessToken(getRefreshToken());
-
-  const [analyticsDocs, leaderboardDocs, prizeDocs, errorDocs] = await Promise.all([
-    fetchCollection(token, "telemetry-analytics"),
-    fetchCollection(token, "leaderbord-kamp-a"),
-    fetchCollection(token, "prizes-kamp-a"),
-    fetchCollection(token, "telemetry-errors"),
-  ]);
+function main() {
+  const analyticsDocs = readJSON("telemetry-analytics");
+  const leaderboardDocs = readJSON("leaderbord-kamp-a");
+  const prizeDocs = readJSON("prizes-kamp-a");
+  const errorDocs = readJSON("telemetry-errors");
 
   // Process analytics
   let totalPuzzleStarts = 0;
@@ -116,28 +40,25 @@ async function main() {
   const sessionsByDay = {};
 
   for (const doc of analyticsDocs) {
-    const events = doc.fields?.events?.arrayValue?.values || [];
-    const createdAt = doc.fields?.createdAt?.timestampValue;
+    const events = doc.events || [];
 
-    if (createdAt) {
-      const day = new Date(createdAt).toISOString().slice(0, 10);
+    if (doc.createdAt) {
+      const day = new Date(doc.createdAt).toISOString().slice(0, 10);
       sessionsByDay[day] = (sessionsByDay[day] || 0) + 1;
     }
 
     for (const evt of events) {
-      const type = evt.mapValue?.fields?.type?.stringValue;
-      if (type === "puzzle_start") totalPuzzleStarts++;
-      if (type === "puzzle_complete") totalPuzzleCompletes++;
-      if (type === "game_complete") totalGameCompletes++;
+      if (evt.type === "puzzle_start") totalPuzzleStarts++;
+      if (evt.type === "puzzle_complete") totalPuzzleCompletes++;
+      if (evt.type === "game_complete") totalGameCompletes++;
     }
   }
 
   // Process leaderboard by day
   const leaderboardByDay = {};
   for (const doc of leaderboardDocs) {
-    const ts = doc.fields?.createdAt?.timestampValue;
-    if (ts) {
-      const day = new Date(ts).toISOString().slice(0, 10);
+    if (doc.createdAt) {
+      const day = new Date(doc.createdAt).toISOString().slice(0, 10);
       leaderboardByDay[day] = (leaderboardByDay[day] || 0) + 1;
     }
   }
@@ -147,15 +68,12 @@ async function main() {
   const campPref = {};
   const groups = {};
   for (const doc of prizeDocs) {
-    const ts = doc.fields?.createdAt?.timestampValue;
-    if (ts) {
-      const day = new Date(ts).toISOString().slice(0, 10);
+    if (doc.createdAt) {
+      const day = new Date(doc.createdAt).toISOString().slice(0, 10);
       prizesByDay[day] = (prizesByDay[day] || 0) + 1;
     }
-    const pref = doc.fields?.campPreference?.stringValue;
-    if (pref) campPref[pref] = (campPref[pref] || 0) + 1;
-    const grp = doc.fields?.eligibilityGroup?.integerValue;
-    if (grp) groups[grp] = (groups[grp] || 0) + 1;
+    if (doc.campPreference) campPref[doc.campPreference] = (campPref[doc.campPreference] || 0) + 1;
+    if (doc.eligibilityGroup) groups[doc.eligibilityGroup] = (groups[doc.eligibilityGroup] || 0) + 1;
   }
 
   // Output
@@ -206,7 +124,4 @@ async function main() {
   console.log("\n" + "=".repeat(50));
 }
 
-main().catch((err) => {
-  console.error("Error:", err.message);
-  process.exit(1);
-});
+main();

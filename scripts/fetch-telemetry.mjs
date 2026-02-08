@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * Fetch Telemetry Data
+ * Fetch Telemetry Data (Incremental)
  *
- * Downloads all telemetry data from Firestore and saves to local JSON files.
+ * Downloads telemetry data from Firestore and saves to local JSON files.
+ * On subsequent runs, only fetches new documents (since last fetch).
  * Uses Firebase CLI credentials for authentication.
  *
  * Usage: node scripts/fetch-telemetry.mjs
@@ -16,11 +17,14 @@ import path from "path";
 
 const PROJECT_ID = "vierkantescaperoom";
 const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
+const PAGE_SIZE = 300;
 
 const COLLECTIONS = [
   "telemetry-analytics",
   "telemetry-bug-reports",
   "telemetry-errors",
+  "leaderbord-kamp-a",
+  "prizes-kamp-a",
 ];
 
 // Load Firebase CLI credentials
@@ -60,42 +64,84 @@ function getAccessToken(refreshToken) {
   });
 }
 
-// Fetch all documents from a Firestore collection (handles pagination)
-function fetchCollection(token, collection) {
-  return new Promise(async (resolve) => {
-    let allDocs = [];
-    let pageToken = null;
-
-    do {
-      const result = await new Promise((res) => {
-        let urlPath = `/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collection}?pageSize=300`;
-        if (pageToken) urlPath += `&pageToken=${encodeURIComponent(pageToken)}`;
-
-        const req = https.request({
-          hostname: "firestore.googleapis.com",
-          path: urlPath,
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        }, (r) => {
-          let data = "";
-          r.on("data", (chunk) => data += chunk);
-          r.on("end", () => res(JSON.parse(data)));
-        });
-        req.end();
+// POST a structured query to the Firestore runQuery endpoint
+function postRunQuery(token, body) {
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify(body);
+    const req = https.request({
+      hostname: "firestore.googleapis.com",
+      path: `/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(postData),
+      },
+    }, (res) => {
+      let data = "";
+      res.on("data", (chunk) => data += chunk);
+      res.on("end", () => {
+        try { resolve(JSON.parse(data)); }
+        catch { reject(new Error("Failed to parse Firestore response")); }
       });
-
-      if (result.error) {
-        console.error(`Error fetching ${collection}:`, result.error.message);
-        resolve(allDocs);
-        return;
-      }
-
-      allDocs = allDocs.concat(result.documents || []);
-      pageToken = result.nextPageToken;
-    } while (pageToken);
-
-    resolve(allDocs);
+    });
+    req.on("error", reject);
+    req.write(postData);
+    req.end();
   });
+}
+
+// Fetch documents from a collection, optionally only newer than sinceTimestamp
+async function fetchCollection(token, collectionId, sinceTimestamp) {
+  let allDocs = [];
+  let cursor = null;
+
+  do {
+    const sq = {
+      from: [{ collectionId }],
+      orderBy: [
+        { field: { fieldPath: "createdAt" }, direction: "ASCENDING" },
+        { field: { fieldPath: "__name__" }, direction: "ASCENDING" },
+      ],
+      limit: PAGE_SIZE,
+    };
+
+    if (sinceTimestamp) {
+      sq.where = {
+        fieldFilter: {
+          field: { fieldPath: "createdAt" },
+          op: "GREATER_THAN_OR_EQUAL",
+          value: { timestampValue: sinceTimestamp },
+        },
+      };
+    }
+
+    if (cursor) {
+      sq.startAt = { values: cursor, before: false };
+    }
+
+    const results = await postRunQuery(token, { structuredQuery: sq });
+
+    if (!Array.isArray(results)) {
+      const msg = results?.error?.message || "Unknown Firestore error";
+      throw new Error(`Query failed for ${collectionId}: ${msg}`);
+    }
+
+    const docs = results.filter(r => r.document).map(r => r.document);
+    if (docs.length === 0) break;
+
+    allDocs = allDocs.concat(docs);
+    if (docs.length < PAGE_SIZE) break;
+
+    // Cursor for next page: last doc's createdAt + document path
+    const lastDoc = docs[docs.length - 1];
+    cursor = [
+      { timestampValue: lastDoc.fields?.createdAt?.timestampValue },
+      { referenceValue: lastDoc.name },
+    ];
+  } while (true);
+
+  return allDocs;
 }
 
 // Convert Firestore document format to plain objects
@@ -130,8 +176,28 @@ function convertDoc(doc) {
   return { id, ...data };
 }
 
+// Read existing JSON data file
+function readExisting(filePath) {
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+// Find the latest createdAt timestamp from existing data
+function getLatestTimestamp(docs) {
+  let latest = null;
+  for (const doc of docs) {
+    if (doc.createdAt && (!latest || doc.createdAt > latest)) {
+      latest = doc.createdAt;
+    }
+  }
+  return latest;
+}
+
 async function main() {
-  // Ensure data directory exists
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
@@ -141,15 +207,33 @@ async function main() {
   const token = await getAccessToken(getRefreshToken());
 
   for (const collection of COLLECTIONS) {
-    process.stdout.write(`Fetching ${collection}... `);
-
-    const docs = await fetchCollection(token, collection);
-    const converted = docs.map(convertDoc);
-
     const filePath = path.join(DATA_DIR, `${collection}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(converted, null, 2));
+    const existing = readExisting(filePath);
+    const latestTs = getLatestTimestamp(existing);
 
-    console.log(`${converted.length} documents → ${path.relative(process.cwd(), filePath)}`);
+    if (latestTs) {
+      process.stdout.write(`${collection} (since ${latestTs.slice(0, 19)})... `);
+    } else {
+      process.stdout.write(`${collection} (full fetch)... `);
+    }
+
+    const newDocs = await fetchCollection(token, collection, latestTs);
+    const converted = newDocs.map(convertDoc);
+
+    // Merge: dedup by id (existing wins for docs we already have)
+    const byId = new Map(existing.map(d => [d.id, d]));
+    let added = 0;
+    for (const doc of converted) {
+      if (!byId.has(doc.id)) {
+        byId.set(doc.id, doc);
+        added++;
+      }
+    }
+
+    const merged = [...byId.values()];
+    fs.writeFileSync(filePath, JSON.stringify(merged, null, 2));
+
+    console.log(`+${added} new (${merged.length} total)`);
   }
 
   console.log("\nDone!");

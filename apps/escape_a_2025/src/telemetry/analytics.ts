@@ -308,6 +308,14 @@ export function initAnalytics(game: Phaser.Game): void {
     });
   });
 
+  game.events.on("telemetry:game_start", (mode: string) => {
+    events.push({
+      type: "game_start",
+      mode, // "new", "new_first", or "resume"
+      timestamp: Date.now(),
+    });
+  });
+
   game.events.on("telemetry:new_game", (hadPreviousSave: boolean) => {
     events.push({
       type: "new_game_start",

@@ -235,6 +235,8 @@ export default class TitleScene extends Phaser.Scene {
     if (this.isStarting) return;
     this.isStarting = true;
 
+    this.game.events.emit("telemetry:game_start", clearSave ? "new" : "new_first");
+
     if (clearSave) {
       this.game.events.emit("telemetry:new_game", true);
       localStorage.removeItem(SAVE_KEY);
@@ -258,6 +260,8 @@ export default class TitleScene extends Phaser.Scene {
   private handleResumeClick() {
     if (this.isStarting) return;
     this.isStarting = true;
+
+    this.game.events.emit("telemetry:game_start", "resume");
 
     if (!getIsDesktop(this)) {
       enterAndKeepFullscreen();

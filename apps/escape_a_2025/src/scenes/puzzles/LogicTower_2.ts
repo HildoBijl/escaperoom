@@ -205,6 +205,7 @@ export default class LogicTower_2 extends Phaser.Scene {
       if (xVal === 7 && yVal === 5) {
           this.completePuzzle();
       } else {
+          this.game.events.emit("telemetry:attempt_fail", "LogicTower_2", `${xVal},${yVal}`);
           xInput.style.borderColor = "red";
           yInput.style.borderColor = "red";
           this.wrongAnswersCount++;

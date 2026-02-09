@@ -402,6 +402,7 @@ export default class KVQAntwoordenInvullen extends Phaser.Scene {
     // store in the same order as this.slots
     const values = this.slots.map((s) => s.value);
     this.registry.set(this.SAVE_KEY, values);
+    this.game.events.emit("telemetry:puzzle_snapshot", { slots: values });
   }
 
   private loadValues(): string[] | null {

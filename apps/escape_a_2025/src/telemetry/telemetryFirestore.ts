@@ -58,6 +58,7 @@ export async function submitError(data: ErrorData): Promise<void> {
 
 export interface AnalyticsData {
   sessionId: string;
+  playerId: string;
   deviceInfo: DeviceInfo;
   events: Array<Record<string, unknown>>;
 }

@@ -258,6 +258,7 @@ export default class LogicTower_1 extends Phaser.Scene {
       if (value === "r" || value === "de letter r" || value === "letter r") {
         this.completePuzzle();
       } else {
+        this.game.events.emit("telemetry:attempt_fail", "LogicTower_1", value);
         inputElement.style.border = "2px solid #ff4444";
         this.wrongAnswersCount++;
         if (this.wrongAnswersCount >= 2 && !this.hintButton) {

@@ -284,6 +284,7 @@ export default class SlotScene extends Phaser.Scene {
       this.startEndingSequence();
 
     } else {
+      this.game.events.emit("telemetry:attempt_fail", "SlotScene", this.currentCode.join(","));
       this.feedbackText.setColor("#ff6666");
       this.feedbackText.setText("Dat klopt niet, probeer opnieuw");
     }

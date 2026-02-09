@@ -642,6 +642,7 @@ export default class ShipFuelScene extends Phaser.Scene {
   }
 
   private triggerShortCircuit(x: number, y: number) {
+    this.game.events.emit("telemetry:attempt_fail", "ShipFuelScene");
     this.isShortCircuiting = true;
     const faultyColor = this.drawingColor;
     this.drawingColor = undefined;

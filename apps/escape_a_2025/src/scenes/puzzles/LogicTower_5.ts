@@ -312,8 +312,9 @@ export default class LogicTower_5 extends Phaser.Scene {
     if (val === "einde") {
       this.completeTower();
     } else {
+      this.game.events.emit("telemetry:attempt_fail", "LogicTower_5", val);
       input.style.borderColor = "#ff0000";
-      
+
       this.wrongAnswersCount++;
       if (this.wrongAnswersCount >= 2 && !this.hintButton) {
           this.showHintButton();

@@ -25,3 +25,6 @@ dist-ssr
 
 
 .firebase
+
+# Telemetry data cache (contains session data)
+scripts/data/

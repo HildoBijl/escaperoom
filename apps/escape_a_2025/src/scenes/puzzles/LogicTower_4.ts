@@ -170,6 +170,7 @@ export default class LogicTower_4 extends Phaser.Scene {
     if (normalizedValue === targetAnswer) {
       this.startPostPuzzleDialogue();
     } else {
+      this.game.events.emit("telemetry:attempt_fail", "LogicTower_4", rawValue);
       input.style.borderColor = "#ff0000";
       input.style.backgroundColor = "#ffcccc";
       this.wrongAnswersCount++;

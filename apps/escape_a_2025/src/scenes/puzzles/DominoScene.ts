@@ -367,6 +367,13 @@ export default class DominoScene extends Phaser.Scene {
         if (!passed) allPassed = false;
     });
 
+    // Telemetry snapshot: track rules progress for abandon tracking
+    let passedCount = 0;
+    this.rules.forEach(rule => {
+      if (this.ruleLabels.get(rule.id)?.text.includes("\u2714")) passedCount++;
+    });
+    this.game.events.emit("telemetry:puzzle_snapshot", { rulesPassed: passedCount, totalRules: this.rules.length });
+
     if (allPassed) this.puzzleSolved();
   }
 
@@ -549,9 +556,11 @@ export default class DominoScene extends Phaser.Scene {
     return c;
   }
 
-  private addPips(c: any, cx: number, cy: number, val: number) {
+  private addPips(c: Phaser.GameObjects.Container, cx: number, cy: number, val: number) {
     if (val === 0) return;
-    const g = this.add.graphics(); g.fillStyle(0x000000);
+    const g = this.add.graphics();
+    if (!g) return; // Prevent crash on WebGL context loss
+    g.fillStyle(0x000000);
     const sz = 4; const off = 15;
     const dot = (x: number, y: number) => g.fillCircle(cx+x, cy+y, sz);
     if (val%2 === 1) dot(0,0);

@@ -30,11 +30,15 @@ export default class PreloadScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Progress handlers
+    const loadStart = performance.now();
     this.load.on("progress", (value: number) => {
       this.progressBar.width = 500 * value;
       this.percentText.setText(`${Math.round(value * 100)}%`);
     });
     this.load.on("complete", () => {
+      const durationMs = Math.round(performance.now() - loadStart);
+      const connectionType = (navigator as any).connection?.effectiveType ?? "unknown";
+      this.game.events.emit("telemetry:asset_load", durationMs, connectionType);
       this.time.delayedCall(200, () => this.scene.start(this.targetScene));
     });
 

@@ -264,7 +264,7 @@ export default class LogicTowerScene extends Phaser.Scene {
 
     const value = inputElement.value.trim().toLowerCase();
 
-    if (value === "sterren" || value === "ster") {
+    if (value === "sterren" || value === "ster" || value === "poolster") {
       this.completePuzzle();
     } else {
       this.game.events.emit("telemetry:attempt_fail", "LogicTower", value);

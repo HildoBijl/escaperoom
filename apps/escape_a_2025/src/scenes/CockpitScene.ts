@@ -316,8 +316,8 @@ export default class CockpitScene extends Phaser.Scene {
   private showWakeUpThoughts() {
     this.dialogManager?.show([
       { text: "Waar ben ik? Wat is er gebeurd? Waar is iedereen?" },
-      { text: "Ik weet nog dat we gisteren onze ruimte-missie hebben afgerond en dat we daarna allemaal in onze eigen raketten naar de aarde teruggingen." },
-      { text: "Zo te zien ben ik niet op de aarde. Ik moet uitzoeken waar ik ben." },
+      { text: "Ik weet nog dat we gisteren onze ruimtemissie hebben afgerond en dat we daarna allemaal in onze eigen raket naar Aarde teruggingen." },
+      { text: "Zo te zien ben ik niet op Aarde. Ik moet uitzoeken waar ik ben." },
       { text: "Wacht... het paneel! Alle draden zijn los!" },
     ],
       () => {
@@ -1076,7 +1076,7 @@ export default class CockpitScene extends Phaser.Scene {
     // Case 1: Damaged (electricity hatch clickable)
     if (this.currentPhase === "damaged") {
       this.animateJoystickDownUp(() => {
-        this.dialogManager?.show([{ text: "Hmm dit lijkt niet te werken..." }]);
+        this.dialogManager?.show([{ text: "Hmm, dit lijkt niet te werken..." }]);
       });
       return;
     }
@@ -1088,7 +1088,7 @@ export default class CockpitScene extends Phaser.Scene {
     if (fuel >= ENERGY_THRESHOLD_HOME) {
       this.animateJoystickDownOnly(() => {
         this.inputLocked = true;
-        this.dialogManager?.confirm("Weet je zeker dat je naar huis wilt vliegen? Als je naar huis vliegt kun je niet meer terugkomen om verder te puzzelen.", {
+        this.dialogManager?.confirm("Weet je zeker dat je naar huis wilt vliegen? Als je naar huis vliegt, kun je niet meer terugkomen om verder te puzzelen.", {
           yesText: "Ja",
           noText: "Nee",
           onYes: () => {
@@ -1116,7 +1116,7 @@ export default class CockpitScene extends Phaser.Scene {
         this.cameras.main.shake(200, 0.01);
         this.animateJoystickDownUp(() => {
           this.dialogManager?.show([
-            { text: "Hmm ik heb nog niet genoeg energie om weer op te stijgen..." },
+            { text: "Hmm, ik heb nog niet genoeg energie om weer op te stijgen..." },
           ]);
         });
       });

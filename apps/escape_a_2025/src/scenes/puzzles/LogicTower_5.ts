@@ -346,7 +346,7 @@ export default class LogicTower_5 extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
           if (this.hintButton) {
-              this.hintButton.setText("Hint: Het woord heeft 5 letters");
+              this.hintButton.setText("Hint: Het woord heeft 5 letters.");
               this.hintButton.disableInteractive();
           }
       });
@@ -375,7 +375,7 @@ export default class LogicTower_5 extends Phaser.Scene {
     this.registry.set("tower_solved", true);
 
     const { width, height } = this.scale;
-    const finalText = this.add.text(width/2, height/2, "Correct.\n\nJe hebt het einde van de toren bereikt.\n Deze toren gebruikten we altijd om andere wezens in de gaten te houden en met hen te communiceren.", {
+    const finalText = this.add.text(width/2, height/2, "Correct\n\nJe hebt het einde van de toren bereikt.\n Deze toren gebruikten we altijd om andere wezens in de gaten te houden en met hen te communiceren.", {
         fontFamily: 'sans-serif', fontSize: "32px", color: "#00ff00", align: "center", backgroundColor: "#000000", padding: {x:20, y:20}
     }).setOrigin(0.5).setDepth(2000).setAlpha(0);
 

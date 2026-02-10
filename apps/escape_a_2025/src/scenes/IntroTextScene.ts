@@ -13,12 +13,12 @@ Voordat je begint, even het volgende:
 - De escaperoom duurt ongeveer 90 minuten.
 - Het is het beste om deze escaperoom te spelen op de computer (niet op een telefoon of tablet). We kunnen niet garanderen dat alles goed werkt op een telefoon of tablet.
 - Zorg dat je pen en papier bij de hand hebt, dat kan soms handig zijn.
-- Je tussentijdse voortgang wordt niet opgeslagen. Als je de escaperoom verlaat, moet je helemaal opnieuw beginnen.
+- Je tussentijdse voortgang wordt opgeslagen. Als je de escaperoom verlaat en later terugkomt op dezelfde computer, heb je nog de opgeloste puzzels.
 - Ga lekker op zoek naar de puzzels en probeer ze op te lossen! Veel plezier!
 
 Als je mee wilt doen voor de prijzen gelden de volgende regels:
 - Je moet ouder dan 8 jaar zijn.
-- Je bent nog niet eerder mee geweest met zomerkamp van Vierkant voor Wiskunde.
+- Je bent nog niet eerder mee geweest met een zomerkamp van Vierkant voor Wiskunde.
 - Je zit in groep 6, 7 of 8 van de basisschool.
 
 Je bent natuurlijk meer dan welkom om de escaperoom te spelen zonder mee te doen voor de prijzen.

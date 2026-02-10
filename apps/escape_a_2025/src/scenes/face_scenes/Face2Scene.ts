@@ -76,7 +76,7 @@ export default class Face2Scene extends FaceBase {
           ];
         } else if (this.entry_from_puzzle && !puzzleSolved) {
           return [
-            { speaker: "Lunea", text: "Ik zoek zelf wel nog wat verder, maar ik kan altijd nog je hulp gebruiken. Kom vooral later nog terug!" }
+            { speaker: "Lunea", text: "Ik zoek zelf nog wel wat verder, maar ik kan altijd nog meer hulp gebruiken. Kom vooral later nog terug!" }
           ]
         } else if (!this.entry_from_puzzle && puzzleSolved) {
           return [
@@ -85,9 +85,9 @@ export default class Face2Scene extends FaceBase {
         } else {
           return [
             { speaker: "Lunea", text: "Hoi! Ik ben Lunea. Ik ben hier wat ze op aarde boer noemen geloof ik. Welkom op onze planeet!" },
-            { speaker: "Jij", text: "Hoi Lunea! Ik ben hier neergestort en ik probeer nu genoeg energie te verzamelen om terug naar huis te reizen. Kun jij me misschien helpen?" },
+            { speaker: "Jij", text: "Hoi Lunea! Ik ben hier op Dezonia neergestort en ik probeer nu genoeg energie te verzamelen om terug naar huis te reizen. Kun jij me misschien helpen?" },
             { speaker: "Lunea", text: "Ja, als jij me helpt om mijn dieren weer terug te krijgen, dan krijg jij een deel van mijn energievoorraad." },
-            { speaker: "Lunea", text: "Ik heb een speciaal compas om ze terug te halen. Het enige wat jij hoeft te doen is hun schaduw precies na te maken met mijn speciale stenen." },
+            { speaker: "Lunea", text: "Ik heb een speciaal kompas om ze terug te halen. Het enige wat jij hoeft te doen is hun schaduw precies na te maken met mijn bijzondere stenen." },
           ];
         }
       },

@@ -70,14 +70,14 @@ export default class Face4Scene extends FaceBase {
 
         return [
           { speaker: "Jij", text: "Hoi Quadratus! Wat is dit voor een toren?" },
-          { speaker: "Quadratus", text: "Hiermee kunnen we kijken naar de sterren en kunnen we ruimteschepen in de buurt waarnemen." },
+          { speaker: "Quadratus", text: "Hiermee kunnen we naar de sterren kijken en kunnen we ruimteschepen in de buurt waarnemen." },
           { speaker: "Jij", text: "Is dat ook hoe je zag dat ik neerstortte?" },
-          { speaker: "Quadratus", text: "Nou nee, dat was eigenlijk meer geluk of toeval…" },
-          { speaker: "Quadratus", text: "Het mechanisme is een aantal jaar geleden kapot gegaan en omdat we de afgelopen eeuw niet zoveel bezoekers meer kregen op Dezonia, vonden we het niet nodig om het te repareren." },
-          { speaker: "Jij", text: "O wat jammer! Het leek me super vet als ik mijn vrienden over jullie kon vertellen en dan samen met hen nog een keer terug kon keren." },
+          { speaker: "Quadratus", text: "Nou nee, dat was eigenlijk meer geluk dan toeval..." },
+          { speaker: "Quadratus", text: "Het mechanisme is een aantal jaar geleden kapotgegaan en omdat we de afgelopen eeuw niet zoveel bezoekers meer kregen op Dezonia, vonden we het niet nodig om het te repareren." },
+          { speaker: "Jij", text: "O wat jammer! Het leek me supervet als ik mijn vrienden over jullie kon vertellen en dan samen met hen nog een keer terug kon keren." },
           { speaker: "Quadratus", text: "Wat een goed idee! Wat nou als jij ons helpt om het mechanisme in de toren te repareren?" },
-          { speaker: "Jij", text: "Maar Quadratus, ik heb toch helemaal geen tijd? Ik moet genoeg energie verzamelen zodat ik naar huis terug kan." },
-          { speaker: "Quadratus", text: "Ja natuurlijk, dat snap ik. Wat nou als je energie kunt verdienen als je het heel mechanisme repareert?" },
+          { speaker: "Jij", text: "Maar Quadratus, ik heb toch helemaal geen tijd? Ik moet genoeg energie verzamelen zodat ik terug naar huis kan." },
+          { speaker: "Quadratus", text: "Ja natuurlijk, dat snap ik. Wat nou als je energie kunt verdienen als je het mechanisme repareert?" },
           { speaker: "Jij", text: "Ja, dat is goed! Ik ga binnen kijken of ik jullie kan helpen." },
         ];
       },

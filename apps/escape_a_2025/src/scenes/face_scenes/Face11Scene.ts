@@ -90,11 +90,11 @@ export default class Face11Scene extends FaceBase {
         return [
             { speaker: "???", text: "HELP! HELP! IEMAND HELP!!!" },
             { speaker: "Jij", text: "Hallo! Hoe kan ik helpen?" },
-            { speaker: "???", text: "Nou kijk, ik was bezig met het vervangen van het tijdstof-filter. Daarna heb ik de koepel weer dichtgelast van binnenuit en nu zit ik opgesloten!" },
+            { speaker: "???", text: "Nou kijk, ik was bezig met het vervangen van het tijdstof-filter. Daarna heb ik de koepel van binnenuit dichtgelast en nu zit ik opgesloten!" },
             { speaker: "Jij", text: "Hahaha, komt goed, ik zie hier een cijferslot op de deur. Vertel me de code en ik bevrijd je." },
             { speaker: "???", text: "OH NEEEE!! Die heb ik laatst vervangen en nu weet ik het niet meer." },
             { speaker: "Jij", text: "Heb je de code nergens opgeschreven?" },
-            { speaker: "???", text: "Ja! Nee… Nou ja, ik wilde het niet letterlijk opschrijven, dus ik heb er een soort puzzel van gemaakt. In een vakje naast de deur kun je een briefje vinden. daarop staan hints voor de code. Maar of dat genoeg is…" },
+            { speaker: "???", text: "Ja! Nee... Nou ja, ik wilde het niet letterlijk opschrijven, dus ik heb er een soort puzzel van gemaakt. In een vakje naast de deur kun je een briefje vinden. Daarop staan hints voor de code. Maar of dat genoeg is..." },
         ];
       },
 

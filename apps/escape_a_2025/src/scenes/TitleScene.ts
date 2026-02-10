@@ -15,7 +15,7 @@ import { SAVE_KEY } from "./BootScene";
 // -----------------------------
 // TAB CONTENT
 // -----------------------------
-const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd, en waarvoor je met deze escaperoom een gratis plaats kunt winnen? Kijk dan even op het tabje ‘Achtergrond’.
+const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd, en waarvoor je met deze escaperoom een gratis plaats kunt winnen? Kijk dan even bij het tabje 'Achtergrond'.
 
 Verzamelmania op Dezonia is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Je voortgang wordt automatisch opgeslagen, dus je kunt later verder spelen waar je gebleven was.`;
 
@@ -23,15 +23,15 @@ const ACHTERGROND_TAB_BODY = `Stichting [Vierkant voor Wiskunde](https://www.vie
 
 Je hoeft geen wiskundeheld te zijn om mee te gaan op kamp, maar wel een liefhebber van puzzels en problemen. Tijdens de kampen wordt een aantal onderwerpen met een wiskundig thema verkend, zoals veelvlakken, getallen, grafen, magische vierkanten, geheimschrift of verzamelingen. Je kunt ook aan de slag gaan met berekeningen, bouwwerken, tekeningen of kunstwerken gebaseerd op een nieuw uitdagend onderwerp. Hierbij kun je denken aan Escher-tekeningen of fractals. Naast de wiskunde is er natuurlijk ook tijd voor andere activiteiten, zoals sport, spelletjes, zwemmen en creatieve activiteiten. Er zijn twee deskundige begeleiders per groepje van 6 deelnemers, zodat iedereen voldoende meegenomen en uitgedaagd wordt.
 
-In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school. Deze kun je nu ook nog spelen, door naar [deze link te gaan](https://vierkantescaperoom.nl/kamp-b/). De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool, zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom.
+In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school. Deze kun je nu ook nog spelen door naar [deze link te gaan](https://vierkantescaperoom.nl/kamp-b/). De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool. Zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom.
 
-Wil je mee op een van de zomerkampen van Vierkant voor Wiskunde? Meer informatie vind je op de website: [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/kampen/)
+Wil je mee op een van de zomerkampen van Vierkant voor Wiskunde? Meer informatie vind je op de website [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/kampen/)
 Bekijk ook onze [homepagina](https://www.vierkantvoorwiskunde.nl/).`;
 
 const CONTACT_TAB_BODY = `Makers escaperoom 2025-2026:
-- Verhaal en Raadsels: Sonja Iakovleva & Moniek Messink
-- Programmering: Daniël Wielenga, Misha Stassen, Robin van Hoorn
-- Illustraties: Gegenereerd met AI.
+- Verhaal en raadsels: Sonja Iakovleva en Moniek Messink
+- Programmering: Daniël Wielenga, Misha Stassen en Robin van Hoorn
+- Illustraties: gegenereerd met AI.
 
 Bugs kunnen worden gemeld via [escaperoom@vierkantvoorwiskunde.nl](mailto:escaperoom@vierkantvoorwiskunde.nl)
 

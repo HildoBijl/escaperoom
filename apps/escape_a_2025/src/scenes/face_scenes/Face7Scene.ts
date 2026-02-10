@@ -81,7 +81,7 @@ export default class Face7Scene extends FaceBase {
           return [
             { speaker: "Jij", text: "Hoi Quadratus! Wat heb je hier?" },
             { speaker: "Quadratus", text: "Hoi! Dit is mijn schatkist, maar ik weet niet meer hoe hij open moet. Ik ben de code vergeten. Kun jij me helpen?" },
-            { speaker: "Quadratus", text: "Als je me helpt hem te openen, dan krijg je alle energie die hier in zit." }
+            { speaker: "Quadratus", text: "Als je me helpt om hem te openen, dan krijg je alle energie die hier in zit." }
           ];
         }
 

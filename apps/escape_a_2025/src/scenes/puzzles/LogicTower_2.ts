@@ -125,7 +125,7 @@ export default class LogicTower_2 extends Phaser.Scene {
     const originY = (height / 2) + (this.gridSize / 2) - 40; 
     
     const instructionText = this.add.text(width / 2, originY - this.gridSize - 50, 
-        "Geef de coordinaten van de groene\n ster door om het signaal te ontvangen", {
+        "Geef de coördinaten van de groene ster door om het signaal te ontvangen.", {
         fontFamily: "sans-serif",
         fontSize: "18px",
         color: "#8fd5ff",
@@ -238,7 +238,7 @@ export default class LogicTower_2 extends Phaser.Scene {
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
         if (this.hintButton) {
-            this.hintButton.setText("X = Horizontaal (Opzij)\nY = Verticaal (Omhoog)");
+            this.hintButton.setText("X = horizontaal (opzij)\nY = verticaal (omhoog)");
             this.hintButton.disableInteractive();
         }
     });

@@ -28,7 +28,7 @@ export default class KVQOneven extends Phaser.Scene {
 
     // --- Question text ---
     this.add
-      .text(centerX, centerY-panelHeight * 0.2, "Ik ben een oneven getal. Haal één letter van mij weg en ik word even. Welk getal ben ik?", {
+      .text(centerX, centerY-panelHeight * 0.2, "Ik ben een oneven getal. Haal een letter van mij weg en ik word even. Welk getal ben ik?", {
         fontFamily: "Arial",
         fontSize: "32px",
         color: "#000000",
@@ -39,7 +39,7 @@ export default class KVQOneven extends Phaser.Scene {
       .setDepth(2);
 
     this.add
-      .text(centerX, centerY+panelHeight * 0.2, "* Hint: Een even getal is een getal dat je kunt delen door 2 zonder rest over te houden. Een oneven getal heeft rest 1 als je het deelt door 2.", {
+      .text(centerX, centerY+panelHeight * 0.2, "Hint: Een even getal is een getal dat je kunt delen door 2 zonder rest over te houden. Een oneven getal heeft rest 1 als je het deelt door 2.", {
         fontFamily: "Arial",
         fontSize: "32px",
         color: "#000000",

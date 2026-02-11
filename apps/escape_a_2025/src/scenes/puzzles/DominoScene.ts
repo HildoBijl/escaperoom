@@ -64,37 +64,37 @@ export default class DominoScene extends Phaser.Scene {
     { 
       id: "rule_neg1_1", type: "less_than", value: 3,
       cells: [{ x: -1, y: 1 }], 
-      description: "In het rode vakje moeten minder dan 3 ogen",
+      description: "In het rode vakje moeten minder dan 3 ogen.",
       color: 0xff5555 
     },
     { 
       id: "rule_0_0", type: "exact", value: 6,
       cells: [{ x: 0, y: 0 }], 
-      description: "In het groene vakje moeten 6 ogen",
+      description: "In het groene vakje moeten 6 ogen.",
       color: 0x55ff55 
     },
     { 
       id: "sum_01_02", type: "sum_match", value: 6,
       cells: [{ x: 1, y: 0 }, { x: 2, y: 0 }], 
-      description: "In de donkerblauwe vakjes moeten samen precies 6 ogen",
+      description: "In de donkerblauwe vakjes moeten samen precies 6 ogen.",
       color: 0x5555ff 
     },
     { 
       id: "sum_01_11", type: "sum_match", value: 2,
       cells: [{ x: 0, y: 1 }, { x: 1, y: 1 }], 
-      description: "In de gele vakjes moeten samen precies 2 ogen",
+      description: "In de gele vakjes moeten samen precies 2 ogen.",
       color: 0xffff55 
     },
     { 
       id: "sum_02_12", type: "sum_match", value: 2,
       cells: [{ x: 0, y: 2 }, { x: 1, y: 2 }], 
-      description: "In de roze vakjes moeten samen precies 2 ogen ",
+      description: "In de roze vakjes moeten samen precies 2 ogen.",
       color: 0xff55ff 
     },
     { 
       id: "equal_group", type: "equality_group",
       cells: [{ x: 1, y: 3 }, { x: 2, y: 3 }, { x: 2, y: 2 }, { x: 2, y: 1 }], 
-      description: "In de lichtblauwe vakjes moet elk vakje hetzelfde aantal ogen hebben",
+      description: "In de lichtblauwe vakjes moet elk vakje hetzelfde aantal ogen hebben.",
       color: 0x55ffff 
     }
   ];

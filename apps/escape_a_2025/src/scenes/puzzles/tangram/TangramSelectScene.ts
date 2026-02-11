@@ -51,7 +51,7 @@ export default class TangramSelectScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.3, "Klik een van de dieren om de schaduw na te maken", {
+    this.add.text(width / 2, height * 0.3, "Klik op een van de dieren om de schaduw na te maken.", {
         fontFamily: "sans-serif",
         fontSize: "24px",
         color: "#ffffff",

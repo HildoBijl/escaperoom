@@ -234,6 +234,7 @@ Collecties zijn write-only vanuit de client. Lezen kan via:
 
 | Event | Trigger | Extra data | Doel |
 |---|---|---|---|
+| `game_start` | Speler klikt Start of Hervat | `mode` ("new"/"new_first"/"resume") | Bereik/Oplossings% |
 | `puzzle_abandon` | Speler verlaat puzzle zonder op te lossen (back/ESC) | `puzzle`, `timeSpentMs` | Vastlopen |
 | `puzzle_attempt_fail` | Fout antwoord bij een puzzle | `puzzle`, `attemptNumber` | Vastlopen |
 | `face_visit` | Speler betreedt een planeetvlak | `faceId`, `fromFace` | Navigatie |
@@ -345,6 +346,25 @@ Analytics slaat de laatst ontvangen snapshot op en voegt het toe bij een eventue
 **Implementatie StreakMaze:** StreakMaze heeft geen registry keys per stage. Emit bij elke `enterRoom()` naar een volgende stage: `game.events.emit("telemetry:substep", "StreakMaze", stageId)`. +1 regel per stage-transitie, of 1 regel in `enterRoom()`.
 
 **Analyse:** Als 80% van de kinderen floor 0-3 haalt maar slechts 40% floor 4 → floor 4 is te moeilijk. Als bij Tangram iedereen de kikker haalt maar niet de krab → krab is het probleem.
+
+#### `game_start`
+**Trigger:** Speler klikt op "Start", "Nieuw spel starten", of "Hervat spel" in TitleScene.
+
+**Payload:**
+```typescript
+{
+  type: "game_start",
+  mode: string,        // "new_first" | "new" | "resume"
+  timestamp: number
+}
+```
+
+**Mode waarden:**
+- `"new_first"` — eerste keer starten, geen eerdere save aanwezig
+- `"new"` — nieuw spel terwijl er een save was (reset)
+- `"resume"` — hervat bestaand spel
+
+**Implementatie:** In `TitleScene.handleStartClick()` en `TitleScene.handleResumeClick()`, emit `game.events.emit("telemetry:game_start", mode)`. Onderscheidt page visits (alleen `session_start`) van daadwerkelijk spelen.
 
 #### `face_visit`
 **Trigger:** Scene wisselt naar een Face scene (Face1Scene t/m Face12Scene).
@@ -469,7 +489,7 @@ export const playerId: string = (() => {
   if (!id) {
     id = crypto.randomUUID?.() ??
       `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    localStorage.setItem(PLAYER_ID_KEY);
+    localStorage.setItem(PLAYER_ID_KEY, id);
   }
   return id;
 })();
@@ -600,8 +620,8 @@ Session end:
 
 ### Stap 3: Rage click detector
 **Nieuw bestand:** `telemetry/rageClickDetector.ts`
-- `initRageClickDetector(game, pushEvent)` — aangeroepen vanuit `session.ts`
-- Luistert op `game.input.on("pointerdown")`
+- `initRageClickDetector(game)` — aangeroepen vanuit `session.ts`
+- Luistert op `game.canvas.addEventListener("pointerdown")` (native DOM, niet Phaser InputManager)
 - Sliding window: array van `{ x, y, time }`, window = 1s, radius = 50px
 - Bij 5+ matches → push `rage_click` event via callback
 - Rate limit: max 3 events per sessie
@@ -615,7 +635,9 @@ Session end:
 ### Stap 5: Telemetry events emitten vanuit game-code
 **Elke wijziging is 1-2 regels per bestand:**
 
-**`scenes/TitleScene.ts`** (3 plekken):
+**`scenes/TitleScene.ts`** (5 plekken):
+- `handleStartClick()` → `this.game.events.emit("telemetry:game_start", mode)` (voor Start en Nieuw spel)
+- `handleResumeClick()` → `this.game.events.emit("telemetry:game_start", "resume")`
 - `switchPopupTab()` → `this.game.events.emit("telemetry:info_tab", tabs[nextIndex].title)`
 - `openTabbedPopup()` → emit voor initiële tab ("Info")
 - `buildRichTextIntoContainer()` bij `window.open(url)` → `this.game.events.emit("telemetry:link_click", url)`
@@ -659,11 +681,12 @@ Session end:
 - Funnel-analyse
 - Asset load time P50/P95 per connectionType
 
-### Stap 7: Firestore security rules deployen
+### Stap 7: Firestore security rules deployen ✅
 **Bestand:** `firestore.rules`
-- Create-only rules voor telemetry collecties (al gepland, nog niet gedeployed)
-- Veldvalidatie: type checks + max lengtes
+- Create-only rules voor telemetry collecties (gedeployed)
+- Veldvalidatie: type checks + max lengtes, inclusief `playerId`
 - `allow read, update, delete: if false` voor alle telemetry collecties
+- Repo-bestand gesynchroniseerd met gedeployde rules
 
 ---
 
@@ -677,9 +700,9 @@ Score > 0.5 → meer dan helft van de spelers haakt af of moet opnieuw proberen 
 
 ### Funnel
 ```
-TitleScene bezocht           → 100%
+session_start (page load)    → 100%
 Info-tabs bekeken            →  ?%
-Game gestart                 →  ?%
+game_start (klik Start/Hervat) →  ?%
 ShipFuel opgelost            →  ?%
 ≥3 puzzles opgelost          →  ?%
 ≥80 energy                   →  ?%

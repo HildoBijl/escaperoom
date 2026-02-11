@@ -61,8 +61,8 @@ export default class SlotScene extends Phaser.Scene {
       "368 → 1 goed, goede plaats",
       "374 → 1 goed, verkeerde plaats",
       "740 → 2 goed, verkeerde plaats",
-      "Klik op een vakje op dat vakje te veranderen",
-      "Type het cijfer of gebruik de pijltjes"
+      "Klik op een vakje om dat vakje te veranderen.",
+      "Type het cijfer of gebruik de pijltjes."
     ];
 
     const hintsY = 120;
@@ -286,7 +286,7 @@ export default class SlotScene extends Phaser.Scene {
     } else {
       this.game.events.emit("telemetry:attempt_fail", "SlotScene", this.currentCode.join(","));
       this.feedbackText.setColor("#ff6666");
-      this.feedbackText.setText("Dat klopt niet, probeer opnieuw");
+      this.feedbackText.setText("Dat klopt niet, probeer opnieuw.");
     }
   }
 
@@ -300,11 +300,11 @@ export default class SlotScene extends Phaser.Scene {
           ease: 'Back.out',
           onComplete: () => {
               this.startDialogue([
-                  { speaker: "???", text: "Dankjewel voor je hulp" },
+                  { speaker: "???", text: "Dankjewel voor je hulp." },
                   { speaker: "Erwts", text: "Ik ben Erwts, wat kan ik voor je doen om te laten zien hoe dankbaar ik ben dat je me hebt kunnen bevrijden?" },
-                  { speaker: "Jij", text: "Nou, ik moet terug naar planeet aarde, heb je misschien wat energie voor mij?" },
+                  { speaker: "Jij", text: "Nou, ik moet terug naar planeet Aarde, heb je misschien wat energie voor mij?" },
                   { speaker: "Erwts", text: "Met zo'n groot ruimteschip heb ik altijd extra energie bij me. Hier, neem dit maar mee." },
-                  { speaker: "Jij", text: "Bedankt Erwts. Pas de volgende keer op met slot als je gaat klussen!" },
+                  { speaker: "Jij", text: "Bedankt Erwts. Pas de volgende keer op met het slot als je gaat klussen!" },
               ]);
           }
       });

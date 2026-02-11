@@ -56,17 +56,17 @@ export default class Face9Scene extends FaceBase {
         if (isSolved) {
             return [
                 { text: "De puzzel van de telefooncel is opgelost.", speaker: "" },
-                { text: "Er komt geen geluid meer uit, en de deur gaat niet meer open.", speaker: "" }
+                { text: "Er komt geen geluid meer uit en de deur gaat niet meer open.", speaker: "" }
             ];
         } else {
             return [
-                { text: "Er komt geluid uit de telefooncel", speaker: "" },
-                { text: "Hé jij daar, luister even goed, ben een telefoon met oude kracht.", speaker: "Telefooncel" },
-                { text: "In mij verstopt zit een geheime code, maar alleen wie goed raadt krijgt mijn macht.", speaker: "Telefooncel" },
-                { text: "Toets de cijfers één voor één, dan ga ik aan en wordt het fijn", speaker: "Telefooncel" },
-                { text: "Druk de knoppen rustig in, dan gaat je wens snel in vervulling zijn", speaker: "Telefooncel" },
-                { text: "Vraag mij kracht voor jouw reis terug, energie om naar huis te gaan", speaker: "Telefooncel" },
-                { text: "Ontcijfer mij, je kunt het heus, en ik zal voor je openstaan", speaker: "Telefooncel" },
+                { text: "Er komt geluid uit de telefooncel.", speaker: "" },
+                { text: "Hé jij daar, luister even goed, ik ben een telefoon met oude kracht.", speaker: "Telefooncel" },
+                { text: "In mij verstopt zit een geheime code, maar alleen wie goed kijkt, krijgt mijn macht.", speaker: "Telefooncel" },
+                { text: "Toets de cijfers één voor één, dan ga ik aan en wordt het fijn.", speaker: "Telefooncel" },
+                { text: "Druk de knoppen rustig in, dan gaat je wens snel in vervulling.", speaker: "Telefooncel" },
+                { text: "Vraag mij kracht voor jouw reis terug, en energie om naar huis te gaan.", speaker: "Telefooncel" },
+                { text: "Ontcijfer mij, je kunt het heus, en ik zal voor je openstaan.", speaker: "Telefooncel" },
             ];
         }
       },

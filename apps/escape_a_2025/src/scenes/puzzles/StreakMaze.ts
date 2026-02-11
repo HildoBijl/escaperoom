@@ -144,7 +144,7 @@ export default class StreakMaze extends Phaser.Scene {
           "Jij: Euhm, ik moet eigenlijk op zoek naar energie voor mijn raket, om naar huis terug te keren. En wat is trouwens een poffel?",
           "Zippu: O ja, natuurlijk! Een poffel is een pluizig beestje, net zo groot als een kat. Poffie is heel nieuwsgierig, dus ze rende weg toen ze een geluidje hoorde.",
           "Jij: Poffie klinkt behoorlijk schattig, misschien moet ik Zippu toch helpen? Of is het slimmer om op zoek te gaan naar energie?",
-          "Zippu: Hoorde je wat ik zei? Als je mij helpt om Poffie te vinden, dan mag je al mijn extra energie hebben, ik heb 10 energie. Wat zeg je ervan",
+          "Zippu: Hoorde je wat ik zei? Als je mij helpt om Poffie te vinden, dan mag je al mijn extra energie hebben, ik heb 10 energie. Wat zeg je ervan?",
           "Jij: Dat klinkt als een goede deal! Ik zal je helpen Zippu, kom dan gaan we het doolhof in.",
           "Zippu: Dank je, dank je, dank je! Er staan wel bordjes binnen die je waarschijnlijk helpen met welke kant je op moet, maar ik weet het niet."
         ]
@@ -452,7 +452,7 @@ export default class StreakMaze extends Phaser.Scene {
                 border-radius: 5px;
                 z-index: 10;
             ">
-                Een priemgetal is een getal dat alleen deelbaar is door 1 en zichzelf (zoals 2, 3, 5, 7, 11), maar bijvoorbeeld niet 15 (want 15 / 3 = 5 en 15 / 5 = 3).
+                Een priemgetal is een getal dat alleen deelbaar is door 1 en zichzelf (zoals 2, 3, 5, 7, 11), maar bijvoorbeeld niet 15 (want 15 : 3 = 5 en 15 : 5 = 3).
             </div>
         </div>
     `);

@@ -76,9 +76,9 @@ export default class Face10Scene extends FaceBase {
         { text: "Dezonia slaat energie op in patronen, slimme patronen.", speaker: "Quadratus" },
         { text: "Deze Energiekubus is een oud beveiligingssysteem. Hij geeft alleen energie af wanneer je het getallenraster herstelt.", speaker: "Quadratus" },
         { text: "Maar dit lijkt net een Sudoku!", speaker: "Jij" },
-        { text: "Precies! De Energiekubus blijft stabiel door de getallen. Vier getallen zijn extra belangrijk, dit zijn de sleutel-symbolen", speaker: "Quadratus" },
+        { text: "Precies! De Energiekubus blijft stabiel door de getallen. Vier getallen zijn extra belangrijk, dit zijn de sleutel-symbolen.", speaker: "Quadratus" },
       { text: "Als je het goed oplost, dan verschijnen er vier symbolen boven speciale vakjes. Deze getallen vormen de code.", speaker: "Quadratus" },
-        { text: "Je loopt naar de kubus toe, legt je hand er op. De kubus wordt warm en de symbolen beginnen te gloeien", speaker: "" },
+        { text: "Je loopt naar de kubus toe en legt je hand er op. De kubus wordt warm en de symbolen beginnen te gloeien.", speaker: "" },
         { text: "Oké, tijd om de code te kraken en energie te krijgen!", speaker: "Jij" },
       ],
       

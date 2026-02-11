@@ -206,7 +206,7 @@ export default class LogicTowerScene extends Phaser.Scene {
   private showRiddle() {
     const panelY = this.panel.y;
     const panelHeight = this.panel.height * this.panelScale;
-    const riddle = "Ik schijn zonder een lamp te zijn \n en ik brand zonder te verbranden\nJe ziet me alleen als de nacht donker is\nen avonturiers gebruiken mij om hun weg te vinden";
+    const riddle = "Ik schijn zonder een lamp te zijn\nen ik brand zonder te verbranden.\nJe ziet me alleen als de nacht donker is\nen avonturiers gebruiken mij om hun weg te vinden.";
 
     this.add.text(this.panel.x, panelY - panelHeight * 0.9, riddle, {
         fontSize: "20px",
@@ -264,7 +264,7 @@ export default class LogicTowerScene extends Phaser.Scene {
 
     const value = inputElement.value.trim().toLowerCase();
 
-    if (value === "sterren" || value === "ster") {
+    if (value === "sterren" || value === "ster" || value === "poolster") {
       this.completePuzzle();
     } else {
       this.game.events.emit("telemetry:attempt_fail", "LogicTower", value);

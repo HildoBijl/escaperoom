@@ -6,7 +6,6 @@ import {
   Timestamp,
   query,
   orderBy,
-  limit,
   getDocs,
 } from "firebase/firestore";
 import { app } from "./firebase";
@@ -107,8 +106,8 @@ export async function submitPrizes(data: PrizeEntry) {
 // ---------------------------
 // Read: Leaderboard (public)
 // ---------------------------
-export async function getLeaderboardKampA(max = 50): Promise<LeaderboardEntry[]> {
-  const q = query(collection(db, LEADERBOARD), orderBy("createdAt", "desc"), limit(max));
+export async function getLeaderboardKampA(): Promise<LeaderboardEntry[]> {
+  const q = query(collection(db, LEADERBOARD), orderBy("createdAt", "desc"));
   const snap = await getDocs(q);
   return snap.docs.map((d) => {
     const data = d.data() as any;

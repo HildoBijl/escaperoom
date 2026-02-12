@@ -763,7 +763,7 @@ export default class TitleScene extends Phaser.Scene {
     // Then fetch and replace content
     (async () => {
       try {
-        const rows = await getLeaderboardKampA(100);
+        const rows = await getLeaderboardKampA();
 
         if (!this.popup) return; // user closed it
         if (!rows.length) {
@@ -774,19 +774,18 @@ export default class TitleScene extends Phaser.Scene {
         // Build a nice fixed-width-ish list (works with your rich-text builder)
         // We'll show newest first (already sorted)
         const lines: string[] = [];
-        lines.push("Nieuwste inzendingen:\n");
 
-        // Keep it readable; show top 50 or 100 based on fetch
+        // Number from oldest (#1) to newest
+        const total = rows.length;
         rows.forEach((r, i) => {
           const name = (r as any).name ?? "";
           const age = (r as any).age ?? "";
-          // Optional date
           let dateStr = "";
           const ts = (r as any).createdAt;
           if (ts?.toDate) {
             dateStr = ts.toDate().toLocaleDateString("nl-NL", { day: "2-digit", month: "short" });
           }
-          const idx = String(i + 1).padStart(2, " ");
+          const idx = String(total - i).padStart(3, " ");
           const ageStr = String(age).padStart(2, " ");
           const suffix = dateStr ? `  ·  ${dateStr}` : "";
           lines.push(`${idx}. ${name} (${ageStr})${suffix}`);

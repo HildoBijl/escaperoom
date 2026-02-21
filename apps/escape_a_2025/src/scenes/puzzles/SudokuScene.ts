@@ -403,6 +403,14 @@ export default class SudokuScene extends Phaser.Scene {
     if (!this.selectedCell) return;
     const { r, c } = this.selectedCell;
 
+    // Arrow keys and WASD to move selection
+    switch (event.key) {
+      case "ArrowUp":    case "w": case "W": this.selectCell(Math.max(0, r - 1), c); return;
+      case "ArrowDown":  case "s": case "S": this.selectCell(Math.min(8, r + 1), c); return;
+      case "ArrowLeft":  case "a": case "A": this.selectCell(r, Math.max(0, c - 1)); return;
+      case "ArrowRight": case "d": case "D": this.selectCell(r, Math.min(8, c + 1)); return;
+    }
+
     if (this.initialGrid[r][c] !== 0) return;
 
     if (event.key >= "1" && event.key <= "9") {

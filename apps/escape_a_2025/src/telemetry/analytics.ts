@@ -317,6 +317,8 @@ export function initAnalytics(game: Phaser.Game): void {
   });
 
   game.events.on("telemetry:new_game", (hadPreviousSave: boolean) => {
+    alreadySolved.clear();
+    alreadySolvedSubsteps.clear();
     events.push({
       type: "new_game_start",
       hadPreviousSave,

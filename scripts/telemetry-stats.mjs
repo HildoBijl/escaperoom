@@ -32,6 +32,24 @@ function pct(n, total) {
   return ((n / total) * 100).toFixed(0) + "%";
 }
 
+const DAY_NAMES = ["zo", "ma", "di", "wo", "do", "vr", "za"];
+
+function allDaysSince(startDate) {
+  const days = [];
+  const now = new Date();
+  const cur = new Date(startDate + "T00:00:00");
+  while (cur <= now) {
+    days.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
+
+function dayLabel(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  return `${dateStr} (${DAY_NAMES[d.getDay()]})`;
+}
+
 /**
  * Deduplicate analytics docs: per sessionId, keep only the document
  * with the most events (that's the most complete flush).
@@ -245,9 +263,10 @@ function main() {
   }
 
   // --- Sessions per day ---
+  const allDays = allDaysSince("2026-02-02");
   console.log("\n--- Sessies per dag ---");
-  for (const day of Object.keys(sessionsByDay).sort()) {
-    console.log(`   ${day}: ${fmt(sessionsByDay[day])}`);
+  for (const day of allDays) {
+    console.log(`   ${dayLabel(day)}: ${fmt(sessionsByDay[day] || 0)}`);
   }
 
   // --- Leaderboard ---
@@ -261,8 +280,8 @@ function main() {
 
   console.log("\n--- Leaderboard ---");
   console.log(`   Totaal: ${fmt(leaderboardDocs.length)}`);
-  for (const day of Object.keys(leaderboardByDay).sort()) {
-    console.log(`   ${day}: ${fmt(leaderboardByDay[day])}`);
+  for (const day of allDays) {
+    console.log(`   ${dayLabel(day)}: ${fmt(leaderboardByDay[day] || 0)}`);
   }
 
   // --- Prizes ---
@@ -280,8 +299,8 @@ function main() {
 
   console.log("\n--- Prijzen ---");
   console.log(`   Totaal: ${fmt(prizeDocs.length)}`);
-  for (const day of Object.keys(prizesByDay).sort()) {
-    console.log(`   ${day}: ${fmt(prizesByDay[day])}`);
+  for (const day of allDays) {
+    console.log(`   ${dayLabel(day)}: ${fmt(prizesByDay[day] || 0)}`);
   }
   if (Object.keys(campPref).length) {
     console.log(`   Kampvoorkeur: ${Object.entries(campPref).map(([k, v]) => `${v}x ${k}`).join(", ")}`);

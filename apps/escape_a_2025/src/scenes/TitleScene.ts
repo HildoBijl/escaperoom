@@ -223,8 +223,8 @@ export default class TitleScene extends Phaser.Scene {
       const saved = localStorage.getItem(SAVE_KEY);
       if (!saved) return false;
       const data = JSON.parse(saved);
-      // Show resume if player solved at least the first puzzle
-      return !!data.ship_fuel_solved || (data.energy ?? 0) > 0
+      // Show resume if player has any meaningful progress
+      return !!data.introDone || !!data.ship_fuel_solved || (data.energy ?? 0) > 0
         || Object.keys(data).some((k) => k.endsWith("_solved") && data[k]);
     } catch {
       return false;
@@ -267,9 +267,12 @@ export default class TitleScene extends Phaser.Scene {
       enterAndKeepFullscreen();
     }
 
-    // If player was on the planet, go there; otherwise cockpit
+    // Resume to the most appropriate scene based on progress
     const shipSolved = this.registry.get("electricitySolved") || this.registry.get("ship_fuel_solved");
-    const targetScene = shipSolved ? "Face1Scene" : "CockpitScene";
+    const postPuzzleSeen = this.registry.get("postPuzzleThoughtsShown");
+    const lastFace = this.registry.get("lastVisitedFace");
+    const targetScene = shipSolved && !postPuzzleSeen ? "CockpitScene"
+      : lastFace || (shipSolved ? "Face1Scene" : "CockpitScene");
 
     this.cameras.main.fadeOut(200, 0, 0, 0, (_: any, p: number) => {
       if (p === 1) this.scene.start("PreloadScene", { targetScene });

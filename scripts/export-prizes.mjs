@@ -14,7 +14,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
+const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+const DATA_DIR = path.join(__dirname, "data");
 const INPUT = path.join(DATA_DIR, "prizes-kamp-a.json");
 const OUTPUT = path.join(DATA_DIR, "prijzen-overzicht.csv");
 

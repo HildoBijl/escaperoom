@@ -2,7 +2,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
+const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+const DATA_DIR = path.join(__dirname, "data");
 const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "telemetry-analytics.json"), "utf8"));
 
 // Deduplicate by sessionId

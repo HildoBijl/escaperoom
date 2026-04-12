@@ -12,7 +12,8 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "data");
+const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
+const DATA_DIR = path.join(__dirname, "data");
 
 function readJSON(name) {
   const filePath = path.join(DATA_DIR, `${name}.json`);

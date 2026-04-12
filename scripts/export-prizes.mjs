@@ -17,7 +17,8 @@ import path from "path";
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const DATA_DIR = path.join(__dirname, "data");
 const INPUT = path.join(DATA_DIR, "prizes-kamp-a.json");
-const OUTPUT = path.join(DATA_DIR, "prijzen-overzicht.csv");
+const today = new Date().toISOString().slice(0, 10);
+const OUTPUT = path.join(DATA_DIR, `prijsinzendingen-kamp-a-${today}.csv`);
 
 // Column definitions: [jsonKey, csvHeader]
 const COLUMNS = [
@@ -85,9 +86,9 @@ entries.sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
 const SEP = ";";
 const BOM = "\uFEFF";
 
-const header = COLUMNS.map(([, label]) => label).join(SEP);
-const rows = entries.map((entry) =>
-  COLUMNS.map(([key, _]) => escapeCsv(formatValue(key, entry[key]))).join(SEP)
+const header = ["Nr", ...COLUMNS.map(([, label]) => label)].join(SEP);
+const rows = entries.map((entry, i) =>
+  [i + 1, ...COLUMNS.map(([key, _]) => escapeCsv(formatValue(key, entry[key])))].join(SEP)
 );
 
 const csv = BOM + [header, ...rows].join("\n") + "\n";

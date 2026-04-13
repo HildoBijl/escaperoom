@@ -3,7 +3,7 @@
 /**
  * Export prize entries to CSV
  *
- * Reads local prizes-kamp-a.json (fetched by fetch-telemetry.mjs) and
+ * Reads local prizes-kamp-a.ndjson (fetched by fetch-telemetry.mjs) and
  * writes a CSV file that can be opened in Excel / Google Sheets.
  *
  * Usage:
@@ -13,10 +13,11 @@
 
 import fs from "fs";
 import path from "path";
+import { readNdjsonAll } from "./lib/ndjson.mjs";
 
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const DATA_DIR = path.join(__dirname, "data");
-const INPUT = path.join(DATA_DIR, "prizes-kamp-a.json");
+const INPUT = path.join(DATA_DIR, "prizes-kamp-a.ndjson");
 const today = new Date().toISOString().slice(0, 10);
 const OUTPUT = path.join(DATA_DIR, `prijsinzendingen-kamp-a-${today}.csv`);
 
@@ -77,7 +78,7 @@ if (!fs.existsSync(INPUT)) {
   process.exit(1);
 }
 
-const entries = JSON.parse(fs.readFileSync(INPUT, "utf8"));
+const entries = await readNdjsonAll(INPUT);
 
 // Sort by createdAt (oldest first)
 entries.sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));

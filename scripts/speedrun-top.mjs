@@ -14,11 +14,12 @@
 
 import fs from "fs";
 import path from "path";
+import { scanNdjson, readNdjsonAll } from "./lib/ndjson.mjs";
 
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const DATA_DIR = path.join(__dirname, "data");
-const ANALYTICS_PATH = path.join(DATA_DIR, "telemetry-analytics.json");
-const LEADERBOARD_PATH = path.join(DATA_DIR, "leaderbord-kamp-a.json");
+const ANALYTICS_PATH = path.join(DATA_DIR, "telemetry-analytics.ndjson");
+const LEADERBOARD_PATH = path.join(DATA_DIR, "leaderbord-kamp-a.ndjson");
 
 const TOP_N = parseInt(process.argv[2]) || 10;
 
@@ -27,24 +28,21 @@ if (!fs.existsSync(ANALYTICS_PATH) || !fs.existsSync(LEADERBOARD_PATH)) {
   process.exit(1);
 }
 
-const analytics = JSON.parse(fs.readFileSync(ANALYTICS_PATH, "utf8"));
-const leaderboard = JSON.parse(fs.readFileSync(LEADERBOARD_PATH, "utf8"));
-
-// --- Build fastest new-game completions, deduplicated by sessionId ---
+// --- Stream analytics, build fastest new-game completions per sessionId ---
 
 const bySession = new Map();
 
-for (const session of analytics) {
-  if (!session.events) continue;
+await scanNdjson(ANALYTICS_PATH, (session) => {
+  if (!session.events) return;
 
   const gs = session.events.find(
     (e) => e.type === "game_start" && (e.mode === "new" || e.mode === "new_first"),
   );
   const gc = session.events.find((e) => e.type === "game_complete");
-  if (!gs || !gc) continue;
+  if (!gs || !gc) return;
 
   const dur = gc.timestamp - gs.timestamp;
-  if (dur <= 0) continue;
+  if (dur <= 0) return;
 
   const existing = bySession.get(session.sessionId);
   if (!existing || dur < existing.dur) {
@@ -53,7 +51,9 @@ for (const session of analytics) {
       sessionCreatedAt: session.createdAt,
     });
   }
-}
+});
+
+const leaderboard = await readNdjsonAll(LEADERBOARD_PATH);
 
 // --- Sort by duration and deduplicate by player ---
 // Multiple runs by the same person: keep only their fastest

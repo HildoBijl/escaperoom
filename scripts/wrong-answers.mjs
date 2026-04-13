@@ -1,21 +1,20 @@
 #!/usr/bin/env node
-import fs from "fs";
 import path from "path";
+import { scanNdjson } from "./lib/ndjson.mjs";
 
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const DATA_DIR = path.join(__dirname, "data");
-const data = JSON.parse(fs.readFileSync(path.join(DATA_DIR, "telemetry-analytics.json"), "utf8"));
 
-// Deduplicate by sessionId
+// Stream analytics and deduplicate by sessionId on the fly
 const bySession = new Map();
-for (const doc of data) {
+await scanNdjson(path.join(DATA_DIR, "telemetry-analytics.ndjson"), (doc) => {
   const sid = doc.sessionId;
-  if (!sid) continue;
+  if (!sid) return;
   const existing = bySession.get(sid);
   if (!existing || (doc.events || []).length > (existing.events || []).length) {
     bySession.set(sid, doc);
   }
-}
+});
 
 // Collect all wrong answers
 const wrongAnswers = {};

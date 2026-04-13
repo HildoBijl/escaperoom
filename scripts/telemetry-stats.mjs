@@ -3,7 +3,7 @@
 /**
  * Telemetry Stats Script
  *
- * Reads local JSON data (fetched by fetch-telemetry.mjs) and displays statistics.
+ * Reads local NDJSON data (fetched by fetch-telemetry.mjs) and displays statistics.
  * Deduplicates by sessionId (takes the document with the most events per session).
  *
  * Usage: node scripts/telemetry-stats.mjs
@@ -11,17 +11,43 @@
 
 import fs from "fs";
 import path from "path";
+import { scanNdjson, readNdjsonAll } from "./lib/ndjson.mjs";
 
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
 const DATA_DIR = path.join(__dirname, "data");
 
-function readJSON(name) {
-  const filePath = path.join(DATA_DIR, `${name}.json`);
+async function readCollection(name) {
+  const filePath = path.join(DATA_DIR, `${name}.ndjson`);
   if (!fs.existsSync(filePath)) {
     console.error(`Missing ${filePath} — run fetch-telemetry.mjs first`);
     return [];
   }
-  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return await readNdjsonAll(filePath);
+}
+
+/**
+ * Stream telemetry-analytics.ndjson and deduplicate on the fly: for each
+ * sessionId keep the doc with the most events. Peak memory is proportional
+ * to the number of unique sessions, not the full file.
+ */
+async function streamAndDedupSessions() {
+  const filePath = path.join(DATA_DIR, "telemetry-analytics.ndjson");
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing ${filePath} — run fetch-telemetry.mjs first`);
+    return { sessions: [], rawCount: 0 };
+  }
+  const bySession = new Map();
+  let rawCount = 0;
+  await scanNdjson(filePath, (doc) => {
+    rawCount++;
+    const sid = doc.sessionId;
+    if (!sid) return;
+    const existing = bySession.get(sid);
+    if (!existing || (doc.events || []).length > (existing.events || []).length) {
+      bySession.set(sid, doc);
+    }
+  });
+  return { sessions: [...bySession.values()], rawCount };
 }
 
 function fmt(n) {
@@ -49,23 +75,6 @@ function allDaysSince(startDate) {
 function dayLabel(dateStr) {
   const d = new Date(dateStr + "T00:00:00");
   return `${dateStr} (${DAY_NAMES[d.getDay()]})`;
-}
-
-/**
- * Deduplicate analytics docs: per sessionId, keep only the document
- * with the most events (that's the most complete flush).
- */
-function deduplicateSessions(docs) {
-  const bySession = new Map();
-  for (const doc of docs) {
-    const sid = doc.sessionId;
-    if (!sid) continue;
-    const existing = bySession.get(sid);
-    if (!existing || (doc.events || []).length > (existing.events || []).length) {
-      bySession.set(sid, doc);
-    }
-  }
-  return [...bySession.values()];
 }
 
 // Map scene keys to canonical puzzle names for consistent reporting
@@ -99,12 +108,11 @@ function canonicalPuzzle(sceneKey) {
   return SCENE_TO_PUZZLE[sceneKey] || sceneKey;
 }
 
-function main() {
-  const rawDocs = readJSON("telemetry-analytics");
-  const sessions = deduplicateSessions(rawDocs);
-  const leaderboardDocs = readJSON("leaderbord-kamp-a");
-  const prizeDocs = readJSON("prizes-kamp-a");
-  const errorDocs = readJSON("telemetry-errors");
+async function main() {
+  const { sessions, rawCount } = await streamAndDedupSessions();
+  const leaderboardDocs = await readCollection("leaderbord-kamp-a");
+  const prizeDocs = await readCollection("prizes-kamp-a");
+  const errorDocs = await readCollection("telemetry-errors");
 
   // Collect all events from deduplicated sessions
   let totalPuzzleStarts = 0;
@@ -187,7 +195,7 @@ function main() {
   console.log("TELEMETRY STATS");
   console.log("=".repeat(60));
 
-  console.log(`\n(${fmt(rawDocs.length)} documents → ${fmt(sessions.length)} unieke sessies na deduplicatie)`);
+  console.log(`\n(${fmt(rawCount)} documents → ${fmt(sessions.length)} unieke sessies na deduplicatie)`);
 
   // Split v1/v2
   const v2Sessions = sessions.filter(d => d.playerId);
@@ -359,4 +367,7 @@ function main() {
   console.log("\n" + "=".repeat(60));
 }
 
-main();
+main().catch((err) => {
+  console.error("\nError:", err.stack || err.message);
+  process.exit(1);
+});

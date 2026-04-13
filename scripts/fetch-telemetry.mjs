@@ -14,6 +14,7 @@ import https from "https";
 import os from "os";
 import fs from "fs";
 import path from "path";
+import { scanNdjson, appendNdjson } from "./lib/ndjson.mjs";
 
 const PROJECT_ID = "vierkantescaperoom";
 const __dirname = import.meta.dirname ?? path.dirname(new URL(import.meta.url).pathname);
@@ -54,12 +55,17 @@ function getAccessToken(refreshToken) {
       let data = "";
       res.on("data", (chunk) => data += chunk);
       res.on("end", () => {
-        const parsed = JSON.parse(data);
-        if (parsed.access_token) resolve(parsed.access_token);
-        else reject(new Error(parsed.error_description || "Failed to get token"));
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.access_token) resolve(parsed.access_token);
+          else reject(new Error(parsed.error_description || "Failed to get token"));
+        } catch (err) {
+          reject(new Error(`Failed to parse OAuth response: ${err.message}`));
+        }
       });
     });
     req.on("error", reject);
+    req.setTimeout(30000, () => req.destroy(new Error("OAuth token request timeout after 30s")));
     req.write(postData);
     req.end();
   });
@@ -87,6 +93,7 @@ function postRunQuery(token, body) {
       });
     });
     req.on("error", reject);
+    req.setTimeout(30000, () => req.destroy(new Error("Firestore runQuery timeout after 30s")));
     req.write(postData);
     req.end();
   });
@@ -177,25 +184,18 @@ function convertDoc(doc) {
   return { id, ...data };
 }
 
-// Read existing JSON data file
-function readExisting(filePath) {
-  if (!fs.existsSync(filePath)) return [];
-  try {
-    return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch {
-    return [];
-  }
-}
-
-// Find the latest createdAt timestamp from existing data
-function getLatestTimestamp(docs) {
-  let latest = null;
-  for (const doc of docs) {
-    if (doc.createdAt && (!latest || doc.createdAt > latest)) {
-      latest = doc.createdAt;
+// Stream an existing NDJSON file and return the set of known ids + the latest
+// createdAt timestamp. Constant memory regardless of file size.
+async function scanExistingState(filePath) {
+  const ids = new Set();
+  let latestCreatedAt = null;
+  await scanNdjson(filePath, (doc) => {
+    if (doc.id) ids.add(doc.id);
+    if (doc.createdAt && (!latestCreatedAt || doc.createdAt > latestCreatedAt)) {
+      latestCreatedAt = doc.createdAt;
     }
-  }
-  return latest;
+  });
+  return { ids, latestCreatedAt };
 }
 
 async function main() {
@@ -208,39 +208,41 @@ async function main() {
   const token = await getAccessToken(getRefreshToken());
 
   for (const collection of COLLECTIONS) {
-    const filePath = path.join(DATA_DIR, `${collection}.json`);
-    const existing = readExisting(filePath);
-    const latestTs = getLatestTimestamp(existing);
+    const filePath = path.join(DATA_DIR, `${collection}.ndjson`);
 
-    if (latestTs) {
-      process.stdout.write(`${collection} (since ${latestTs.slice(0, 19)})... `);
-    } else {
-      process.stdout.write(`${collection} (full fetch)... `);
+    const t0 = Date.now();
+    process.stdout.write(`${collection}: scanning existing... `);
+    const { ids, latestCreatedAt } = await scanExistingState(filePath);
+    process.stdout.write(`${ids.size} docs in ${Date.now() - t0}ms; `);
+
+    process.stdout.write(latestCreatedAt ? `since ${latestCreatedAt.slice(0, 19)}; ` : `full fetch; `);
+
+    const t1 = Date.now();
+    process.stdout.write(`fetching... `);
+    const newDocs = await fetchCollection(token, collection, latestCreatedAt);
+    process.stdout.write(`got ${newDocs.length} in ${Date.now() - t1}ms; `);
+
+    // Convert and filter out ids we already have
+    const toAppend = [];
+    for (const raw of newDocs) {
+      const doc = convertDoc(raw);
+      if (!ids.has(doc.id)) toAppend.push(doc);
     }
 
-    const newDocs = await fetchCollection(token, collection, latestTs);
-    const converted = newDocs.map(convertDoc);
-
-    // Merge: dedup by id (existing wins for docs we already have)
-    const byId = new Map(existing.map(d => [d.id, d]));
-    let added = 0;
-    for (const doc of converted) {
-      if (!byId.has(doc.id)) {
-        byId.set(doc.id, doc);
-        added++;
-      }
+    const t2 = Date.now();
+    process.stdout.write(`appending... `);
+    if (toAppend.length > 0) {
+      await appendNdjson(filePath, toAppend);
     }
+    process.stdout.write(`done in ${Date.now() - t2}ms; `);
 
-    const merged = [...byId.values()];
-    fs.writeFileSync(filePath, JSON.stringify(merged, null, 2));
-
-    console.log(`+${added} new (${merged.length} total)`);
+    console.log(`+${toAppend.length} new (${ids.size + toAppend.length} total)`);
   }
 
   console.log("\nDone!");
 }
 
 main().catch((err) => {
-  console.error("Error:", err.message);
+  console.error("\nError:", err.stack || err.message);
   process.exit(1);
 });

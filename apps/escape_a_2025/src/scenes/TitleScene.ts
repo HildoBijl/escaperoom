@@ -4,6 +4,15 @@ import { getLeaderboardKampA } from "../firebase/firestore";
 import { enterAndKeepFullscreen } from "../utils/fullscreen";
 import { getIsDesktop } from "../ControlsMode";
 import { SAVE_KEY } from "./BootScene";
+import { PRIZES_OPEN } from "../config/prizes";
+
+// The prize invitation is only mentioned while prize entry is open.
+const INFO_WIN_PHRASE = PRIZES_OPEN
+  ? ", en waarvoor je met deze escaperoom een gratis plaats kunt winnen"
+  : "";
+const CAMP_WIN_SENTENCE = PRIZES_OPEN
+  ? "Zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom."
+  : "De inschrijving voor de prijzen is inmiddels gesloten; je kunt de escaperoom nog wel spelen.";
 
 /**
  * Links supported as markdown:
@@ -15,7 +24,7 @@ import { SAVE_KEY } from "./BootScene";
 // -----------------------------
 // TAB CONTENT
 // -----------------------------
-const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd, en waarvoor je met deze escaperoom een gratis plaats kunt winnen? Kijk dan even bij het tabje 'Achtergrond'.
+const INFO_TAB_BODY = `Deze escaperoom is gemaakt door Stichting Vierkant voor Wiskunde. Wil je meer weten over de stichting en/of de zomerkampen die worden georganiseerd${INFO_WIN_PHRASE}? Kijk dan even bij het tabje 'Achtergrond'.
 
 Verzamelmania op Dezonia is gericht op leerlingen van groep 6, 7 en 8 van de basisschool die van puzzelen en logisch denken houden. Je voortgang wordt automatisch opgeslagen, dus je kunt later verder spelen waar je gebleven was.`;
 
@@ -23,7 +32,7 @@ const ACHTERGROND_TAB_BODY = `Stichting [Vierkant voor Wiskunde](https://www.vie
 
 Je hoeft geen wiskundeheld te zijn om mee te gaan op kamp, maar wel een liefhebber van puzzels en problemen. Tijdens de kampen wordt een aantal onderwerpen met een wiskundig thema verkend, zoals veelvlakken, getallen, grafen, magische vierkanten, geheimschrift of verzamelingen. Je kunt ook aan de slag gaan met berekeningen, bouwwerken, tekeningen of kunstwerken gebaseerd op een nieuw uitdagend onderwerp. Hierbij kun je denken aan Escher-tekeningen of fractals. Naast de wiskunde is er natuurlijk ook tijd voor andere activiteiten, zoals sport, spelletjes, zwemmen en creatieve activiteiten. Er zijn twee deskundige begeleiders per groepje van 6 deelnemers, zodat iedereen voldoende meegenomen en uitgedaagd wordt.
 
-In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school. Deze kun je nu ook nog spelen door naar [deze link te gaan](https://vierkantescaperoom.nl/kamp-b/). De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool. Zij kunnen ook gratis kampplaatsen winnen door het oplossen van de escaperoom.
+In 2024-2025 is de eerste escaperoom opgezet als prijsvraag om twintig gratis kampplaatsen weg te geven voor klas 1, 2 en 3 van de middelbare school. Deze kun je nu ook nog spelen door naar [deze link te gaan](https://vierkantescaperoom.nl/kamp-b/). De escaperoom voor 2025-2026 is gericht op leerlingen uit groep 6, 7 en 8 van de basisschool. ${CAMP_WIN_SENTENCE}
 
 Wil je mee op een van de zomerkampen van Vierkant voor Wiskunde? Meer informatie vind je op de website [Vierkant voor Wiskunde](https://www.vierkantvoorwiskunde.nl/kampen/)
 Bekijk ook onze [homepagina](https://www.vierkantvoorwiskunde.nl/).`;

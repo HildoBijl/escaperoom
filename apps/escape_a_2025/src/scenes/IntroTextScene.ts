@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { WarpStars } from "../utils/TwinklingStars";
+import { PRIZES_OPEN } from "../config/prizes";
 
 /**
  * Intro scene shown after clicking Start on the TitleScene.
@@ -22,6 +23,18 @@ Als je mee wilt doen voor de prijzen gelden de volgende regels:
 - Je zit in groep 6, 7 of 8 van de basisschool.
 
 Je bent natuurlijk meer dan welkom om de escaperoom te spelen zonder mee te doen voor de prijzen.
+
+Klaar om te starten? Klik op Verder.`;
+
+// Intro shown once prize entry has closed: no prize promise, no entry rules.
+const INTRO_BODY_CLOSED = `Je begint zo aan de escaperoom van Vierkant voor Wiskunde voor kamp A van 2026. Er zijn geen prijzen meer te verdienen, maar je kunt hem toch spelen. Veel plezier!
+
+Voordat je begint, even het volgende:
+- De escaperoom duurt ongeveer 90 minuten.
+- Het is het beste om deze escaperoom te spelen op de computer (niet op een telefoon of tablet). We kunnen niet garanderen dat alles goed werkt op een telefoon of tablet.
+- Zorg dat je pen en papier bij de hand hebt, dat kan soms handig zijn.
+- Je tussentijdse voortgang wordt opgeslagen. Als je de escaperoom verlaat en later terugkomt op dezelfde computer, heb je nog de opgeloste puzzels.
+- Ga lekker op zoek naar de puzzels en probeer ze op te lossen! Veel plezier!
 
 Klaar om te starten? Klik op Verder.`;
 
@@ -127,7 +140,8 @@ export default class IntroScene extends Phaser.Scene {
 
     const content = this.add.container(viewportX, viewportY).setMask(mask);
 
-    const contentHeight = this.buildTextIntoContainer(content, INTRO_BODY, {
+    const introBody = PRIZES_OPEN ? INTRO_BODY : INTRO_BODY_CLOSED;
+    const contentHeight = this.buildTextIntoContainer(content, introBody, {
       maxWidth: viewportW,
       fontSize: 22,
       lineHeight: 32,

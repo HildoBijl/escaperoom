@@ -886,6 +886,7 @@ export default abstract class FaceBase extends Phaser.Scene {
       () => this.activeTravelEdge !== null,
       () => {
         if (this.activeTravelEdge) {
+          this.registry.set("lastVisitedFace", this.activeTravelEdge);
           // Pass which scene we came FROM, so the target can spawn near the correct edge
           this.scene.start(this.activeTravelEdge, {
             cameFromScene: this.scene.key

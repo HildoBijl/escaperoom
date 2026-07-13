@@ -28,3 +28,6 @@ dist-ssr
 
 # Telemetry data cache (contains session data)
 scripts/data/
+
+# Generated reports
+scripts/output/

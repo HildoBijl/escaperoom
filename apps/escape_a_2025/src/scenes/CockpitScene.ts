@@ -329,9 +329,6 @@ export default class CockpitScene extends Phaser.Scene {
 
 
   private showPostPuzzleThoughts() {
-    // Mark as shown so it doesn't repeat
-    this.registry.set("postPuzzleThoughtsShown", true);
-
     this.dialogManager?.show(
       [
         { text: "Yes! De systemen werken weer!" },
@@ -340,6 +337,8 @@ export default class CockpitScene extends Phaser.Scene {
         { text: "Ik moet uitstappen om dit te onderzoeken." },
       ],
       () => {
+        // Mark as shown only after player has seen all dialogue
+        this.registry.set("postPuzzleThoughtsShown", true);
         this.time.delayedCall(500, () => {
           this.cameras.main.fadeOut(800, 0, 0, 0);
         });

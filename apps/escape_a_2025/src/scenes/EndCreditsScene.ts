@@ -1,6 +1,12 @@
 import Phaser from "phaser";
 import { WarpStars } from "../utils/TwinklingStars";
 import { submitLeaderboard, submitPrizes } from "../firebase/firestore";
+import { PRIZES_OPEN } from "../config/prizes";
+
+// Shown on the end screen (and in intro) once prize entry has closed.
+const PRIZES_CLOSED_MESSAGE =
+  "De inschrijving voor de prijzen is gesloten (de deadline was 10 juli 2026). " +
+  "Je kunt de escaperoom nog spelen en je naam op het leaderboard zetten.";
 
 type Mode = "leaderboard" | "prizes";
 type KampVoorkeur = "A1" | "A2" | "geen";
@@ -19,7 +25,7 @@ export default class EndCreditsScene extends Phaser.Scene {
   private domStatus?: HTMLDivElement;
 
   // mode UI
-  private mode: Mode = "prizes";
+  private mode: Mode = PRIZES_OPEN ? "prizes" : "leaderboard";
   private tabLeaderboardBtn?: HTMLButtonElement;
   private tabPrizesBtn?: HTMLButtonElement;
 
@@ -111,7 +117,10 @@ export default class EndCreditsScene extends Phaser.Scene {
       .text(
         width / 2,
         0,
-        "Je hebt de escaperoom voltooid en bent teruggekeerd naar Aarde.\n\nKies hieronder: alleen leaderboard, of meedoen met prijzen (met extra gegevens).",
+        PRIZES_OPEN
+          ? "Je hebt de escaperoom voltooid en bent teruggekeerd naar Aarde.\n\nKies hieronder: alleen leaderboard, of meedoen met prijzen (met extra gegevens)."
+          : "Je hebt de escaperoom voltooid en bent teruggekeerd naar Aarde.\n\n" +
+              PRIZES_CLOSED_MESSAGE,
         {
           fontFamily: "sans-serif",
           fontSize: "22px",
@@ -141,7 +150,7 @@ export default class EndCreditsScene extends Phaser.Scene {
 
     // Initial layout
     this.onResize();
-    this.setMode("prizes");
+    this.setMode(PRIZES_OPEN ? "prizes" : "leaderboard");
   }
 
   // =========================================================
@@ -374,7 +383,9 @@ export default class EndCreditsScene extends Phaser.Scene {
 
     // ---------- tabs ----------
     const tabs = document.createElement("div");
-    tabs.style.display = "flex";
+    // No tab bar once prizes are closed: only the leaderboard remains, so there
+    // is nothing to choose between.
+    tabs.style.display = PRIZES_OPEN ? "flex" : "none";
     tabs.style.gap = "10px";
     tabs.style.alignItems = "center";
     tabs.style.justifyContent = "center";
@@ -406,21 +417,24 @@ export default class EndCreditsScene extends Phaser.Scene {
       return b;
     };
 
-    this.tabPrizesBtn = makeTabBtn("Prijzen");
     this.tabLeaderboardBtn = makeTabBtn("Leaderboard");
-
     this.tabLeaderboardBtn.addEventListener("click", (e) => {
       e.preventDefault();
       if (this.hasSubmitted) return;
       this.setMode("leaderboard");
     });
-    this.tabPrizesBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      if (this.hasSubmitted) return;
-      this.setMode("prizes");
-    });
 
-    tabs.appendChild(this.tabPrizesBtn);
+    // Prizes tab only exists while prize entry is open.
+    if (PRIZES_OPEN) {
+      this.tabPrizesBtn = makeTabBtn("Prijzen");
+      this.tabPrizesBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (this.hasSubmitted) return;
+        this.setMode("prizes");
+      });
+      tabs.appendChild(this.tabPrizesBtn);
+    }
+
     tabs.appendChild(this.tabLeaderboardBtn);
 
     // ---------- sections ----------
@@ -454,6 +468,9 @@ export default class EndCreditsScene extends Phaser.Scene {
     // Plus: keep eligibility warnings/restrictions from before (>=8 and group 6/7/8)
     // =========================
 
+    // Build the prize form only while prize entry is open. When closed, the
+    // section stays empty and hidden, and the tab to reach it does not exist.
+    if (PRIZES_OPEN) {
     this.pFirst = makeInput("Voornaam *", "Bijv. Sam", "text", prizesSection);
     this.pLast = makeInput("Achternaam *", "Bijv. Jansen", "text", prizesSection);
 
@@ -562,6 +579,7 @@ export default class EndCreditsScene extends Phaser.Scene {
     eligibility.style.marginTop = "4px";
     eligibility.style.minHeight = "20px";
     prizesSection.appendChild(eligibility);
+    } // end if (PRIZES_OPEN)
 
     // ---------- submit row ----------
     const row = document.createElement("div");
@@ -880,6 +898,12 @@ export default class EndCreditsScene extends Phaser.Scene {
 
         this.finishSubmittedScreen();
         return;
+      }
+
+      // prizes mode: refuse outright once entry has closed, so no PII is ever
+      // written — even from an old or tampered client.
+      if (!PRIZES_OPEN) {
+        return this.setStatus(PRIZES_CLOSED_MESSAGE, true);
       }
 
       // prizes mode: enforce eligibility (same rule as before)

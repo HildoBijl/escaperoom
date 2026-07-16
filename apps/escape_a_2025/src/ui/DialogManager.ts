@@ -103,6 +103,15 @@ export class DialogManager {
   show(lines: DialogLine[], onComplete?: () => void): void {
     if (!lines.length) return;
 
+    // Re-entrancy guard: if a dialog is already showing, tear down its UI
+    // before building the new one. Without this, calling show() again while a
+    // dialog is open (e.g. clicking an interactive object during dialog) creates
+    // a second set of box/text objects and orphans the originals — they stay on
+    // screen ("two texts overlapping") and can leave the player stuck.
+    if (this.active) {
+      this.cleanupUI();
+    }
+
     this.lines = lines;
     this.currentIndex = 0;
     this.onComplete = onComplete;

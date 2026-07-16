@@ -1068,6 +1068,10 @@ export default class CockpitScene extends Phaser.Scene {
 
   private onStickControlClicked() {
     if (this.joystickBusy || this.inputLocked) return;
+    // Don't start another dialog while one is already open. Otherwise
+    // repeatedly clicking the lever (e.g. during "Hmm, dit lijkt niet te
+    // werken...") re-triggers show() and stacks/locks the dialog.
+    if (this.dialogManager?.isActive()) return;
 
     // Only allow joystick use in the same phases you described
     if (this.currentPhase !== "damaged" && this.currentPhase !== "repaired") return;

@@ -385,12 +385,31 @@ export default class LogicTower_5 extends Phaser.Scene {
         alpha: 0,
         duration: 1000
     });
+    // Continue hint appears once the text is readable; the player advances at
+    // their own pace. (A fixed 4s auto-advance was too short to read this.)
+    const continueHint = this.add.text(
+        width / 2,
+        height / 2 + finalText.height / 2 + 30,
+        "(Klik of druk op E / spatie)",
+        { fontFamily: 'sans-serif', fontSize: "18px", color: "#ffff00" }
+    ).setOrigin(0.5).setDepth(2000).setAlpha(0);
+
+    let advanced = false;
+    const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        this.exitScene(true);
+    };
+
     this.tweens.add({
         targets: finalText, alpha: 1, duration: 1500,
-    });
-
-    this.time.delayedCall(4000, () => {
-        this.exitScene(true);
+        onComplete: () => {
+            continueHint.setAlpha(1);
+            this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.input.keyboard?.once("keydown-E", advance);
+            this.input.keyboard?.once("keydown-SPACE", advance);
+            this.input.once("pointerdown", advance);
+        }
     });
   }
 

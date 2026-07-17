@@ -376,7 +376,8 @@ export default class LogicTower_5 extends Phaser.Scene {
 
     const { width, height } = this.scale;
     const finalText = this.add.text(width/2, height/2, "Correct\n\nJe hebt het einde van de toren bereikt.\n Deze toren gebruikten we altijd om andere wezens in de gaten te houden en met hen te communiceren.", {
-        fontFamily: 'sans-serif', fontSize: "32px", color: "#00ff00", align: "center", backgroundColor: "#000000", padding: {x:20, y:20}
+        fontFamily: 'sans-serif', fontSize: "32px", color: "#00ff00", align: "center", backgroundColor: "#000000", padding: {x:20, y:20},
+        wordWrap: { width: width - 100, useAdvancedWrap: true }
     }).setOrigin(0.5).setDepth(2000).setAlpha(0);
 
     this.tweens.add({
@@ -384,12 +385,31 @@ export default class LogicTower_5 extends Phaser.Scene {
         alpha: 0,
         duration: 1000
     });
+    // Continue hint appears once the text is readable; the player advances at
+    // their own pace. (A fixed 4s auto-advance was too short to read this.)
+    const continueHint = this.add.text(
+        width / 2,
+        height / 2 + finalText.height / 2 + 30,
+        "(Klik of druk op E / spatie)",
+        { fontFamily: 'sans-serif', fontSize: "18px", color: "#ffff00" }
+    ).setOrigin(0.5).setDepth(2000).setAlpha(0);
+
+    let advanced = false;
+    const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        this.exitScene(true);
+    };
+
     this.tweens.add({
         targets: finalText, alpha: 1, duration: 1500,
-    });
-
-    this.time.delayedCall(4000, () => {
-        this.exitScene(true);
+        onComplete: () => {
+            continueHint.setAlpha(1);
+            this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.input.keyboard?.once("keydown-E", advance);
+            this.input.keyboard?.once("keydown-SPACE", advance);
+            this.input.once("pointerdown", advance);
+        }
     });
   }
 

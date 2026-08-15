@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { PuzzleProps } from '../types'
 import './weegschaal.css'
 
 /**
  * Weegschaal — the reference puzzle for the lab.
  *
- * The player sees a few balance scales that are stated as facts: they are in
- * balance. Each scale holds shapes, and every shape has a hidden value. By
- * filling in a value for each shape the player reconstructs those values.
+ * The player sees a few balance scales, all tipped over. Each scale holds
+ * shapes, and every shape has a hidden value. The job is to find the value of
+ * each shape, which is the same as bringing every scale level.
  *
  * The feedback loop is the point: a scale re-weighs itself using the player's
  * own numbers. Wrong numbers make it tip, so the picture tells the player
@@ -37,7 +37,11 @@ type Side = { shapes: ShapeId[] } | { weight: number }
 type Balance = { left: Side; right: Side }
 
 type Level = {
-  /** The hidden answer. Only used to check, never shown. */
+  /**
+   * The solution. Nothing reads it — a scale checks itself against the
+   * player's own numbers — but it belongs here so whoever edits a level can
+   * see what it is meant to work out to.
+   */
   answer: Record<ShapeId, number>
   balances: Balance[]
 }
@@ -92,6 +96,23 @@ function isReadable(balance: Balance, guesses: Partial<Record<ShapeId, number>>)
   )
 }
 
+const MIN_GUESS = 0
+const MAX_GUESS = 99
+
+function clamp(n: number): number {
+  return Math.max(MIN_GUESS, Math.min(MAX_GUESS, n))
+}
+
+/**
+ * Every shape starts at 1 rather than blank. A blank puzzle shows three level
+ * scales, which reads as "nothing to do here"; starting at 1 puts every scale
+ * visibly out of balance, so the player sees the job straight away. No level
+ * answers 1 for every shape, so this never starts out solved.
+ */
+function startingGuesses(): Record<ShapeId, number> {
+  return Object.fromEntries(SHAPE_ORDER.map((s) => [s, 1])) as Record<ShapeId, number>
+}
+
 // ── The puzzle ───────────────────────────────────────────────────────────
 
 export default function WeegschaalPuzzle({
@@ -101,8 +122,14 @@ export default function WeegschaalPuzzle({
 }: PuzzleProps) {
   const level = LEVELS[difficulty]
 
-  // undefined = not filled in yet, which is different from 0.
-  const [guesses, setGuesses] = useState<Partial<Record<ShapeId, number>>>({})
+  // undefined = the player cleared the field, which is different from 0.
+  const [guesses, setGuesses] = useState<Partial<Record<ShapeId, number>>>(startingGuesses)
+
+  // Switching level in the lab should hand you a fresh puzzle, not the numbers
+  // you typed for the previous one.
+  useEffect(() => {
+    setGuesses(startingGuesses())
+  }, [difficulty])
 
   const balanced = useMemo(
     () =>
@@ -124,19 +151,29 @@ export default function WeegschaalPuzzle({
   }, [solved, onSolved])
 
   function setGuess(shape: ShapeId, raw: string) {
+    // Digits only, and a lone leading zero gives way to whatever is typed
+    // next: with the cursor behind a "0", typing 3 should read 3, not 03.
+    // Only a *bare* zero disappears — in "10" the zero is part of the number.
+    const digits = raw.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+
     setGuesses((prev) => {
       const next = { ...prev }
-      if (raw === '') delete next[shape]
-      else next[shape] = Math.max(0, Math.min(99, Number(raw)))
+      if (digits === '') delete next[shape]
+      else next[shape] = clamp(Number(digits))
       return next
     })
+  }
+
+  /** One step up or down from the +/− buttons. */
+  function bump(shape: ShapeId, delta: number) {
+    setGuesses((prev) => ({ ...prev, [shape]: clamp((prev[shape] ?? 1) + delta) }))
   }
 
   return (
     <div className="weegschaal">
       <p className="weegschaal__intro">
-        Alle weegschalen hieronder zijn <strong>in evenwicht</strong>. Elke vorm heeft een
-        eigen gewicht. Zoek uit hoeveel elke vorm weegt en vul het in.
+        Alle weegschalen moeten <strong>in evenwicht</strong> worden gebracht. Welk gewicht
+        heeft elke vorm?
       </p>
 
       <div className="weegschaal__scales">
@@ -153,30 +190,118 @@ export default function WeegschaalPuzzle({
 
       <div className="weegschaal__inputs">
         {SHAPE_ORDER.map((shape) => (
-          <label key={shape} className="weegschaal__input">
-            <svg viewBox="-18 -18 36 36" className="weegschaal__inputIcon" aria-hidden="true">
-              <Shape shape={shape} />
-            </svg>
-            <span className="weegschaal__inputLabel">{SHAPES[shape].label}</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={99}
-              value={guesses[shape] ?? ''}
-              onChange={(e) => setGuess(shape, e.target.value)}
-              aria-label={`gewicht van de ${SHAPES[shape].label}`}
-            />
-          </label>
+          <ShapeInput
+            key={shape}
+            shape={shape}
+            value={guesses[shape]}
+            onType={(raw) => setGuess(shape, raw)}
+            onBump={(delta) => bump(shape, delta)}
+          />
         ))}
       </div>
-
-      {/* Handy while the team is reviewing. Drop this before the puzzle ships. */}
-      <details className="weegschaal__answer">
-        <summary>Antwoord (voor de puzzelmakers)</summary>
-        {SHAPE_ORDER.map((s) => `${SHAPES[s].label} = ${level.answer[s]}`).join(', ')}
-      </details>
     </div>
+  )
+}
+
+// ── One weight box ───────────────────────────────────────────────────────
+
+/**
+ * The shape, its name, and the number the player thinks it weighs, with a
+ * button on either side.
+ *
+ * The field is a text input rather than type="number" on purpose. The native
+ * spinner arrows are far too small to aim at — the whole reason for the
+ * buttons — and a number field hides its caret position, which the
+ * select-the-lot-on-click behaviour below depends on.
+ */
+function ShapeInput({
+  shape,
+  value,
+  onType,
+  onBump,
+}: {
+  shape: ShapeId
+  value: number | undefined
+  onType: (raw: string) => void
+  onBump: (delta: number) => void
+}) {
+  const { label } = SHAPES[shape]
+  const fieldId = `weegschaal-${shape}`
+
+  // Clicking into a field selects the number, so the next digit typed replaces
+  // it instead of landing next to it. The browser hands us focus first and
+  // then puts the caret down on mouse-up, which would undo the selection — so
+  // we swallow that one mouse-up, and only that one. A second click still
+  // places the caret normally.
+  const selectOnClick = useRef(false)
+
+  return (
+    <div className="weegschaal__input">
+      <label htmlFor={fieldId} className="weegschaal__inputName">
+        <svg viewBox="-18 -18 36 36" className="weegschaal__inputIcon" aria-hidden="true">
+          <Shape shape={shape} />
+        </svg>
+        <span className="weegschaal__inputLabel">{label}</span>
+      </label>
+
+      <div className="weegschaal__stepper">
+        <input
+          id={fieldId}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={2}
+          value={value ?? ''}
+          onChange={(e) => onType(e.target.value)}
+          onMouseDown={(e) => {
+            selectOnClick.current = document.activeElement !== e.currentTarget
+          }}
+          onFocus={(e) => e.currentTarget.select()}
+          onMouseUp={(e) => {
+            if (selectOnClick.current) e.preventDefault()
+            selectOnClick.current = false
+          }}
+          aria-label={`gewicht van de ${label}`}
+        />
+
+        {/* Stacked, so up really is up: heavier on top, lighter below. */}
+        <div className="weegschaal__steps">
+          <button
+            type="button"
+            className="weegschaal__step"
+            onClick={() => onBump(1)}
+            disabled={(value ?? 1) >= MAX_GUESS}
+            aria-label={`${label} één zwaarder`}
+          >
+            <StepIcon plus />
+          </button>
+          <button
+            type="button"
+            className="weegschaal__step"
+            onClick={() => onBump(-1)}
+            disabled={(value ?? 1) <= MIN_GUESS}
+            aria-label={`${label} één lichter`}
+          >
+            <StepIcon />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** A minus, or a plus when `plus` is set. */
+function StepIcon({ plus = false }: { plus?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d={plus ? 'M 5 12 L 19 12 M 12 5 L 12 19' : 'M 5 12 L 19 12'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+    </svg>
   )
 }
 

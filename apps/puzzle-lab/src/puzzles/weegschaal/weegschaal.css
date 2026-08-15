@@ -99,6 +99,13 @@
   border-radius: var(--radius);
 }
 
+.weegschaal__inputName {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+}
+
 .weegschaal__inputIcon {
   width: 30px;
   height: 30px;
@@ -109,11 +116,62 @@
   font-weight: 600;
 }
 
+.weegschaal__stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Plus above minus: on a scale, up is heavier. */
+.weegschaal__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Big enough to hit with a finger — the native number-input spinners these
+   replace were a few pixels tall and mouse-only. */
+.weegschaal__step {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.weegschaal__step svg {
+  width: 24px;
+  height: 24px;
+}
+
+.weegschaal__step:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.weegschaal__step:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.weegschaal__step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Shorter than the two buttons beside it, and centred between them. */
 .weegschaal__input input {
   width: 4rem;
-  padding: 0.4rem 0.5rem;
+  height: 52px;
+  padding: 0.2rem 0.5rem;
   font: inherit;
-  font-size: 1.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
   text-align: center;
   color: var(--text);
@@ -125,13 +183,4 @@
 .weegschaal__input input:focus-visible {
   outline: none;
   border-color: var(--accent);
-}
-
-.weegschaal__answer {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.weegschaal__answer summary {
-  cursor: pointer;
 }

@@ -28,7 +28,7 @@ export const puzzles: PuzzleMeta[] = [
     skills: ['woordenschat', 'logisch redeneren', 'systematisch zoeken'],
     status: 'prototype',
     notes:
-      'Letters aangeleverd door het puzzelteam. Het slot draait, maar controleert de oplossing nog NIET — dat is bewust, zodat het team er zelf op kan puzzelen. Zie het gemarkeerde blok in LetterslotPuzzle.tsx voor waar die controle hoort.',
+      'Letters aangeleverd door het puzzelteam. Bewust geen tussentijdse hints: letters komen op meerdere wielen dubbel voor, dus "deze rij klopt" zou lezen als "van deze wielen afblijven" terwijl je ze nog nodig kunt hebben. Het slot gaat pas open als alle drie de rijen tegelijk kloppen.',
     component: LetterslotPuzzle,
   },
 ]

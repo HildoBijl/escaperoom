@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { PuzzleProps } from '../types'
 import './letterslot.css'
@@ -46,7 +46,18 @@ function mod(n: number, m: number): number {
 
 // ── The puzzle ───────────────────────────────────────────────────────────
 
-export default function LetterslotPuzzle(_: PuzzleProps) {
+/**
+ * The three words, top row first. The lock opens only when all three are in
+ * the window at once.
+ *
+ * Note for when this goes into a room: this list sits in the shipped
+ * JavaScript, so a curious player can read it from the browser's devtools. For
+ * a group 6-8 escape room that is almost certainly fine, but if it ever
+ * matters, the check has to move to the server.
+ */
+const SOLUTION = ['FRANS', 'BRITS', 'DUITS']
+
+export default function LetterslotPuzzle({ onSolved }: PuzzleProps) {
   // How far each wheel has been turned. All zero is the starting state exactly
   // as the puzzle team handed it over.
   // Deliberately not wrapped into 0..4: a wheel needs to know whether it went
@@ -69,15 +80,26 @@ export default function LetterslotPuzzle(_: PuzzleProps) {
   }
 
   // ── Controle op de oplossing ─────────────────────────────────────────
-  // Bewust nog leeg: het team wil de puzzel eerst zelf oplossen.
+  // Alles of niets: pas als alle drie de rijen kloppen gaat het slot open.
   //
-  // Zodra de drie woorden bekend zijn hoort de controle hier: vergelijk
-  // visibleRow(0), visibleRow(1) en visibleRow(2) met de woorden en roep
-  // onSolved() aan zodra alle drie kloppen. Vang de props dan op als
-  // { onSolved } in plaats van als _.
-  //
-  // Wil je de speler tussentijds laten zien hoe ver hij is, dan kan
-  // onProgress(aantalGoedeRijen / 3) daar meteen bij.
+  // Bewust géén melding per rij, en bewust geen onProgress (die zou de
+  // voortgangsbalk vullen en daarmee hetzelfde verraden). Letters komen op
+  // meerdere wielen dubbel voor, dus een rij kan bij verschillende
+  // wielstanden hetzelfde woord vormen. "Deze rij klopt" zou dan lezen als
+  // "van deze wielen moet je afblijven", terwijl je ze juist nog nodig kunt
+  // hebben om de andere rijen rond te krijgen.
+  const solved = SOLUTION.every((word, r) => visibleRow(r) === word)
+
+  // Once open, it stays open: turning further should not undo a puzzle the
+  // player has already finished, and onSolved() is a one-off announcement
+  // anyway. "Opnieuw" mounts a fresh lock, so this needs no reset.
+  const [opened, setOpened] = useState(false)
+
+  useEffect(() => {
+    if (!solved || opened) return
+    setOpened(true)
+    onSolved()
+  }, [solved, opened, onSolved])
 
   return (
     <div className="letterslot">
@@ -86,7 +108,7 @@ export default function LetterslotPuzzle(_: PuzzleProps) {
         eraan tot er in alle drie de rijen een woord van vijf letters staat.
       </p>
 
-      <div className="letterslot__plate">
+      <div className={`letterslot__plate ${opened ? 'letterslot__plate--open' : ''}`}>
         {WHEELS.map((letters, w) => (
           <Wheel
             key={w}

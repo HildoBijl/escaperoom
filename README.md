@@ -12,11 +12,16 @@ Met de huidige configuratie heb je:
 apps/
   escape_a_2026/    ← kamp A 2026 (Phaser + Vite)
   escape_b_2025/    ← kamp B 2025 (React + Vite)
+  puzzle-lab/       ← werkomgeving voor de rooms van 2027 (React + Vite)
 scripts/
   merge-builds.cjs   ← script dat beide builds samenvoegt in /dist/
 dist/                ← uiteindelijke build output (voor Firebase)
 firebase.json        ← Firebase Hosting-configuratie
+deploy/lab/          ← aparte hosting-config + build output van het puzzellab
 ```
+
+Het puzzellab staat bewust buiten de live site en heeft een eigen build-output
+en eigen `firebase.json`. `npm run build` (de live build) raakt het niet aan.
 
 ### 📅 Naamgeving: het jaartal is het kampjaar
 
@@ -47,6 +52,7 @@ Elke app heeft zijn eigen `node_modules` — er is geen gedeelde installatie. Je
 installeert dus per app, en alleen die waaraan je werkt:
 
 ```
+npm install --prefix apps/puzzle-lab      # puzzellab (2027)
 npm install --prefix apps/escape_a_2026   # kamp A 2026
 npm install --prefix apps/escape_b_2025   # kamp B 2025
 npm install                               # root (nodig voor 'npm run dev' en de telemetriescripts)
@@ -59,7 +65,8 @@ zo weer terug. Dat raakt git en de deploy niet: GitHub Actions installeert op de
 runner altijd zelf.
 
 > Draai je `npm run dev` of `npm run build` (zonder suffix), dan heb je **beide**
-> rooms geïnstalleerd nodig — die commando's raken alle apps.
+> rooms geïnstalleerd nodig. Voor labwerk volstaat `dev:lab` / `build:lab`, en
+> dan heb je alleen `apps/puzzle-lab` nodig.
 
 ## ⚙️ Ontwikkelen
 
@@ -72,6 +79,9 @@ npm run dev:2026
 
 # Kamp B 2025
 npm run dev:2025
+
+# Puzzellab (2027)
+npm run dev:lab
 ```
 
 ### Beide tegelijk draaien
@@ -115,6 +125,36 @@ Daarna kun je testen via:
  → kamp B 2025
 
 > Gebruik altijd de emulator (en niet `npx serve`), omdat de kamp-b-app Firebase-endpoints `(/__/firebase/...)` verwacht.
+
+## 🧪 Puzzellab (privé)
+
+`apps/puzzle-lab/` is de werkomgeving voor de twee escape rooms van 2027
+(kamp A en kamp C). Het is een puzzelgalerij zonder verhaal: bedoeld om
+puzzelideeën te bouwen en aan de puzzelmakers te laten zien.
+
+Zie `apps/puzzle-lab/README.md` voor hoe je een puzzel toevoegt.
+
+### Delen met het team
+
+Het lab staat **niet** op vierkantescaperoom.nl, maar op een Firebase preview
+channel — een niet-vindbare URL van de vorm
+`https://vierkantescaperoom--puzzle-lab-<hash>.web.app`.
+
+Deployen gaat vanzelf: push naar de branch `puzzle-lab`, dan draait
+`.github/workflows/puzzle-lab.yml` en verschijnt de URL in de Actions-log.
+Je kunt de workflow ook handmatig starten via Actions → *Deploy puzzle lab to
+preview channel* → *Run workflow*.
+
+> Een preview channel verloopt na maximaal 30 dagen. Elke deploy schuift die
+> datum vooruit, dus zolang je aan het lab werkt blijft de URL leven. Ligt het
+> een maand stil, start de workflow dan één keer handmatig — de URL blijft
+> daarbij hetzelfde.
+
+Handmatig deployen kan ook, maar dan moet je zelf ingelogd zijn:
+```
+npm run build:lab
+npx firebase-tools hosting:channel:deploy puzzle-lab --config deploy/lab/firebase.json --expires 30d
+```
 
 ## 🧩 Nieuwe escape room toevoegen
 

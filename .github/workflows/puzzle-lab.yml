@@ -1,0 +1,40 @@
+# Deploys the puzzle lab to a private Firebase preview channel.
+#
+# This never touches the live site: the lab builds into deploy/lab/dist and is
+# deployed with deploy/lab/firebase.json, not the root config.
+#
+# A preview channel expires after at most 30 days. Every push to this branch
+# redeploys and pushes the expiry date forward; if the work sits still for a
+# month, run this workflow by hand (Actions → Run workflow) to bring the URL
+# back. The URL itself is derived from the channel name and stays the same.
+name: Deploy puzzle lab to preview channel
+
+on:
+  push:
+    branches:
+      - puzzle-lab
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy_lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --prefix apps/puzzle-lab
+      - run: npm run build:lab
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VIERKANTESCAPEROOM }}
+          projectId: vierkantescaperoom
+          entryPoint: deploy/lab
+          channelId: puzzle-lab
+          expires: 30d
+
+      # Without a pull request the action has nowhere to post the URL, so put it
+      # on the run's summary page — that saves digging through the log.
+      - name: Show the lab URL
+        run: |
+          echo "## Puzzellab" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.deploy.outputs.details_url }}" >> $GITHUB_STEP_SUMMARY

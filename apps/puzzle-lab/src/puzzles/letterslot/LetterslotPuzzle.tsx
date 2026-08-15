@@ -104,8 +104,8 @@ export default function LetterslotPuzzle({ onSolved }: PuzzleProps) {
   return (
     <div className="letterslot">
       <p className="letterslot__intro">
-        Vijf wielen met elk vijf letters, waarvan je er steeds drie ziet. Draai
-        eraan tot er in alle drie de rijen een woord van vijf letters staat.
+        De vertaalmachine moet opnieuw worden afgesteld. Draai aan de wielen
+        totdat je 3 woorden van 5 letters hebt.
       </p>
 
       <div className={`letterslot__plate ${opened ? 'letterslot__plate--open' : ''}`}>

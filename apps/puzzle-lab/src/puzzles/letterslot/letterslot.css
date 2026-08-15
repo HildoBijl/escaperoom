@@ -1,0 +1,166 @@
+.letterslot {
+  --cell-height: 64px; /* must match CELL_HEIGHT in LetterslotPuzzle.tsx */
+  --cell-width: 62px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+.letterslot__intro {
+  max-width: 46ch;
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* The plate the wheels are mounted in. */
+.letterslot__plate {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(180deg, #2b2f42, #1b1e2c);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.wheel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── turn buttons ──────────────────────────────────────────────── */
+
+.wheel__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 26px;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.wheel__button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.wheel__button:hover {
+  color: var(--brass-light);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.wheel__button:active {
+  transform: scale(0.9);
+}
+
+/* ── the window ────────────────────────────────────────────────── */
+
+.wheel__window {
+  position: relative;
+  width: var(--cell-width);
+  /* Exactly three cells tall, so a fourth letter can never be read. */
+  height: calc(var(--cell-height) * 3);
+  overflow: hidden;
+  border-radius: 7px;
+
+  /* The brass cylinder: light down the middle, falling away at the sides. */
+  background: linear-gradient(
+    90deg,
+    #6b5320 0%,
+    #a8863c 18%,
+    #d8b866 50%,
+    #a8863c 82%,
+    #6b5320 100%
+  );
+}
+
+.wheel__window:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* The curve of the wheel: the top and bottom letters run into shadow, which
+   shows that the wheel continues without making a fourth letter readable. */
+.wheel__window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0.85) 0%,
+    rgb(0 0 0 / 0.42) 9%,
+    rgb(0 0 0 / 0.12) 22%,
+    rgb(0 0 0 / 0) 38%,
+    rgb(0 0 0 / 0) 62%,
+    rgb(0 0 0 / 0.12) 78%,
+    rgb(0 0 0 / 0.42) 91%,
+    rgb(0 0 0 / 0.85) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.5);
+}
+
+/* ── the letters ───────────────────────────────────────────────── */
+
+/* No transition here on purpose. The strip's resting transform never changes;
+   the one-cell slide is run as a separate animation from the component, which
+   keeps the element's own state out of it. */
+.wheel__strip {
+  display: flex;
+  flex-direction: column;
+}
+
+.wheel__letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  height: var(--cell-height);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2a1e08;
+  /* Engraved: a dark line above, a highlight below. */
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.35), 0 -1px 0 rgb(0 0 0 / 0.25);
+  user-select: none;
+}
+
+/* A hairline between the letters, like the ridges of a real wheel. */
+.wheel__letter + .wheel__letter {
+  box-shadow: inset 0 1px 0 rgb(0 0 0 / 0.18);
+}
+
+/* ── screen reader only ────────────────────────────────────────── */
+
+.letterslot__srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .letterslot {
+    --cell-height: 52px;
+    --cell-width: 50px;
+  }
+
+  .wheel__letter {
+    font-size: 1.6rem;
+  }
+}

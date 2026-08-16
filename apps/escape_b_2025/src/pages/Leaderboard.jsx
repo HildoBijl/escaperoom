@@ -5,6 +5,15 @@ import Box from '@mui/material/Box'
 import { useCollection } from 'fb'
 import { Subpage } from 'components'
 
+// Matches the bound on `naam` in firestore.rules. Applied on display too,
+// because that rule only binds new entries: anything stored before it can still
+// be long enough to stretch the column.
+const NAME_MAX = 20
+const clampName = (naam) => {
+	const value = String(naam ?? '')
+	return value.length > NAME_MAX ? value.slice(0, NAME_MAX - 1) + '…' : value
+}
+
 export function Leaderboard() {
 	const leaderboard = useCollection('leaderboard', true)
 	if (!leaderboard)
@@ -34,7 +43,7 @@ function LeaderboardWithData({ leaderboard }) {
 			<Box sx={{ ...headStyle, justifyContent: 'center' }}><strong>Opgelost</strong></Box>
 			{list.map((solver, index) => {
 				return <Fragment key={index}>
-					<Box sx={{ ...fieldStyle }}>{solver.naam}</Box>
+					<Box sx={{ ...fieldStyle }}>{clampName(solver.naam)}</Box>
 					<Box sx={{ ...fieldStyle }}>{solver.plaats}</Box>
 					<Box sx={{ ...fieldStyle, justifyContent: 'center' }}>{solver.leeftijd}</Box>
 					<Box sx={{ ...fieldStyle, justifyContent: 'center' }}>{solver.date.toDate().toLocaleDateString('nl', { month: "short", day: "numeric" })}</Box>

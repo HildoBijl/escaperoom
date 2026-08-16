@@ -44,17 +44,23 @@ naam te weigeren: `Anne-Marie` en `Ayşe` komen er gewoon door.
 raakt onschuldige namen: `Sexbierum` is een Fries dorp, `Lulof` een achternaam.
 Je krijgt misgrijpen én valse treffers, voor permanent onderhoud.
 
-**Wat er dan nog doorheen komt, ruim je periodiek op.** Bij dit volume is dat
-een kwartier per kwartaal. `scripts/output/leaderboard-controle.txt` laat zien
-hoe: alle inzendingen op alfabet met hun document-ID, aanvinken wat weg moet.
-
 **Publiceer niet meer dan nodig.** Kamp B 2025 toont voornaam, woonplaats én
 leeftijd van kinderen op een openbare pagina. Dat is meer dan je van een
 minderjarige online wilt hebben staan. Een voornaam alleen volstaat.
 
-Komt er in 2027 een prijsronde met echte instroom, dan is een goedkeuringswachtrij
-— inzendingen pas zichtbaar na akkoord — de robuuste stap. Die is niet te
-omzeilen, want er kijkt een mens naar. Bouw hem pas als het volume erom vraagt.
+**Modereer achteraf, niet vooraf.** Een inzending is meteen zichtbaar; wat er
+doorheen glipt haal je er later uit. Dat is bewust: wachten op goedkeuring
+breekt precies waar het leaderboard voor is — je naam zien verschijnen is de
+bevestiging dat het gelukt is. Een kind dat een uur later nog niets ziet, denkt
+dat het misgegaan is en probeert het opnieuw.
+
+De prijs daarvan is dat er soms even iets ongepasts zichtbaar is. Bij dit
+volume — kamp A 2026 haalde 825 inzendingen in zes maanden, waarvan er negen
+weg moesten — is dat een aanvaardbare ruil tegen een kwartier per kwartaal.
+
+Het gereedschap daarvoor staat er al: `scripts/leaderboard-remove.mjs`
+verwijdert op document-ID, en controleert eerst of de naam klopt voor het iets
+weggooit. De lijst om na te lopen genereer je naar `scripts/output/`.
 
 ## Een puzzel toevoegen
 

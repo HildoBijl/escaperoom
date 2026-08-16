@@ -50,7 +50,7 @@ service cloud.firestore {
 
       allow create: if
         request.resource.data.keys().hasOnly(["naam", "plaats", "leeftijd", "date"]) &&
-        isNonEmptyString(request.resource.data.naam, 1, 60) &&
+        isNonEmptyString(request.resource.data.naam, 1, 20) &&
         isNonEmptyString(request.resource.data.plaats, 1, 60) &&
         // The age dropdown starts at 5 ("5 en onder"), so the lower bound is 5
         // here rather than the 6 used elsewhere -- the previous version of this
@@ -73,7 +73,10 @@ service cloud.firestore {
         request.resource.data.keys().hasOnly([
           "name", "age", "createdAt"
         ]) &&
-        isNonEmptyString(request.resource.data.name, 1, 60) &&
+        // 20, not 60: the median entry is 5 characters and 90% are 14 or fewer,
+        // so this leaves every real first name room. The old 60 mostly bought
+        // graffiti, which also wrapped onto a second row in the popup.
+        isNonEmptyString(request.resource.data.name, 1, 20) &&
         isValidAge(request.resource.data.age) &&
         (request.resource.data.createdAt is timestamp);
 

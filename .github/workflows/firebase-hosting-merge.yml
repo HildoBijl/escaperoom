@@ -15,6 +15,27 @@ jobs:
       - run: cd apps/escape_a_2026 && npm install
       - run: cd apps/escape_b_2025 && npm install
       - run: npm run build
+
+      # firestore.rules lives in this repo but used to be rolled out by hand,
+      # so the file and production could drift apart unnoticed. That is exactly
+      # what happened to the kamp B leaderboard: its rule was dropped in
+      # February 2026 and nobody found out for six months. Deploying the rules
+      # alongside the site keeps the two in step.
+      #
+      # This runs before the hosting deploy on purpose: if the rules are
+      # rejected, the site is not published against rules that never landed.
+      # Only in this workflow -- a pull request must never touch production
+      # rules, so firebase-hosting-pull-request.yml deliberately has no
+      # equivalent step.
+      - name: Deploy Firestore rules
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VIERKANTESCAPEROOM }}
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx --yes firebase-tools deploy --only firestore:rules \
+            --project vierkantescaperoom --non-interactive
+
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}

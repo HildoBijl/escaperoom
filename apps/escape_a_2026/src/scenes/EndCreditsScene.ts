@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { WarpStars } from "../utils/TwinklingStars";
-import { submitLeaderboard, submitPrizes } from "../firebase/firestore";
+import { submitLeaderboard, submitPrizes, LEADERBOARD_NAME_MAX } from "../firebase/firestore";
 import { PRIZES_OPEN } from "../config/prizes";
 
 // Shown on the end screen (and in intro) once prize entry has closed.
@@ -455,6 +455,7 @@ export default class EndCreditsScene extends Phaser.Scene {
 
     // ---------- leaderboard fields ----------
     this.lbFirstName = makeInput("Voornaam", "Bijv. Sam", "text", lbSection);
+    this.lbFirstName.maxLength = LEADERBOARD_NAME_MAX;
 
     this.lbAge = makeInput("Leeftijd", "Bijv. 11", "number", lbSection);
     this.lbAge.min = "1";
@@ -890,6 +891,12 @@ export default class EndCreditsScene extends Phaser.Scene {
         const age = Number(ageRaw);
 
         if (!firstName) return this.setStatus("Vul je voornaam in.", true);
+        // maxLength already stops typing past this, but a pasted value or an
+        // old client could still get here -- and the rule would reject it with
+        // a generic failure, so say what is wrong instead.
+        if (firstName.length > LEADERBOARD_NAME_MAX) {
+          return this.setStatus(`Je voornaam mag maximaal ${LEADERBOARD_NAME_MAX} tekens zijn.`, true);
+        }
         if (!ageRaw || !Number.isFinite(age) || age < 6 || age > 120) {
           return this.setStatus("Vul een geldige leeftijd in.", true);
         }

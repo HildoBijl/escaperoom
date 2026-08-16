@@ -16,6 +16,13 @@ export const db = getFirestore(app);
 const LEADERBOARD = "leaderbord-kamp-a"; // public readable
 const PRIZES = "prizes-kamp-a"; // private (contains PII)
 
+// Must be kept in step with the `name` bound in firestore.rules, which is the
+// hard boundary; this constant only exists so the form can warn before sending.
+// Chosen from the live data: the median entry is 5 characters and 90% are 14 or
+// fewer, so real first names sit far below this. What used to sit above it was
+// graffiti rather than names, and long entries wrapped across two rows.
+export const LEADERBOARD_NAME_MAX = 20;
+
 export type LeaderboardEntry = {
   id?: string;
   name: string;

@@ -35,6 +35,35 @@ service cloud.firestore {
     }
 
     // ----------------------------
+    // Kamp B: PUBLIC leaderboard
+    // ----------------------------
+    // The kamp B app (apps/escape_b_2025, served at /kamp-b/) reads and writes
+    // this collection. Its rule was dropped when these rules were rewritten
+    // around kamp A in "Telemetry v2" (e87335f, 2026-02-09); because Firestore
+    // denies anything it does not explicitly allow, the kamp B leaderboard has
+    // been failing to load ever since.
+    //
+    // Field names are Dutch and differ from kamp A's: the app writes
+    // { naam, plaats, leeftijd, date } -- see Game.jsx and Leaderboard.jsx.
+    match /leaderboard/{docId} {
+      allow read, list: if true;
+
+      allow create: if
+        request.resource.data.keys().hasOnly(["naam", "plaats", "leeftijd", "date"]) &&
+        isNonEmptyString(request.resource.data.naam, 1, 60) &&
+        isNonEmptyString(request.resource.data.plaats, 1, 60) &&
+        // The age dropdown starts at 5 ("5 en onder"), so the lower bound is 5
+        // here rather than the 6 used elsewhere -- the previous version of this
+        // rule would have rejected the youngest option outright.
+        (request.resource.data.leeftijd is int &&
+         request.resource.data.leeftijd >= 5 &&
+         request.resource.data.leeftijd <= 120) &&
+        (request.resource.data.date is timestamp);
+
+      allow update, delete: if false;
+    }
+
+    // ----------------------------
     // Kamp A: PUBLIC leaderboard
     // ----------------------------
     match /leaderbord-kamp-a/{docId} {

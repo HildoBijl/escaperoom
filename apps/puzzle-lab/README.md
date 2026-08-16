@@ -17,7 +17,7 @@ npm run dev:lab                        # http://localhost:5175
 
 React 18 + TypeScript + Vite. Graphics met SVG en CSS.
 
-**Geen Phaser.** De escape room van 2025 draait daarop, maar voor puzzels
+**Geen Phaser.** De room voor kamp A van 2026 draait daarop, maar voor puzzels
 (grids, invoervelden, klikbare vormen) is een canvas-engine een extra laag die
 in de weg zit. Alles wat Phaser met sprites doet, doet SVG hier met vormen die
 je direct in de code beschrijft — en animaties zijn gewone CSS-transitions.

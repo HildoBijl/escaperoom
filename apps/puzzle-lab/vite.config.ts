@@ -23,7 +23,7 @@ export default defineConfig({
   },
 
   server: {
-    // 5173 (escape_a_2025) and 5174 (escape_b_2024) are taken.
+    // 5173 (escape_a_2026) and 5174 (escape_b_2025) are taken.
     port: 5175,
   },
 })

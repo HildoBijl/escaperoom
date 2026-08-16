@@ -13,6 +13,7 @@ twee kalenderjaren heen, dus het bouwjaar is geen bruikbaar label.
 |---|---|---|---|
 | `apps/escape_b_2025/` | kamp B, zomer 2025 (React + MUI + Vite) | 2024–2025 | Live, **bevroren** |
 | `apps/escape_a_2026/` | kamp A, zomer 2026 (Phaser + Vite) | 2025–2026 | Live, **bevroren** |
+| `apps/puzzle-lab/` | — (werkplaats, geen room) | 2026– | **Actief werk** |
 
 Deze mappen heetten tot augustus 2026 `escape_b_2024` en `escape_a_2025`, naar
 het bouwjaar. Kom je die oude namen nog ergens tegen, dan is dat een restant.
@@ -28,8 +29,13 @@ terughoudend, want ze zijn getest en draaien voor bezoekers.
 ## Actief werk: de rooms van 2027
 
 De rooms voor kamp A en kamp C van 2027 worden nu gebouwd, via het puzzellab in
-`apps/puzzle-lab/`. **Dat staat op de branch `puzzle-lab`, niet op `main`** — zie
-`apps/puzzle-lab/README.md` daar voor het puzzelcontract.
+`apps/puzzle-lab/` — zie `apps/puzzle-lab/README.md` voor het puzzelcontract.
+
+Het lab is een puzzelgalerij zonder verhaal, nog niet gesplitst per kamp: er is
+tot nu toe geen puzzel die specifiek voor A of voor C is. Of de twee rooms
+straks één app met een kampvariant worden of twee losse apps, is bewust nog niet
+beslist — dat volgt zodra er inhoud is die per kamp verschilt. Ga er dus niet
+van uit dat `puzzle-lab` later één van de rooms wordt.
 
 Stack: React + TypeScript + Vite, met SVG en CSS voor graphics. **Geen Phaser** —
 dat blijft beperkt tot `escape_a_2026`, dat niet omgebouwd wordt. Uit die room
@@ -41,7 +47,7 @@ opnieuw geschreven.
 
 De twee bevroren rooms zijn samen ~22.000 regels en overstemmen anders elke
 zoekopdracht. Zoek je iets voor het werk van 2027, beperk dat dan tot
-`apps/puzzle-lab/` (op de lab-branch) in plaats van repo-breed.
+`apps/puzzle-lab/` in plaats van repo-breed.
 
 ## Werken en deployen
 

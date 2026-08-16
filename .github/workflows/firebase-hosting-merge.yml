@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
-      - run: cd apps/escape_a_2025 && npm install
-      - run: cd apps/escape_b_2024 && npm install
+      - run: cd apps/escape_a_2026 && npm install
+      - run: cd apps/escape_b_2025 && npm install
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

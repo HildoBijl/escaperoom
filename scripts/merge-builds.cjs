@@ -3,8 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const rootDist = path.resolve(__dirname, '..', 'dist');
-const newDist = path.resolve(__dirname, '..', 'apps', 'escape_a_2025', 'dist');
-const oldDist = path.resolve(__dirname, '..', 'apps', 'escape_b_2024', 'dist');
+// Mapnamen zijn <kamp>_<kampjaar>: kamp A van 2026 staat op de hoofd-URL,
+// kamp B van 2025 wordt naar /kamp-b/ gekopieerd.
+const newDist = path.resolve(__dirname, '..', 'apps', 'escape_a_2026', 'dist');
+const oldDist = path.resolve(__dirname, '..', 'apps', 'escape_b_2025', 'dist');
 const oldTarget = path.join(rootDist, 'kamp-b');
 
 function copyDir(src, dest) {

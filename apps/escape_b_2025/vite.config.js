@@ -1,4 +1,4 @@
-// apps/escape_b_2024/vite.config.js
+// apps/escape_b_2025/vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import path from 'path'

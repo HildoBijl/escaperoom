@@ -2,13 +2,13 @@
   "name": "escape-root",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:2025\" \"npm run dev:2024\"",
-    "dev:2024": "npm run dev --prefix apps/escape_b_2024",
-    "dev:2025": "npm run dev --prefix apps/escape_a_2025",
+    "dev": "concurrently \"npm run dev:2026\" \"npm run dev:2025\"",
+    "dev:2025": "npm run dev --prefix apps/escape_b_2025",
+    "dev:2026": "npm run dev --prefix apps/escape_a_2026",
 
-    "build": "npm run build:2025 && npm run build:2024 && node scripts/merge-builds.cjs",
-    "build:2025": "npm run build --prefix apps/escape_a_2025",
-    "build:2024": "npm run build --prefix apps/escape_b_2024"
+    "build": "npm run build:2026 && npm run build:2025 && node scripts/merge-builds.cjs",
+    "build:2026": "npm run build --prefix apps/escape_a_2026",
+    "build:2025": "npm run build --prefix apps/escape_b_2025"
   },
   "devDependencies": {
     "chart.js": "^4.4.0",

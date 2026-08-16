@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { TwinklingStars, WarpStars } from "../utils/TwinklingStars";
-import { getLeaderboardKampA } from "../firebase/firestore";
+import { getLeaderboardKampA, LEADERBOARD_NAME_MAX } from "../firebase/firestore";
 import { enterAndKeepFullscreen } from "../utils/fullscreen";
 import { getIsDesktop } from "../ControlsMode";
 import { SAVE_KEY } from "./BootScene";
@@ -849,7 +849,14 @@ export default class TitleScene extends Phaser.Scene {
         // Number from oldest (#1) to newest
         const total = rows.length;
         rows.forEach((r, i) => {
-          const name = (r as any).name ?? "";
+          // Clamp on the way out as well as on the way in. The rule only binds
+          // new entries, so the 825 rows already stored still include ones long
+          // enough to wrap onto a second line in this popup.
+          const rawName = String((r as any).name ?? "");
+          const name =
+            rawName.length > LEADERBOARD_NAME_MAX
+              ? rawName.slice(0, LEADERBOARD_NAME_MAX - 1) + "…"
+              : rawName;
           const age = (r as any).age ?? "";
           let dateStr = "";
           const ts = (r as any).createdAt;

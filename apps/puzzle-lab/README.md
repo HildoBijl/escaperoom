@@ -23,6 +23,39 @@ in de weg zit. Alles wat Phaser met sprites doet, doet SVG hier met vormen die
 je direct in de code beschrijft — en animaties zijn gewone CSS-transitions.
 Zie `src/puzzles/weegschaal/` voor hoe dat eruitziet.
 
+## Uitgangspunt: invoer van spelers
+
+Zodra een room iets publiceert wat een kind zelf intypt — een leaderboard, een
+gastenboek, een naam bij een score — is dat werk dat blijft terugkomen. In het
+leaderboard van kamp A 2026 (825 inzendingen over zes maanden) stond onder meer
+`sex`, `drugs handelaar123` en `KAPTEN JACK SPEEAROW TUU TUU TUDUDUDU…`.
+
+De afspraak voor 2027, zodat dat weinig kost:
+
+**Eigen voornaam mag.** Dat is bewust: jezelf terugzien in de lijst is de
+bevestiging dat je inzending gelukt is, en meteen de beloning. Een succesmelding
+vervangt dat niet.
+
+**Valideer op vorm, niet op inhoud.** Eén woord, alleen letters plus koppelteken
+en apostrof, maximaal 20 tekens. Dat weert de graffiti zonder ooit een echte
+naam te weigeren: `Anne-Marie` en `Ayşe` komen er gewoon door.
+
+**Geen woordenlijst.** Die is triviaal te omzeilen (`s3x`, `se x`, `SEKS`) en
+raakt onschuldige namen: `Sexbierum` is een Fries dorp, `Lulof` een achternaam.
+Je krijgt misgrijpen én valse treffers, voor permanent onderhoud.
+
+**Wat er dan nog doorheen komt, ruim je periodiek op.** Bij dit volume is dat
+een kwartier per kwartaal. `scripts/output/leaderboard-controle.txt` laat zien
+hoe: alle inzendingen op alfabet met hun document-ID, aanvinken wat weg moet.
+
+**Publiceer niet meer dan nodig.** Kamp B 2025 toont voornaam, woonplaats én
+leeftijd van kinderen op een openbare pagina. Dat is meer dan je van een
+minderjarige online wilt hebben staan. Een voornaam alleen volstaat.
+
+Komt er in 2027 een prijsronde met echte instroom, dan is een goedkeuringswachtrij
+— inzendingen pas zichtbaar na akkoord — de robuuste stap. Die is niet te
+omzeilen, want er kijkt een mens naar. Bouw hem pas als het volume erom vraagt.
+
 ## Een puzzel toevoegen
 
 1. Maak `src/puzzles/<naam>/<Naam>Puzzle.tsx`.

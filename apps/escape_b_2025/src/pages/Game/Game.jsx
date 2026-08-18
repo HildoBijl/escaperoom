@@ -131,7 +131,9 @@ function LeaderboardRegistration() {
 			Iedereen die de Escape Room oplost mag de naam aan de <Link to="/leaderboard">lijst van oplossers</Link> toevoegen. Let op: de gegevens die je hier invoert zullen publiek zichtbaar zijn.
 		</p>
 		<FormPart>
-			<TextField fullWidth variant="outlined" id="naam" label="Voornaam" value={data.naam} onChange={event => setParam('naam', event.target.value)} />
+			{/* Matches the 20-character bound on `naam` in firestore.rules, so the
+			    form stops at the limit instead of failing on submit. */}
+			<TextField fullWidth variant="outlined" id="naam" label="Voornaam" value={data.naam} onChange={event => setParam('naam', event.target.value)} inputProps={{ maxLength: 20 }} />
 		</FormPart>
 		<FormPart>
 			<TextField fullWidth variant="outlined" id="plaats" label="Plaats (stad/gemeente)" value={data.plaats} onChange={event => setParam('plaats', event.target.value)} />

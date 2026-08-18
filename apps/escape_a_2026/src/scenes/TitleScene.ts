@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { TwinklingStars, WarpStars } from "../utils/TwinklingStars";
-import { getLeaderboardKampA } from "../firebase/firestore";
+import { getLeaderboardKampA, LEADERBOARD_NAME_MAX } from "../firebase/firestore";
 import { enterAndKeepFullscreen } from "../utils/fullscreen";
 import { getIsDesktop } from "../ControlsMode";
 import { SAVE_KEY } from "./BootScene";
@@ -75,6 +75,11 @@ type PopupState = {
   closeX: Phaser.GameObjects.Text;
   tabs: Tab[];
   tabIndex: number;
+  // Draw the body as plain text instead of parsing it word by word for links.
+  // Set for long generated lists (the leaderboard); it has to live on the popup
+  // rather than on a single call, because clicking the tab button rebuilds the
+  // body through switchPopupTab and would otherwise fall back to the slow path.
+  plainBody?: boolean;
   tabButtons: Array<{ pad: Phaser.GameObjects.Rectangle; text: Phaser.GameObjects.Text }>;
 
   viewportRect: Phaser.GameObjects.Rectangle;
@@ -603,11 +608,7 @@ export default class TitleScene extends Phaser.Scene {
     pop.content.y = pop.viewportY;
 
     const body = pop.tabs[pop.tabIndex]?.body ?? "";
-    const contentHeight = this.buildRichTextIntoContainer(pop.content, body, {
-      maxWidth: pop.viewportW,
-      fontSize: 18,
-      lineHeight: 26,
-    });
+    const contentHeight = this.buildPopupBody(pop, body);
 
     pop.scrollY = 0;
     pop.maxScroll = Math.max(0, contentHeight - pop.viewportH);
@@ -662,6 +663,64 @@ export default class TitleScene extends Phaser.Scene {
   private calcThumbH(trackH: number, contentH: number, minH: number) {
     // Same sizing behavior as your original: (trackH^2)/contentH with a minimum
     return contentH <= 0 ? trackH : Math.max(minH, (trackH * trackH) / contentH);
+  }
+
+  // Draw a popup body, picking the renderer the popup asked for.
+  private buildPopupBody(pop: PopupState, body: string): number {
+    const opts = { maxWidth: pop.viewportW, fontSize: 18, lineHeight: 26 };
+    return pop.plainBody
+      ? this.buildPlainTextIntoContainer(pop.content, body, opts)
+      : this.buildRichTextIntoContainer(pop.content, body, opts);
+  }
+
+  // =========================================================
+  // PLAIN TEXT (no links) into a container
+  // =========================================================
+  // buildRichTextIntoContainer below creates one Text object per word, so that
+  // each markdown link can be made clickable on its own. That is fine for a
+  // paragraph of a few dozen words, but the leaderboard is ~825 rows of six
+  // words: roughly 5000 Text objects, each allocating its own canvas and GPU
+  // texture, built in one synchronous loop. Fetching those rows takes under
+  // half a second; drawing them took over half a minute.
+  //
+  // Plain text contains no links, so it can be drawn in bulk. Not as a single
+  // Text object, though -- 825 rows would need a canvas taller than the maximum
+  // texture size on many GPUs. Blocks keep both the object count and each
+  // individual canvas small.
+  private buildPlainTextIntoContainer(
+    container: Phaser.GameObjects.Container,
+    raw: string,
+    opts: { maxWidth: number; fontSize: number; lineHeight: number }
+  ): number {
+    const { maxWidth, fontSize, lineHeight } = opts;
+    const BLOCK_LINES = 50;
+
+    const style: Phaser.Types.GameObjects.Text.TextStyle = {
+      fontFamily: "sans-serif",
+      fontSize: `${fontSize}px`,
+      color: "#cfe8ff",
+      wordWrap: { width: maxWidth },
+    };
+
+    // Match the line spacing of the rich-text path so both look the same.
+    const probe = this.add.text(0, 0, "Ag", style).setVisible(false);
+    const spacing = Math.max(0, lineHeight - probe.height);
+    probe.destroy();
+
+    const lines = raw.replace(/\r\n/g, "\n").split("\n");
+
+    let y = 0;
+    for (let i = 0; i < lines.length; i += BLOCK_LINES) {
+      const block = lines.slice(i, i + BLOCK_LINES).join("\n");
+      const t = this.add.text(0, y, block, style).setOrigin(0, 0);
+      t.setLineSpacing(spacing);
+      container.add(t);
+      // Advance by the measured height rather than a computed one, so wrapped
+      // lines cannot make the blocks drift apart or overlap.
+      y += t.height;
+    }
+
+    return y;
   }
 
   // =========================================================
@@ -790,7 +849,14 @@ export default class TitleScene extends Phaser.Scene {
         // Number from oldest (#1) to newest
         const total = rows.length;
         rows.forEach((r, i) => {
-          const name = (r as any).name ?? "";
+          // Clamp on the way out as well as on the way in. The rule only binds
+          // new entries, so the 825 rows already stored still include ones long
+          // enough to wrap onto a second line in this popup.
+          const rawName = String((r as any).name ?? "");
+          const name =
+            rawName.length > LEADERBOARD_NAME_MAX
+              ? rawName.slice(0, LEADERBOARD_NAME_MAX - 1) + "…"
+              : rawName;
           const age = (r as any).age ?? "";
           let dateStr = "";
           const ts = (r as any).createdAt;
@@ -803,7 +869,7 @@ export default class TitleScene extends Phaser.Scene {
           lines.push(`${idx}. ${name} (${ageStr})${suffix}`);
         });
 
-        this.replacePopupBody(lines.join("\n"));
+        this.replacePopupBody(lines.join("\n"), true);
       } catch (err) {
         console.error("[LEADERBOARD FAILED]", err);
         if (!this.popup) return;
@@ -812,13 +878,16 @@ export default class TitleScene extends Phaser.Scene {
     })();
   }
 
-  private replacePopupBody(body: string) {
+  // `plain` skips the per-word link parsing. Pass it for long generated lists
+  // such as the leaderboard, which contain no markdown links.
+  private replacePopupBody(body: string, plain = false) {
     const pop = this.popup;
     if (!pop) return;
 
     // Keep one tab; set its body
     pop.tabs = [{ title: "Leaderboard", body }];
     pop.tabIndex = 0;
+    pop.plainBody = plain;
 
     // Hide/disable tab buttons if there are multiple from earlier calls
     // (Since we opened with one tab, there should only be one.)
@@ -834,11 +903,7 @@ export default class TitleScene extends Phaser.Scene {
     pop.content.x = pop.viewportX;
     pop.content.y = pop.viewportY;
 
-    const contentHeight = this.buildRichTextIntoContainer(pop.content, body, {
-      maxWidth: pop.viewportW,
-      fontSize: 18,
-      lineHeight: 26,
-    });
+    const contentHeight = this.buildPopupBody(pop, body);
 
     pop.scrollY = 0;
     pop.maxScroll = Math.max(0, contentHeight - pop.viewportH);

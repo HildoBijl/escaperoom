@@ -32,6 +32,42 @@ Het werk voor 2027 is nieuwbouw en mag vrij bewegen.
       rechten over: Hosting deployen, rules publiceren, Auth beheren.
       Via https://console.cloud.google.com/iam-admin/iam?project=vierkantescaperoom
 
+- [ ] **Firestore-endpoints beschermen tegen misbruik.** Geen haast — er lekt
+      niets, lezen staat overal dicht — maar de schrijfkant staat open.
+
+      De Firebase-webconfig zit in de bundle en de rules eisen bij telemetrie
+      alleen een vormcontrole, geen authenticatie (`firestore.rules:195-202`).
+      Iedereen kan dus documenten aanmaken in `telemetry-analytics`,
+      `telemetry-errors` en `telemetry-bug-reports`. Het vervelendst is
+      `telemetry-meta`: `telemetryFirestore.ts:95` doet een vrije
+      `setDoc({ date, count })` en de rule staat dat toe, dus `count` op 999999
+      legt de telemetrie plat en `count` op 0 sloopt de bescherming tegen de
+      Spark-limiet van 20k writes/dag.
+
+      Twee stappen, in deze volgorde:
+
+      1. **Firebase App Check** aanzetten met reCAPTCHA v3. Onzichtbaar voor de
+         speler — geen scherm, geen account — en dekt in één keer zowel de
+         telemetrie als het leaderboard-gegraffiti waar
+         `scripts/leaderboard-remove.mjs` nu voor bestaat. Eerst in
+         monitoring-modus draaien en de console bekijken, vooral voor kamp B
+         (oudere React-app), en pas afdwingen als de cijfers schoon zijn. Denk
+         aan de debugtoken-flow, anders werkt de emulator niet meer.
+
+      2. **De budgetteller monotoon maken** in `firestore.rules` (nu regel
+         210-219): binnen dezelfde datum alleen ophogen, met een plafond van
+         ~50 per write; bij een nieuwe datum opnieuw beginnen. Dat is ruim
+         boven de `checkAndReserveBudget(10)` uit `telemetry/session.ts:46`,
+         dus het normale pad merkt er niets van.
+
+      Blijft over: ophogen in kleine stapjes, en resetten met een verzonnen
+      datum. Rules kunnen de serverdatum niet fatsoenlijk als `YYYY-MM-DD`
+      vergelijken. Aanvaardbaar, want elke poging kost zelf writes en App Check
+      houdt de scripted variant tegen.
+
+      Bewust níet doen: inloggen verplichten. Kinderen horen pas gegevens af te
+      staan als er een prijs te winnen valt.
+
 ## Rooms van 2027 (kamp A en kamp C)
 
 Dit werk speelt in `apps/puzzle-lab/`, op de branch `puzzle-lab`.

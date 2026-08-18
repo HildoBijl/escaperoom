@@ -2,7 +2,21 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on PR
-on: pull_request
+# Only the live rooms and the deploy configuration. A pull request that stays
+# inside apps/puzzle-lab/ or only touches docs skips this build -- the lab has
+# its own workflow and never reaches the live site.
+on:
+  pull_request:
+    paths:
+      - 'apps/escape_a_2026/**'
+      - 'apps/escape_b_2025/**'
+      - 'scripts/**'
+      - 'deploy/**'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'package.json'
+      - 'package-lock.json'
 permissions:
   checks: write
   contents: read
